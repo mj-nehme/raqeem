@@ -249,6 +249,7 @@ jobs:
     build-images:
         name: Build Docker Images
         runs-on: ubuntu-latest
+        environment: DockerHub
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         needs:
             [
