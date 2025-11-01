@@ -17,8 +17,12 @@ func main() {
 	database.Connect()
 
 	// Auto-migrate your models (include device-related models)
-	database.DB.AutoMigrate(&models.Activity{})
-	database.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.Process{}, &models.ActivityLog{}, &models.RemoteCommand{}, &models.Screenshot{}, &models.Alert{})
+	if err := database.DB.AutoMigrate(&models.Activity{}); err != nil {
+		log.Fatalf("AutoMigrate Activity failed: %v", err)
+	}
+	if err := database.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.Process{}, &models.ActivityLog{}, &models.RemoteCommand{}, &models.Screenshot{}, &models.Alert{}); err != nil {
+		log.Fatalf("AutoMigrate device models failed: %v", err)
+	}
 
 	r := gin.Default()
 

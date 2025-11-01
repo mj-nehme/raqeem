@@ -24,7 +24,9 @@ func setupTestDB(t *testing.T) {
 	os.Setenv("POSTGRES_PORT", os.Getenv("POSTGRES_PORT"))
 	database.Connect()
 	// Auto-migrate tables
-	database.DB.AutoMigrate(&models.Alert{})
+	if err := database.DB.AutoMigrate(&models.Alert{}); err != nil {
+		t.Fatalf("AutoMigrate Alert failed: %v", err)
+	}
 }
 
 func TestReportAndGetAlerts(t *testing.T) {

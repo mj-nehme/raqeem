@@ -14,7 +14,10 @@ var DB *gorm.DB
 
 func Connect() {
 	// Load environment variables from .env file
-	godotenv.Load() // Try to load .env but don't fail if it doesn't exist
+	if err := godotenv.Load(); err != nil {
+		// Don't fail hard; .env may not exist in CI/containers
+		log.Printf("godotenv.Load: %v", err)
+	}
 
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")

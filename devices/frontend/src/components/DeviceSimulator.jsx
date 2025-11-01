@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './DeviceSimulator.css';
 
 const BACKEND_URL = import.meta.env.VITE_DEVICES_API_URL;
@@ -28,7 +28,7 @@ function DeviceSimulator() {
         if (!deviceId) {
             setDeviceId(generateDeviceId());
         }
-    }, []);
+    }, [deviceId]);
 
     const addLog = (message, type = 'info') => {
         const timestamp = new Date().toLocaleTimeString();
@@ -67,7 +67,7 @@ function DeviceSimulator() {
         }
     };
 
-    const sendMetrics = async () => {
+    const sendMetrics = useCallback(async () => {
         try {
             const metrics = {
                 cpu_usage: Math.random() * 100,
@@ -94,9 +94,9 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Metrics error: ${error.message}`, 'error');
         }
-    };
+    }, [deviceId]);
 
-    const sendActivities = async () => {
+    const sendActivities = useCallback(async () => {
         try {
             const apps = ['Chrome', 'VSCode', 'Slack', 'Terminal', 'Spotify', 'Zoom'];
             const types = ['app_usage', 'file_access', 'network_activity'];
@@ -121,9 +121,9 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Activities error: ${error.message}`, 'error');
         }
-    };
+    }, [deviceId]);
 
-    const sendAlert = async () => {
+    const sendAlert = useCallback(async () => {
         try {
             const alertTypes = ['cpu_high', 'memory_high', 'disk_full', 'security_warning'];
             const levels = ['warning', 'critical'];
@@ -149,9 +149,9 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Alert error: ${error.message}`, 'error');
         }
-    };
+    }, [deviceId]);
 
-    const sendScreenshot = async () => {
+    const sendScreenshot = useCallback(async () => {
         try {
             // Create a simple colored canvas as screenshot
             const canvas = document.createElement('canvas');
@@ -189,7 +189,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Screenshot error: ${error.message}`, 'error');
         }
-    };
+    }, [deviceId]);
 
     const startSimulation = () => {
         if (!isRegistered) {
@@ -229,7 +229,7 @@ function DeviceSimulator() {
         }, 5000); // Every 5 seconds
 
         return () => clearInterval(interval);
-    }, [isRunning, isRegistered]);
+    }, [isRunning, isRegistered, sendMetrics, sendActivities, sendAlert, sendScreenshot]);
 
     return (
         <div className="simulator">
