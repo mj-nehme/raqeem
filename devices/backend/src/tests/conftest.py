@@ -16,44 +16,44 @@ load_dotenv()  # load .env variables
 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Create async SQLAlchemy engine and session for testing
-engine = create_async_engine(DATABASE_URL, echo=False)
-TestingSessionLocal = sessionmaker(
-    bind=engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
-
-@pytest.fixture(scope="session")
-async def prepare_database():
-    # Create tables before tests run
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    yield
-    # Optional: drop tables after tests
-    # async with engine.begin() as conn:
-    #     await conn.run_sync(Base.metadata.drop_all)
 
 @pytest.fixture(scope="function")
-async def db_session(prepare_database):
-    """Creates a new database session for a test."""
-    async with TestingSessionLocal() as session:
-        yield session
-        # Rollback after test to keep DB clean
-        await session.rollback()
+async def session_maker():
+    """Create an async engine and sessionmaker tied to the current event loop."""
+    engine = create_async_engine(DATABASE_URL, echo=False)
+    # Ensure tables exist for each test (idempotent)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    TestingSessionLocal = sessionmaker(
+        bind=engine,
+        class_=AsyncSession,
+        expire_on_commit=False,
+    )
+    try:
+        yield TestingSessionLocal
+    finally:
+        await engine.dispose()
 
-# Override get_db dependency in FastAPI app
-async def override_get_db():
-    async with TestingSessionLocal() as session:
-        yield session
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture(autouse=True)
+async def override_db_dependency(session_maker):
+    """Override FastAPI get_db to provide a new AsyncSession per request for this test."""
+    async def _get_db():
+        async with session_maker() as session:
+            yield session
+
+    app.dependency_overrides[get_db] = _get_db
+    yield
+    # cleanup override after test
+    app.dependency_overrides.pop(get_db, None)
+
 
 @pytest.fixture(scope="module")
 def client():
     """Sync test client for FastAPI."""
     with TestClient(app) as c:
         yield c
+
 
 @pytest.fixture(scope="module")
 async def async_client():
