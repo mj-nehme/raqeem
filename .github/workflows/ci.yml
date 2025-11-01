@@ -143,16 +143,6 @@ jobs:
                   cache: true
                   cache-dependency-path: mentor/backend/src/go.sum
 
-            - name: Cache Go build cache
-              uses: actions/cache@v4
-              with:
-                  path: |
-                      ~/.cache/go-build
-                      ~/go/pkg/mod
-                  key: ${{ runner.os }}-go-${{ hashFiles('mentor/backend/src/go.sum') }}
-                  restore-keys: |
-                      ${{ runner.os }}-go-
-
             - name: Download Go modules
               working-directory: mentor/backend/src
               run: go mod download
