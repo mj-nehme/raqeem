@@ -22,7 +22,7 @@
     },
     "devDependencies": {
         "@vitejs/plugin-react": "^4.4.1",
-        "vite": "^6.3.5",
+        "vite": "^7.1.12",
         "vitest": "^2.1.4",
         "@testing-library/react": "^16.1.0",
         "@testing-library/jest-dom": "^6.6.3",
