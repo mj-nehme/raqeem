@@ -1,6 +1,7 @@
 from app.db.base import Base
 from app.db.session import engine
-from app.models import user, location, screenshot, keystroke, app_activity, devices
+# Import models to register metadata
+from app.models import users, locations, screenshots, keystrokes, app_activity, devices
 
 
 async def init_db():

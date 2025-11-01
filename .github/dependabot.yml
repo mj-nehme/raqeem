@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/devices/backend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/devices/frontend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/mentor/frontend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/devices/backend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "docker"
+    directory: "/mentor/backend"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "gomod"
+    directory: "/mentor/backend/src"
+    schedule:
+      interval: "weekly"

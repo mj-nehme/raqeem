@@ -1,38 +1,45 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 from datetime import datetime
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+
+from app.db.session import get_db
+from app.models.screenshots import Screenshot as ScreenshotModel
 
 router = APIRouter()
 
 class ScreenshotCreate(BaseModel):
     user_id: str
-    image_url: str  # Changed from image_path to image_url to match test
-    timestamp: datetime | None = None
+    image_url: str
+    timestamp: Optional[datetime] = None
 
 class ScreenshotResponse(BaseModel):
-    id: int
+    id: str
     user_id: str
     image_url: str
-    timestamp: datetime | None = None
-
-# Mock data store
-screenshots_db: List[dict] = []
-screenshot_id_counter = 1
+    timestamp: Optional[datetime] = None
 
 @router.post("/", status_code=201, response_model=ScreenshotResponse)
-async def create_screenshot(screenshot: ScreenshotCreate):
-    global screenshot_id_counter
-    screenshot_data = {
-        "id": screenshot_id_counter,
-        "user_id": screenshot.user_id,
-        "image_url": screenshot.image_url,
-        "timestamp": screenshot.timestamp
+async def create_screenshot(screenshot: ScreenshotCreate, db: AsyncSession = Depends(get_db)):
+    # Model uses image_path, map from image_url
+    obj = ScreenshotModel(user_id=screenshot.user_id, image_path=screenshot.image_url)
+    db.add(obj)
+    await db.commit()
+    await db.refresh(obj)
+    return {
+        "id": str(obj.id),
+        "user_id": str(obj.user_id),
+        "image_url": obj.image_path,
+        "timestamp": screenshot.timestamp,
     }
-    screenshots_db.append(screenshot_data)
-    screenshot_id_counter += 1
-    return screenshot_data
 
 @router.get("/", response_model=List[ScreenshotResponse])
-async def get_screenshots():
-    return screenshots_db
+async def get_screenshots(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(ScreenshotModel))
+    items = result.scalars().all()
+    return [
+        {"id": str(x.id), "user_id": str(x.user_id), "image_url": x.image_path, "timestamp": None}
+        for x in items
+    ]
