@@ -1,5 +1,4 @@
 import os
-import json
 import pytest
 from httpx import AsyncClient, ASGITransport
 import respx

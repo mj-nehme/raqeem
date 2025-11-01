@@ -1,7 +1,7 @@
 import os
 import pytest
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
 
 load_dotenv()  # Load env vars from .env
