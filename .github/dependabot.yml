@@ -4,8 +4,7 @@ updates:
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
       time: "03:00"
       timezone: "Etc/UTC"
     open-pull-requests-limit: 10
@@ -14,8 +13,7 @@ updates:
   - package-ecosystem: "pip"
     directory: "/devices/backend"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
       time: "03:10"
       timezone: "Etc/UTC"
     allow:
@@ -26,8 +24,7 @@ updates:
   - package-ecosystem: "gomod"
     directory: "/mentor/backend/src"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
       time: "03:20"
       timezone: "Etc/UTC"
     open-pull-requests-limit: 10
@@ -36,8 +33,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/devices/frontend"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
       time: "03:30"
       timezone: "Etc/UTC"
     open-pull-requests-limit: 10
@@ -46,8 +42,7 @@ updates:
   - package-ecosystem: "npm"
     directory: "/mentor/frontend"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
       time: "03:40"
       timezone: "Etc/UTC"
     open-pull-requests-limit: 10
@@ -56,8 +51,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/devices/backend"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
       time: "03:50"
       timezone: "Etc/UTC"
     open-pull-requests-limit: 10
@@ -65,8 +59,7 @@ updates:
   - package-ecosystem: "docker"
     directory: "/mentor/backend"
     schedule:
-      interval: "weekly"
-      day: "sunday"
+      interval: "daily"
       time: "04:00"
       timezone: "Etc/UTC"
     open-pull-requests-limit: 10
