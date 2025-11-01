@@ -31,6 +31,22 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
 
+            - name: Verify PostgreSQL is ready
+              run: |
+                  for i in {1..30}; do
+                    pg_isready -h 127.0.0.1 -p 5432 -U monitor && echo "✅ PostgreSQL is ready" && break
+                    echo "Waiting for PostgreSQL... ($i/30)"
+                    sleep 2
+                  done
+                  pg_isready -h 127.0.0.1 -p 5432 -U monitor || (echo "❌ PostgreSQL failed to start" && exit 1)
+
+            - name: Test PostgreSQL connection
+              env:
+                  PGPASSWORD: password
+              run: |
+                  psql -h 127.0.0.1 -U monitor -d monitoring_db -c "SELECT version();"
+                  echo "✅ PostgreSQL connection successful"
+
             - name: Set up Python 3.11
               uses: actions/setup-python@v5
               with:
@@ -87,6 +103,22 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
+
+            - name: Verify PostgreSQL is ready
+              run: |
+                  for i in {1..30}; do
+                    pg_isready -h 127.0.0.1 -p 5432 -U monitor && echo "✅ PostgreSQL is ready" && break
+                    echo "Waiting for PostgreSQL... ($i/30)"
+                    sleep 2
+                  done
+                  pg_isready -h 127.0.0.1 -p 5432 -U monitor || (echo "❌ PostgreSQL failed to start" && exit 1)
+
+            - name: Test PostgreSQL connection
+              env:
+                  PGPASSWORD: password
+              run: |
+                  psql -h 127.0.0.1 -U monitor -d monitoring_db -c "SELECT version();"
+                  echo "✅ PostgreSQL connection successful"
 
             - name: Set up Go 1.23
               uses: actions/setup-go@v5
