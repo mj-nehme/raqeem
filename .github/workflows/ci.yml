@@ -100,7 +100,7 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
             - name: Set up Go 1.23
-              uses: actions/setup-go@v5
+              uses: actions/setup-go@v6
               with:
                   go-version: "1.23.x"
             - name: Run golangci-lint
@@ -239,7 +239,7 @@ jobs:
             - name: Checkout code
               uses: actions/checkout@v4
             - name: Set up Go 1.23
-              uses: actions/setup-go@v5
+              uses: actions/setup-go@v6
               with:
                   go-version: "1.23.x"
                   cache: true
