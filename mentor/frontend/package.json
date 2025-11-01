@@ -14,7 +14,7 @@
     "dependencies": {
         "react": "^19.1.0",
         "react-dom": "^19.1.0",
-        "recharts": "^2.9.0",
+        "recharts": "^3.3.0",
         "@mui/material": "^5.14.0",
         "@mui/icons-material": "^5.14.0",
         "@emotion/react": "^11.11.0",
