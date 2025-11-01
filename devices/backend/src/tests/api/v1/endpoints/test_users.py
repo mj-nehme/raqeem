@@ -2,8 +2,7 @@
 
 import pytest
 import pytest_asyncio
-from httpx import AsyncClient
-from httpx._transports.asgi import ASGITransport  # private API but works for now
+from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 @pytest_asyncio.fixture

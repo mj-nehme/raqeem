@@ -8,6 +8,6 @@ class LocationCreate(BaseModel):
     latitude: float
     longitude: float
 
-@router.post("/")
+@router.post("/", status_code=201)
 async def create_location(location: LocationCreate):
     return {"message": "Location added", "data": location}

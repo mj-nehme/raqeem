@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 
 from app.db.base import Base  # your SQLAlchemy models metadata
 from app.main import app
@@ -58,5 +58,5 @@ def client():
 @pytest.fixture(scope="module")
 async def async_client():
     """Async test client for FastAPI."""
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         yield ac

@@ -7,6 +7,6 @@ class KeystrokeCreate(BaseModel):
     user_id: str
     key: str
 
-@router.post("/")
+@router.post("/", status_code=201)
 async def create_keystroke(keystroke: KeystrokeCreate):
     return {"message": "Keystroke logged", "data": keystroke}

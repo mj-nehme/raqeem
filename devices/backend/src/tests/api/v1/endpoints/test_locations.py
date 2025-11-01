@@ -1,5 +1,5 @@
 import pytest
-from httpx import AsyncClient
+from httpx import AsyncClient, ASGITransport
 from app.main import app
 
 
@@ -10,7 +10,7 @@ async def test_create_location():
         "latitude": 51.5074,
         "longitude": -0.1278
     }
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/locations/", json=payload)
     # Adjust status based on your logic, probably 201 if created successfully
     assert response.status_code == 201
@@ -22,7 +22,7 @@ async def test_create_location():
 
 @pytest.mark.asyncio
 async def test_get_locations_list():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get("/api/v1/locations/")
     assert response.status_code == 200
     data = response.json()
