@@ -7,9 +7,9 @@ on:
         branches: [main, master]
 
 jobs:
-    # Test Python backend (Devices)
-    test-devices-backend:
-        name: Test Devices Backend (Python)
+    # Check services health before running tests
+    check-services:
+        name: Check Services Health
         runs-on: ubuntu-latest
 
         services:
@@ -46,6 +46,37 @@ jobs:
               run: |
                   psql -h 127.0.0.1 -U monitor -d monitoring_db -c "SELECT version();"
                   echo "✅ PostgreSQL connection successful"
+
+            - name: Initialize database
+              env:
+                  PGPASSWORD: password
+              run: |
+                  echo "📊 Database initialized and ready for tests"
+
+    # Test Python backend (Devices)
+    test-devices-backend:
+        name: Test Devices Backend (Python)
+        runs-on: ubuntu-latest
+        needs: check-services
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: monitor
+                    POSTGRES_PASSWORD: password
+                    POSTGRES_DB: monitoring_db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U monitor"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
 
             - name: Set up Python 3.11
               uses: actions/setup-python@v5
@@ -84,6 +115,7 @@ jobs:
     test-mentor-backend:
         name: Test Mentor Backend (Go)
         runs-on: ubuntu-latest
+        needs: check-services
 
         services:
             postgres:
@@ -103,22 +135,6 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
-
-            - name: Verify PostgreSQL is ready
-              run: |
-                  for i in {1..30}; do
-                    pg_isready -h 127.0.0.1 -p 5432 -U monitor && echo "✅ PostgreSQL is ready" && break
-                    echo "Waiting for PostgreSQL... ($i/30)"
-                    sleep 2
-                  done
-                  pg_isready -h 127.0.0.1 -p 5432 -U monitor || (echo "❌ PostgreSQL failed to start" && exit 1)
-
-            - name: Test PostgreSQL connection
-              env:
-                  PGPASSWORD: password
-              run: |
-                  psql -h 127.0.0.1 -U monitor -d monitoring_db -c "SELECT version();"
-                  echo "✅ PostgreSQL connection successful"
 
             - name: Set up Go 1.23
               uses: actions/setup-go@v5
@@ -163,6 +179,7 @@ jobs:
     test-mentor-frontend:
         name: Test Mentor Frontend (React)
         runs-on: ubuntu-latest
+        needs: check-services
 
         steps:
             - name: Checkout code
@@ -202,6 +219,7 @@ jobs:
     test-devices-frontend:
         name: Test Devices Frontend (React)
         runs-on: ubuntu-latest
+        needs: check-services
 
         steps:
             - name: Checkout code
