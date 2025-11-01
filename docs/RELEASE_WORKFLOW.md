@@ -67,9 +67,9 @@ This will verify:
 **What happens:**
 ```
 📦 Docker Images Tagged:
-  • jaafarn/raqeem-user-backend:v1.0.0
-  • jaafarn/raqeem-user-backend:v1.0.0-86e6e44
-  • jaafarn/raqeem-user-backend:latest
+  • jaafarn/raqeem-devices-backend:v1.0.0
+  • jaafarn/raqeem-devices-backend:v1.0.0-86e6e44
+  • jaafarn/raqeem-devices-backend:latest
 
   • jaafarn/raqeem-mentor-backend:v1.0.0
   • jaafarn/raqeem-mentor-backend:v1.0.0-86e6e44
@@ -108,9 +108,9 @@ When you run `./scripts/tag-release.sh v1.0.0`, it creates **ONE image** but giv
 
 ```bash
 # These all point to THE SAME IMAGE:
-jaafarn/raqeem-user-backend:v1.0.0           # Semantic version
-jaafarn/raqeem-user-backend:v1.0.0-86e6e44   # Version + git SHA
-jaafarn/raqeem-user-backend:latest           # Latest tag
+jaafarn/raqeem-devices-backend:v1.0.0           # Semantic version
+jaafarn/raqeem-devices-backend:v1.0.0-86e6e44   # Version + git SHA
+jaafarn/raqeem-devices-backend:latest           # Latest tag
 ```
 
 **Analogy:** Like having three bookmarks pointing to the same webpage.
@@ -130,8 +130,8 @@ jaafarn/raqeem-user-backend:latest           # Latest tag
 docker images | grep jaafarn
 
 # You have:
-jaafarn/raqeem-user-backend:86e6e44    # Git commit SHA
-jaafarn/raqeem-user-backend:latest     # Latest tag
+jaafarn/raqeem-devices-backend:86e6e44    # Git commit SHA
+jaafarn/raqeem-devices-backend:latest     # Latest tag
 jaafarn/raqeem-mentor-backend:86e6e44  # Git commit SHA  
 jaafarn/raqeem-mentor-backend:latest   # Latest tag
 ```
@@ -139,8 +139,8 @@ jaafarn/raqeem-mentor-backend:latest   # Latest tag
 ### What Will Be Built When You Run tag-release.sh
 ```bash
 # Will ADD these tags (same images, new tags):
-jaafarn/raqeem-user-backend:v1.0.0
-jaafarn/raqeem-user-backend:v1.0.0-86e6e44
+jaafarn/raqeem-devices-backend:v1.0.0
+jaafarn/raqeem-devices-backend:v1.0.0-86e6e44
 # (latest gets updated)
 
 jaafarn/raqeem-mentor-backend:v1.0.0
@@ -208,13 +208,13 @@ echo "IMAGE_TAG=v1.0.0" > .deploy/tag.env
 **Before (inconsistent):**
 ```
 jaafarn/mentor-backend          ⚠️ Old name
-jaafarn/raqeem-user-backend     ✅ Correct
+jaafarn/raqeem-user-backend     ⚠️ Old name
 ```
 
 **After (consistent):**
 ```
 jaafarn/raqeem-mentor-backend   ✅ Correct
-jaafarn/raqeem-user-backend     ✅ Correct
+jaafarn/raqeem-devices-backend  ✅ Correct
 ```
 
 Both Helm charts now use the `raqeem-*` naming convention.

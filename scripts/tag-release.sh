@@ -95,9 +95,9 @@ print_info "Building Docker images..."
 echo ""
 
 print_info "  Building Devices Backend..."
-docker build -t jaafarn/raqeem-user-backend:${VERSION} \
-             -t jaafarn/raqeem-user-backend:${VERSION}-${GIT_COMMIT} \
-             -t jaafarn/raqeem-user-backend:latest \
+docker build -t jaafarn/raqeem-devices-backend:${VERSION} \
+             -t jaafarn/raqeem-devices-backend:${VERSION}-${GIT_COMMIT} \
+             -t jaafarn/raqeem-devices-backend:latest \
              devices/backend/
 
 print_info "  Building Mentor Backend..."
@@ -114,9 +114,9 @@ print_info "Pushing images to Docker Hub..."
 echo ""
 
 print_info "  Pushing Devices Backend images..."
-docker push jaafarn/raqeem-user-backend:${VERSION}
-docker push jaafarn/raqeem-user-backend:${VERSION}-${GIT_COMMIT}
-docker push jaafarn/raqeem-user-backend:latest
+docker push jaafarn/raqeem-devices-backend:${VERSION}
+docker push jaafarn/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}
+docker push jaafarn/raqeem-devices-backend:latest
 
 print_info "  Pushing Mentor Backend images..."
 docker push jaafarn/raqeem-mentor-backend:${VERSION}
@@ -162,7 +162,7 @@ git commit -m "chore: release ${VERSION}
 git tag -a "${VERSION}" -m "Release ${VERSION}
 
 Docker Images:
-- jaafarn/raqeem-user-backend:${VERSION}
+- jaafarn/raqeem-devices-backend:${VERSION}
 - jaafarn/raqeem-mentor-backend:${VERSION}
 
 Git Commit: ${GIT_COMMIT}
@@ -177,9 +177,9 @@ print_success "Release ${VERSION} created successfully!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📦 Docker Images Tagged:"
-echo "  • jaafarn/raqeem-user-backend:${VERSION}"
-echo "  • jaafarn/raqeem-user-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • jaafarn/raqeem-user-backend:latest"
+echo "  • jaafarn/raqeem-devices-backend:${VERSION}"
+echo "  • jaafarn/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • jaafarn/raqeem-devices-backend:latest"
 echo ""
 echo "  • jaafarn/raqeem-mentor-backend:${VERSION}"
 echo "  • jaafarn/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}"
