@@ -104,7 +104,7 @@ jobs:
               with:
                   go-version: "1.23.x"
             - name: Run golangci-lint
-              uses: golangci/golangci-lint-action@v6
+              uses: golangci/golangci-lint-action@v8
               with:
                   version: v1.60.3
                   working-directory: mentor/backend/src
