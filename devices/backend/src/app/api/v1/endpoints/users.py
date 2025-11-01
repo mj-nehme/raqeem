@@ -22,9 +22,10 @@ class UserResponse(BaseModel):
 @router.post("/", status_code=201, response_model=UserResponse)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     obj = UserModel(device_id=user.device_id, name=user.name)
-    db.add(obj)
-    await db.commit()
-    await db.refresh(obj)
+    # Use a transaction context and avoid an immediate refresh to prevent overlapping operations
+    async with db.begin():
+        db.add(obj)
+    # At this point, the object has been flushed/committed; UUID is generated client-side
     return {"id": str(obj.id), "device_id": obj.device_id, "name": obj.name}
 
 @router.get("/", response_model=List[UserResponse])

@@ -29,9 +29,8 @@ async def create_app_activity(activity: AppActivityCreate, db: AsyncSession = De
         app_name=activity.app_name or "unknown",
         activity=activity.activity,
     )
-    db.add(obj)
-    await db.commit()
-    await db.refresh(obj)
+    async with db.begin():
+        db.add(obj)
     return {"id": str(obj.id), "user_id": str(obj.user_id), "activity": obj.activity, "timestamp": activity.timestamp}
 
 @router.get("/", response_model=List[AppActivityResponse])

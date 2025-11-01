@@ -24,9 +24,8 @@ class KeystrokeResponse(BaseModel):
 @router.post("/", status_code=201, response_model=KeystrokeResponse)
 async def create_keystroke(keystroke: KeystrokeCreate, db: AsyncSession = Depends(get_db)):
     obj = KeystrokeModel(user_id=keystroke.user_id, key=keystroke.key)
-    db.add(obj)
-    await db.commit()
-    await db.refresh(obj)
+    async with db.begin():
+        db.add(obj)
     return {"id": str(obj.id), "user_id": str(obj.user_id), "key": obj.key, "timestamp": keystroke.timestamp}
 
 @router.get("/", response_model=List[KeystrokeResponse])

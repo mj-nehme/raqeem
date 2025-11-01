@@ -25,9 +25,8 @@ class ScreenshotResponse(BaseModel):
 async def create_screenshot(screenshot: ScreenshotCreate, db: AsyncSession = Depends(get_db)):
     # Model uses image_path, map from image_url
     obj = ScreenshotModel(user_id=screenshot.user_id, image_path=screenshot.image_url)
-    db.add(obj)
-    await db.commit()
-    await db.refresh(obj)
+    async with db.begin():
+        db.add(obj)
     return {
         "id": str(obj.id),
         "user_id": str(obj.user_id),

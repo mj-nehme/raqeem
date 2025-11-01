@@ -26,9 +26,8 @@ class LocationResponse(BaseModel):
 @router.post("/", status_code=201, response_model=LocationResponse)
 async def create_location(location: LocationCreate, db: AsyncSession = Depends(get_db)):
     obj = LocationModel(user_id=location.user_id, latitude=location.latitude, longitude=location.longitude)
-    db.add(obj)
-    await db.commit()
-    await db.refresh(obj)
+    async with db.begin():
+        db.add(obj)
     return {
         "id": str(obj.id),
         "user_id": str(obj.user_id),
