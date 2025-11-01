@@ -245,11 +245,11 @@ jobs:
               working-directory: devices/frontend
               run: npm run test -- --run
 
-    # Build Docker images (only on push to master)
+    # Build Docker images (only on push to master with Docker credentials)
     build-images:
         name: Build Docker Images
         runs-on: ubuntu-latest
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master' && secrets.DOCKER_USERNAME != ''
         needs:
             [
                 test-devices-backend,
