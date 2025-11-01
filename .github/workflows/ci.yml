@@ -7,7 +7,9 @@ on:
         branches: [main, master]
 
 jobs:
-    build-and-test:
+    # Test Python backend (Devices)
+    test-devices-backend:
+        name: Test Devices Backend (Python)
         runs-on: ubuntu-latest
 
         services:
@@ -20,55 +22,94 @@ jobs:
                 ports:
                     - 5432:5432
                 options: >-
-                    --health-cmd "pg_isready -U monitor" 
-                    --health-interval 10s 
-                    --health-timeout 5s 
+                    --health-cmd "pg_isready -U monitor"
+                    --health-interval 10s
+                    --health-timeout 5s
                     --health-retries 5
 
-        env:
-            # Common DB env for both Python and Go tests
-            POSTGRES_USER: monitor
-            POSTGRES_PASSWORD: password
-            POSTGRES_DB: monitoring_db
-            POSTGRES_HOST: 127.0.0.1
-            POSTGRES_PORT: 5432
-
         steps:
-            - name: Checkout
+            - name: Checkout code
               uses: actions/checkout@v4
 
-            - name: Set up Python
+            - name: Set up Python 3.11
               uses: actions/setup-python@v5
               with:
                   python-version: "3.11"
 
-            - name: Install Python deps (devices backend)
+            - name: Cache pip packages
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/pip
+                  key: ${{ runner.os }}-pip-devices-${{ hashFiles('devices/backend/requirements*.txt') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pip-devices-
+                      ${{ runner.os }}-pip-
+
+            - name: Install dependencies
               working-directory: devices/backend
               run: |
                   python -m pip install --upgrade pip
-                  pip install -r requirements.txt
-                  pip install -r requirements-test.txt
+                  pip install -r requirements.txt -r requirements-test.txt
 
-            - name: Run Python tests (devices backend)
+            - name: Run pytest
               working-directory: devices/backend/src
               env:
                   DATABASE_URL: postgresql+asyncpg://monitor:password@127.0.0.1:5432/monitoring_db
-                  SECRET_KEY: test-secret
+                  SECRET_KEY: test-secret-key-for-ci
                   ACCESS_TOKEN_EXPIRE_MINUTES: 10080
                   MINIO_ENDPOINT: http://127.0.0.1:9000
                   MINIO_ACCESS_KEY: minio
                   MINIO_SECRET_KEY: miniosecret
                   MINIO_SECURE: "false"
                   MENTOR_API_URL: http://127.0.0.1:8080
-              run: |
-                  pytest -q
+              run: pytest -v --tb=short
 
-            - name: Set up Go
+    # Test Go backend (Mentor)
+    test-mentor-backend:
+        name: Test Mentor Backend (Go)
+        runs-on: ubuntu-latest
+
+        services:
+            postgres:
+                image: postgres:16
+                env:
+                    POSTGRES_USER: monitor
+                    POSTGRES_PASSWORD: password
+                    POSTGRES_DB: monitoring_db
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U monitor"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Go 1.23
               uses: actions/setup-go@v5
               with:
                   go-version: "1.23.x"
+                  cache: true
+                  cache-dependency-path: mentor/backend/src/go.sum
 
-            - name: Go test (mentor backend)
+            - name: Cache Go build cache
+              uses: actions/cache@v4
+              with:
+                  path: |
+                      ~/.cache/go-build
+                      ~/go/pkg/mod
+                  key: ${{ runner.os }}-go-${{ hashFiles('mentor/backend/src/go.sum') }}
+                  restore-keys: |
+                      ${{ runner.os }}-go-
+
+            - name: Download Go modules
+              working-directory: mentor/backend/src
+              run: go mod download
+
+            - name: Run Go tests
               working-directory: mentor/backend/src
               env:
                   POSTGRES_USER: monitor
@@ -76,23 +117,156 @@ jobs:
                   POSTGRES_DB: monitoring_db
                   POSTGRES_HOST: 127.0.0.1
                   POSTGRES_PORT: "5432"
-              run: |
-                  go mod download
-                  go test ./... -v
+              run: go test ./... -v -race -coverprofile=coverage.out
 
-            - name: Set up Node.js
+            - name: Upload coverage
+              uses: codecov/codecov-action@v4
+              if: success()
+              continue-on-error: true
+              with:
+                  file: mentor/backend/src/coverage.out
+                  flags: mentor-backend
+
+    # Test Mentor Frontend (React)
+    test-mentor-frontend:
+        name: Test Mentor Frontend (React)
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js 20
               uses: actions/setup-node@v4
               with:
                   node-version: "20"
 
-            - name: Install and test mentor frontend
-              working-directory: mentor/frontend
-              run: |
-                  npm ci || npm install
-                  npm run test -- --run
+            - name: Cache npm dependencies
+              uses: actions/cache@v4
+              with:
+                  path: ~/.npm
+                  key: ${{ runner.os }}-npm-mentor-${{ hashFiles('mentor/frontend/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-npm-mentor-
+                      ${{ runner.os }}-npm-
 
-            - name: Install and test devices frontend
+            - name: Cache node_modules
+              uses: actions/cache@v4
+              with:
+                  path: mentor/frontend/node_modules
+                  key: ${{ runner.os }}-node-modules-mentor-${{ hashFiles('mentor/frontend/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-modules-mentor-
+
+            - name: Install dependencies
+              working-directory: mentor/frontend
+              run: npm ci --prefer-offline --no-audit
+
+            - name: Run tests
+              working-directory: mentor/frontend
+              run: npm run test -- --run
+
+    # Test Devices Frontend (React)
+    test-devices-frontend:
+        name: Test Devices Frontend (React)
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Node.js 20
+              uses: actions/setup-node@v4
+              with:
+                  node-version: "20"
+
+            - name: Cache npm dependencies
+              uses: actions/cache@v4
+              with:
+                  path: ~/.npm
+                  key: ${{ runner.os }}-npm-devices-${{ hashFiles('devices/frontend/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-npm-devices-
+                      ${{ runner.os }}-npm-
+
+            - name: Cache node_modules
+              uses: actions/cache@v4
+              with:
+                  path: devices/frontend/node_modules
+                  key: ${{ runner.os }}-node-modules-devices-${{ hashFiles('devices/frontend/package-lock.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-modules-devices-
+
+            - name: Install dependencies
               working-directory: devices/frontend
-              run: |
-                  npm ci || npm install
-                  npm run test -- --run
+              run: npm ci --prefer-offline --no-audit
+
+            - name: Run tests
+              working-directory: devices/frontend
+              run: npm run test -- --run
+
+    # Build Docker images (only on push to master)
+    build-images:
+        name: Build Docker Images
+        runs-on: ubuntu-latest
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        needs:
+            [
+                test-devices-backend,
+                test-mentor-backend,
+                test-mentor-frontend,
+                test-devices-frontend,
+            ]
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Log in to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKER_USERNAME }}
+                  password: ${{ secrets.DOCKER_PASSWORD }}
+
+            - name: Extract metadata for devices backend
+              id: meta-devices
+              uses: docker/metadata-action@v5
+              with:
+                  images: jaafarn/raqeem-devices-backend
+                  tags: |
+                      type=ref,event=branch
+                      type=sha,prefix={{branch}}-
+                      type=raw,value=latest,enable={{is_default_branch}}
+
+            - name: Build and push devices backend
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./devices/backend
+                  push: true
+                  tags: ${{ steps.meta-devices.outputs.tags }}
+                  labels: ${{ steps.meta-devices.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
+
+            - name: Extract metadata for mentor backend
+              id: meta-mentor
+              uses: docker/metadata-action@v5
+              with:
+                  images: jaafarn/raqeem-mentor-backend
+                  tags: |
+                      type=ref,event=branch
+                      type=sha,prefix={{branch}}-
+                      type=raw,value=latest,enable={{is_default_branch}}
+
+            - name: Build and push mentor backend
+              uses: docker/build-push-action@v5
+              with:
+                  context: ./mentor/backend
+                  push: true
+                  tags: ${{ steps.meta-mentor.outputs.tags }}
+                  labels: ${{ steps.meta-mentor.outputs.labels }}
+                  cache-from: type=gha
+                  cache-to: type=gha,mode=max
