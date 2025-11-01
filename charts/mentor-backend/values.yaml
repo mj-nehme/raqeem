@@ -1,0 +1,45 @@
+replicaCount: 1
+
+image:
+  repository: jaafarn/raqeem-mentor-backend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8080
+  nodePort: 30081
+
+resources: {}
+
+postgres:
+  host: postgres-service.default.svc.cluster.local
+  port: 5432
+  db: monitoring_db
+  user: monitor
+  passwordSecret:
+    name: postgres-secret
+    key: POSTGRES_PASSWORD
+
+minio:
+  endpoint: http://minio-service.default.svc.cluster.local:9000
+  region: us-east-1
+  bucket: screenshots
+  accessKeySecret:
+    name: minio-secret
+    key: accesskey
+  secretKeySecret:
+    name: minio-secret
+    key: secretkey
+
+# CORS configuration - frontend origin(s)
+# Can be a single origin or comma-separated list
+# This default is overridden by start.sh using the MENTOR_FRONTEND_PORT from .env
+frontendOrigin: "http://localhost:15000"
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

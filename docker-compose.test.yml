@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: monitor
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: monitoring_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U monitor"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minio
+      MINIO_ROOT_PASSWORD: miniosecret
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  devices-backend:
+    build:
+      context: ./devices/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: "8081"
+      DATABASE_URL: "postgresql+asyncpg://monitor:password@postgres:5432/monitoring_db"
+      SECRET_KEY: "test-secret-key"
+      ACCESS_TOKEN_EXPIRE_MINUTES: "10080"
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "minio"
+      MINIO_SECRET_KEY: "miniosecret"
+      MINIO_SECURE: "false"
+      MENTOR_API_URL: "http://mentor-backend:8080"
+      FRONTEND_ORIGINS: "http://localhost:14000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  mentor-backend:
+    build:
+      context: ./mentor/backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      PORT: "8080"
+      POSTGRES_USER: monitor
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: monitoring_db
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      MINIO_ENDPOINT: "http://minio:9000"
+      MINIO_ACCESS_KEY: "minio"
+      MINIO_SECRET_KEY: "miniosecret"
+      FRONTEND_ORIGIN: "http://localhost:15000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  default:
+    name: raqeem-test-network

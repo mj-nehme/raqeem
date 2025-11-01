@@ -1,0 +1,36 @@
+# Environment
+.venv
+.env
+!.env.example
+
+# Logs
+*.log
+*/*.log
+portforward.log
+
+# OS files
+.DS_Store
+.*/
+
+# Node
+node_modules/
+*/*/node_modules/*
+
+# Build artifacts
+**/dist/
+**/build/
+
+# Python cache
+**/__pycache__/
+**/.pytest_cache/
+
+# Deployment state
+.deploy/
+
+# Temporary docs (created during development)
+*_SUMMARY.md
+*_FINAL.md
+*_VALIDATION.md
+*_RESULTS.md
+COMMIT_MSG.txt
+

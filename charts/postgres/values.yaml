@@ -1,0 +1,27 @@
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "15"
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  port: 5432
+  nodePort: 30432
+
+storage:
+  size: 2Gi
+
+postgres:
+  user: monitor
+  password: supersecret
+  db: monitoring_db
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

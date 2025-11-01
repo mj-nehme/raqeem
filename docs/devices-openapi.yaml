@@ -1,0 +1,609 @@
+openapi: 3.0.3
+info:
+  title: Raqeem Devices Backend API
+  description: |
+    API for device telemetry ingestion, device registration, and data collection.
+    This backend receives data from monitored devices and stores it in PostgreSQL and MinIO.
+  version: 1.0.0
+  contact:
+    name: Raqeem Team
+servers:
+  - url: "{scheme}://{host}:{port}/api/v1"
+    variables:
+      scheme:
+        default: http
+        enum:
+          - http
+          - https
+      host:
+        default: localhost
+      port:
+        default: "PORT"
+        description: "Set to your devices backend port (e.g., from .env: DEVICES_BACKEND_PORT)"
+    description: Local development server
+  - url: https://api.raqeem.example.com/api/v1
+    description: Production server
+
+tags:
+  - name: devices
+    description: Device registration and management
+  - name: metrics
+    description: Device metrics and performance data
+  - name: activities
+    description: Device activity logs
+  - name: alerts
+    description: Device alerts and warnings
+  - name: screenshots
+    description: Screenshot upload and management
+  - name: processes
+    description: Running processes information
+  - name: users
+    description: User management (legacy)
+  - name: locations
+    description: Device location tracking (legacy)
+  - name: keystrokes
+    description: Keystroke logging (legacy)
+  - name: app_activity
+    description: Application activity logging (legacy)
+
+paths:
+  /devices/register:
+    post:
+      tags:
+        - devices
+      summary: Register or update a device
+      description: |
+        Register a new device or update an existing device's information.
+        If device_id exists, updates the device. Otherwise creates a new device.
+      operationId: registerDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceRegistration"
+            examples:
+              laptop:
+                summary: Register a laptop
+                value:
+                  id: "device-abc123"
+                  name: "John's MacBook Pro"
+                  type: "laptop"
+                  os: "macOS"
+                  current_user: "john.doe"
+                  location: "San Francisco Office"
+                  ip_address: "192.168.1.100"
+                  mac_address: "aa:bb:cc:dd:ee:ff"
+      responses:
+        "200":
+          description: Device registered or updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  device_id:
+                    type: string
+                  created:
+                    type: boolean
+                  updated:
+                    type: boolean
+        "400":
+          description: Missing device ID
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /devices/:
+    get:
+      tags:
+        - devices
+      summary: List all devices
+      description: Get a list of all registered devices
+      operationId: listDevices
+      responses:
+        "200":
+          description: List of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+
+  /devices/{device_id}/metrics:
+    post:
+      tags:
+        - metrics
+      summary: Submit device metrics
+      description: Submit system performance metrics for a device
+      operationId: postMetrics
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique device identifier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceMetrics"
+            example:
+              cpu_usage: 45.2
+              cpu_temp: 62.5
+              memory_total: 16384
+              memory_used: 8192
+              swap_used: 512
+              disk_total: 500000
+              disk_used: 250000
+              net_bytes_in: 1024000
+              net_bytes_out: 512000
+      responses:
+        "200":
+          description: Metrics recorded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+
+  /devices/{device_id}/processes:
+    post:
+      tags:
+        - processes
+      summary: Submit running processes
+      description: Submit list of currently running processes on the device
+      operationId: postProcesses
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Process"
+            example:
+              - pid: 1234
+                name: "chrome"
+                cpu: 25.5
+                memory: 1024
+                command: "/usr/bin/chrome"
+              - pid: 5678
+                name: "vscode"
+                cpu: 15.2
+                memory: 512
+                command: "/usr/bin/code"
+      responses:
+        "200":
+          description: Processes recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inserted:
+                    type: integer
+
+  /devices/{device_id}/activities:
+    post:
+      tags:
+        - activities
+      summary: Submit activity logs
+      description: Submit device activity logs (app usage, file access, etc.)
+      operationId: postActivities
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Activity"
+            example:
+              - type: "app_usage"
+                app: "Chrome"
+                description: "Browsing github.com"
+                duration: 300
+              - type: "file_access"
+                app: "VSCode"
+                description: "Edited main.py"
+                duration: 120
+      responses:
+        "200":
+          description: Activities recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inserted:
+                    type: integer
+
+  /devices/{device_id}/alerts:
+    post:
+      tags:
+        - alerts
+      summary: Submit alerts
+      description: Submit device alerts and warnings
+      operationId: postAlerts
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Alert"
+            example:
+              - level: "warning"
+                type: "cpu_high"
+                message: "CPU usage above threshold"
+                value: 85.5
+                threshold: 80.0
+      responses:
+        "200":
+          description: Alerts recorded
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  inserted:
+                    type: integer
+
+  /screenshots:
+    post:
+      tags:
+        - screenshots
+      summary: Upload screenshot
+      description: |
+        Upload a screenshot image file to MinIO object storage.
+        File is stored in the 'screenshots' bucket.
+      operationId: uploadScreenshot
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                device_id:
+                  type: string
+                  description: Device ID that captured the screenshot
+                file:
+                  type: string
+                  format: binary
+                  description: Screenshot image file (PNG, JPG, etc.)
+              required:
+                - device_id
+                - file
+      responses:
+        "200":
+          description: Screenshot uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      device_id:
+                        type: string
+                      image_path:
+                        type: string
+
+  /users/:
+    post:
+      tags:
+        - users
+      summary: Create user (legacy)
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserCreate"
+      responses:
+        "200":
+          description: User created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/UserCreate"
+
+  /locations/:
+    post:
+      tags:
+        - locations
+      summary: Log location (legacy)
+      operationId: createLocation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LocationCreate"
+      responses:
+        "200":
+          description: Location logged
+
+  /keystrokes/:
+    post:
+      tags:
+        - keystrokes
+      summary: Log keystroke (legacy)
+      operationId: createKeystroke
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/KeystrokeCreate"
+      responses:
+        "200":
+          description: Keystroke logged
+
+  /app-activity/:
+    post:
+      tags:
+        - app_activity
+      summary: Log app activity (legacy)
+      operationId: createAppActivity
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppActivityCreate"
+      responses:
+        "200":
+          description: Activity logged
+
+components:
+  schemas:
+    DeviceRegistration:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Unique device identifier
+          example: "device-abc123"
+        device_id:
+          type: string
+          description: Alternative field name for device ID
+        name:
+          type: string
+          description: Human-readable device name
+          example: "John's MacBook Pro"
+        type:
+          type: string
+          description: Device type
+          enum: [laptop, desktop, mobile, tablet, server]
+          example: "laptop"
+        os:
+          type: string
+          description: Operating system
+          example: "macOS"
+        current_user:
+          type: string
+          description: Current logged-in user
+          example: "john.doe"
+        location:
+          type: string
+          description: Physical location
+          example: "San Francisco Office"
+        ip_address:
+          type: string
+          description: Device IP address
+          example: "192.168.1.100"
+        mac_address:
+          type: string
+          description: Device MAC address
+          example: "aa:bb:cc:dd:ee:ff"
+
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        os:
+          type: string
+        last_seen:
+          type: string
+          format: date-time
+        is_online:
+          type: boolean
+        location:
+          type: string
+        ip_address:
+          type: string
+        mac_address:
+          type: string
+        current_user:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    DeviceMetrics:
+      type: object
+      properties:
+        cpu_usage:
+          type: number
+          format: float
+          description: CPU usage percentage (0-100)
+          example: 45.2
+        cpu_temp:
+          type: number
+          format: float
+          description: CPU temperature in Celsius
+          example: 62.5
+        memory_total:
+          type: integer
+          description: Total memory in MB
+          example: 16384
+        memory_used:
+          type: integer
+          description: Used memory in MB
+          example: 8192
+        swap_used:
+          type: integer
+          description: Swap memory used in MB
+          example: 512
+        disk_total:
+          type: integer
+          description: Total disk space in MB
+          example: 500000
+        disk_used:
+          type: integer
+          description: Used disk space in MB
+          example: 250000
+        net_bytes_in:
+          type: integer
+          description: Network bytes received
+          example: 1024000
+        net_bytes_out:
+          type: integer
+          description: Network bytes sent
+          example: 512000
+
+    Process:
+      type: object
+      properties:
+        pid:
+          type: integer
+          description: Process ID
+        name:
+          type: string
+          description: Process name
+        cpu:
+          type: number
+          format: float
+          description: CPU usage percentage
+        memory:
+          type: integer
+          description: Memory usage in MB
+        command:
+          type: string
+          description: Full command line
+
+    Activity:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Activity type
+          enum: [app_usage, file_access, network_activity]
+        app:
+          type: string
+          description: Application name
+        description:
+          type: string
+          description: Activity description
+        duration:
+          type: integer
+          description: Duration in seconds
+
+    Alert:
+      type: object
+      properties:
+        level:
+          type: string
+          enum: [info, warning, critical]
+          description: Alert severity level
+        type:
+          type: string
+          enum: [cpu_high, memory_high, disk_full, security_warning]
+          description: Alert type
+        message:
+          type: string
+          description: Alert message
+        value:
+          type: number
+          description: Current value
+        threshold:
+          type: number
+          description: Threshold value
+
+    UserCreate:
+      type: object
+      properties:
+        device_id:
+          type: string
+        name:
+          type: string
+
+    LocationCreate:
+      type: object
+      properties:
+        user_id:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+
+    KeystrokeCreate:
+      type: object
+      properties:
+        user_id:
+          type: string
+        key:
+          type: string
+
+    AppActivityCreate:
+      type: object
+      properties:
+        user_id:
+          type: string
+        app_name:
+          type: string
+        activity:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Error message

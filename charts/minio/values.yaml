@@ -1,0 +1,31 @@
+replicaCount: 1
+
+image:
+  repository: quay.io/minio/minio
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: NodePort
+  apiPort: 9000
+  consolePort: 9001
+  consoleNodePort: 30001
+
+storage:
+  size: 2Gi
+
+minio:
+  rootUser: minioadmin
+  rootPassword: minioadmin1234
+  # URLs are set dynamically based on your port-forward or ingress setup
+  # Override these via --set minio.serverUrl=... or in your .env-driven deployment
+  serverUrl: ""
+  browserRedirectUrl: ""
+
+resources: {}
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

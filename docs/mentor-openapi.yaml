@@ -1,0 +1,394 @@
+openapi: 3.0.3
+info:
+  title: Mentor Backend API
+  version: 1.0.0
+  description: |
+    OpenAPI specification for the Mentor backend. Covers device management, telemetry ingestion,
+    remote commands and alerts. This file is generated from the code and models in the repository.
+servers:
+  - url: "{scheme}://{host}:{port}"
+    variables:
+      scheme:
+        default: http
+        enum:
+          - http
+          - https
+      host:
+        default: localhost
+      port:
+        default: "PORT"
+        description: "Set this to your mentor backend port (e.g., from .env: MENTOR_BACKEND_PORT)"
+
+paths:
+  /devices:
+    get:
+      summary: List registered devices
+      responses:
+        "200":
+          description: Array of devices
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Device"
+    post:
+      summary: Register or update a device (alias)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceCreate"
+      responses:
+        "200":
+          description: Device created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+
+  /devices/register:
+    post:
+      summary: Register or update a device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceCreate"
+      responses:
+        "200":
+          description: Device created or updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+
+  /devices/metrics:
+    post:
+      summary: Ingest device metrics (bulk endpoint)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceMetrics"
+      responses:
+        "200":
+          description: Metrics accepted
+
+  /devices/{id}/metrics:
+    get:
+      summary: Get metrics for a device (most recent points)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 60
+      responses:
+        "200":
+          description: List of metric points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DeviceMetrics"
+
+  /devices/{id}/processes:
+    post:
+      summary: Replace process list for a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Process"
+      responses:
+        "200":
+          description: Processes accepted
+
+  /devices/{id}/activities:
+    post:
+      summary: Post activity entries for a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/ActivityLog"
+      responses:
+        "200":
+          description: Activities accepted
+
+  /devices/{id}/alerts:
+    post:
+      summary: Post alerts for a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/Alert"
+      responses:
+        "200":
+          description: Alerts accepted
+
+  /devices/commands:
+    post:
+      summary: Queue a remote command for a device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteCommandCreate"
+      responses:
+        "200":
+          description: Command queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteCommand"
+
+  /devices/{id}/commands/pending:
+    get:
+      summary: Get pending remote commands for a device
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of pending commands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RemoteCommand"
+
+  /commands/status:
+    post:
+      summary: Update a remote command status
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RemoteCommandStatusUpdate"
+      responses:
+        "200":
+          description: Updated command
+
+  /activities:
+    get:
+      summary: List recent activities
+      responses:
+        "200":
+          description: Activity list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityLog"
+
+components:
+  schemas:
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+        os:
+          type: string
+        last_seen:
+          type: string
+          format: date-time
+        is_online:
+          type: boolean
+        location:
+          type: string
+        ip_address:
+          type: string
+        mac_address:
+          type: string
+        current_user:
+          type: string
+
+    DeviceCreate:
+      allOf:
+        - $ref: "#/components/schemas/Device"
+
+    DeviceMetrics:
+      type: object
+      properties:
+        id:
+          type: integer
+        device_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        cpu_usage:
+          type: number
+          format: float
+        cpu_temp:
+          type: number
+        memory_total:
+          type: integer
+        memory_used:
+          type: integer
+        swap_used:
+          type: integer
+        disk_total:
+          type: integer
+        disk_used:
+          type: integer
+        net_bytes_in:
+          type: integer
+        net_bytes_out:
+          type: integer
+
+    Process:
+      type: object
+      properties:
+        id:
+          type: integer
+        device_id:
+          type: string
+        pid:
+          type: integer
+        name:
+          type: string
+        cpu:
+          type: number
+        memory:
+          type: integer
+        command:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    ActivityLog:
+      type: object
+      properties:
+        id:
+          type: integer
+        device_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        type:
+          type: string
+        description:
+          type: string
+        app:
+          type: string
+        duration:
+          type: integer
+
+    RemoteCommandCreate:
+      type: object
+      required: [device_id, command]
+      properties:
+        device_id:
+          type: string
+        command:
+          type: string
+
+    RemoteCommand:
+      type: object
+      properties:
+        id:
+          type: integer
+        device_id:
+          type: string
+        command:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        result:
+          type: string
+        exit_code:
+          type: integer
+
+    RemoteCommandStatusUpdate:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        result:
+          type: string
+        exit_code:
+          type: integer
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: integer
+        device_id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        level:
+          type: string
+        type:
+          type: string
+        message:
+          type: string
+        value:
+          type: number
+        threshold:
+          type: number

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>Upload Screenshot Test</title>
+</head>
+
+<body>
+  <h1>Upload Screenshot to Backend</h1>
+  <form id="uploadForm">
+    <label>
+      Location:
+      <input type="text" name="location" required />
+    </label><br /><br />
+    <label>
+      Password:
+      <input type="password" name="password" required />
+    </label><br /><br />
+    <label>
+      Screenshot:
+      <input type="file" name="screenshot" accept="image/*" required />
+    </label><br /><br />
+    <button type="submit">Upload</button>
+  </form>
+
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+
+      try {
+        const apiBase = localStorage.getItem('DEVICES_API_URL') || (window.VITE_DEVICES_API_URL || '').replace(/\/$/, '') || '';
+        if (!apiBase) {
+          throw new Error('DEVICES_API_URL not configured');
+        }
+        const response = await fetch(`${apiBase}/upload/`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          resultDiv.innerText = `Error: ${errorData.detail || response.statusText}`;
+          return;
+        }
+
+        const data = await response.json();
+        resultDiv.innerText = `Success! Filename: ${data.filename}`;
+      } catch (err) {
+        resultDiv.innerText = `Request failed: ${err.message}`;
+      }
+    });
+  </script>
+</body>
+
+</html>
