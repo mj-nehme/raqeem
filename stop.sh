@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-# Back-compat shim: delegate to new location
-exec "$(dirname "$0")/scripts/stop.sh"
+# Main entry point - delegates to smart service discovery cleanup
+exec "$(dirname "$0")/scripts/stop-smart.sh"

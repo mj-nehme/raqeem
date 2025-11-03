@@ -166,7 +166,7 @@ raqeem/
 │   ├── tag-release.sh           # NEW: Version tagging
 │   ├── start.sh                 # Symlinked from root
 │   ├── stop.sh                  # Symlinked from root
-│   └── verify.sh                # Health checks
+│   └── health-check.sh          # Smart discovery health checks
 ├── docs/
 │   ├── FIRST_TIME_SETUP.md      # NEW: Beginner guide
 │   ├── devices-openapi.yaml

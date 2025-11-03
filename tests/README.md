@@ -81,9 +81,9 @@ Usage:
 ./tests/integration/run_integration_tests.sh
 
 # Manual
-docker-compose -f docker-compose.test.yml up -d
+docker-compose -f .github/docker-compose.test.yml up -d
 python3 tests/integration/test_alert_flow.py
-docker-compose -f docker-compose.test.yml down -v
+docker-compose -f .github/docker-compose.test.yml down -v
 ```
 
 ## Prerequisites
@@ -163,14 +163,14 @@ Make sure services are running:
 ./scripts/start.sh
 
 # Or with docker-compose
-docker-compose -f docker-compose.test.yml up -d
+docker-compose -f .github/docker-compose.test.yml up -d
 ```
 
 ### "Alert was not found in mentor backend"
 
 1. Check mentor backend logs:
 ```bash
-docker-compose -f docker-compose.test.yml logs mentor-backend
+docker-compose -f .github/docker-compose.test.yml logs mentor-backend
 ```
 
 2. Verify `MENTOR_API_URL` is set in devices backend
@@ -180,7 +180,7 @@ docker-compose -f docker-compose.test.yml logs mentor-backend
 
 ```bash
 # Clean up and retry
-docker-compose -f docker-compose.test.yml down -v
+docker-compose -f .github/docker-compose.test.yml down -v
 docker system prune -a  # Warning: removes all unused containers/images
 ./tests/integration/run_integration_tests.sh
 ```

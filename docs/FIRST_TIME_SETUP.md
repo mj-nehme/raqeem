@@ -59,45 +59,27 @@ You should see output showing your cluster is running. If not:
 - **Docker Desktop**: Open Docker Desktop → Settings → Kubernetes → Enable Kubernetes
 - **Other**: Start your Kubernetes cluster (minikube, kind, k3d, etc.)
 
-### 3️⃣ Configure Environment
-Copy the example environment file and configure it:
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` to set your ports (or use the defaults):
-
-```bash
-# Backend Ports (used for port-forwarding from K8s)
-DEVICES_BACKEND_PORT=14100
-MENTOR_BACKEND_PORT=15100
-
-# Frontend Ports (Vite dev servers)
-DEVICES_FRONTEND_PORT=14000
-MENTOR_FRONTEND_PORT=15000
-```
-
-**Important Notes:**
-- These ports must not conflict with other services on your machine
-- The backend ports are for accessing K8s services via port-forward
-- The frontend ports are where the Vite dev servers will run
-
-### 4️⃣ Start Everything!
-That's it! Now just run:
+### 3️⃣ Start Everything!
+**No configuration needed!** Just run:
 
 ```bash
 ./start.sh
 ```
 
+The smart discovery system uses intelligent defaults:
+- Frontend ports: Auto-detected starting from 4000, 5000
+- Backend ports: Stable Kubernetes NodePort (30080, 30081)  
+- Namespace: `default`
+- All other settings: Auto-configured
+
 The script will automatically:
-1. ✅ Validate your environment (.env file, required tools)
+1. ✅ Validate your environment
 2. ✅ Deploy PostgreSQL and wait for it to be ready
 3. ✅ Deploy MinIO (S3-compatible storage) and wait for it
-4. ✅ Deploy Devices Backend and wait for it
-5. ✅ Deploy Mentor Backend and wait for it
-6. ✅ Start port-forwards to access backends locally
-7. ✅ Install npm dependencies and start both frontends
+4. ✅ Deploy backends with stable NodePort services (no port-forwarding)
+5. ✅ Auto-detect available frontend ports
+6. ✅ Install npm dependencies and start frontends
+7. ✅ Register all services in discovery registry
 
 **First-time run will take 3-5 minutes** as it:
 - Pulls Docker images from Docker Hub
@@ -106,18 +88,23 @@ The script will automatically:
 
 **Subsequent runs are much faster** (30-60 seconds)!
 
-### 5️⃣ Access Your Applications
+### 4️⃣ Access Your Applications
 
 Once the start script completes, you'll see:
 
 ```
-🎉 Environment is ready!
+🎉 Smart Service Discovery Ready!
 
-📱 Access URLs:
-  - Devices Backend:   http://localhost:14100/docs
-  - Mentor Backend:    http://localhost:15100/activities
-  - Mentor Dashboard:  http://localhost:15000
-  - Device Simulator:  http://localhost:14000
+📱 Discovered Services:
+  - Devices Backend:   http://localhost:30080/docs
+  - Mentor Backend:    http://localhost:30081/health
+  - Mentor Dashboard:  http://localhost:5001
+  - Device Simulator:  http://localhost:4000
+```
+
+Check actual discovered services:
+```bash
+./scripts/discover.sh list
 ```
 
 Open these URLs in your browser:

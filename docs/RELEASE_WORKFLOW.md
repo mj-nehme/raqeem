@@ -32,7 +32,7 @@ open http://localhost:14000
 **Automated checks:**
 ```bash
 # Run automated tests
-./scripts/test-before-release.sh
+./scripts/health-check.sh
 ```
 
 This will verify:

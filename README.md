@@ -48,19 +48,25 @@ A production-ready monitoring platform for tracking IoT devices, collecting tele
 
 ### Start Everything
 ```bash
-# 1. Configure environment
-cp .env.example .env
-# Edit .env to set your ports (or use defaults)
-
-# 2. Start the platform
+# Start the platform with smart service discovery
 ./start.sh
 ```
 
-That's it! The script will:
+That's it! **No configuration needed.** The smart discovery system will:
 - ✅ Deploy PostgreSQL and MinIO
-- ✅ Deploy both backends (devices + mentor)
-- ✅ Start port-forwards to access services
-- ✅ Launch both frontend applications
+- ✅ Deploy both backends with stable NodePort services
+- ✅ Auto-detect available ports for frontends
+- ✅ Register all services in a discovery registry
+- ✅ Launch frontend applications with proper backend URLs
+
+### Advanced Configuration (Optional)
+```bash
+# Customize frontend starting ports
+DEVICES_FRONTEND_START_PORT=6000 MENTOR_FRONTEND_START_PORT=7000 ./start.sh
+
+# Use different Kubernetes namespace
+NAMESPACE=dev ./start.sh
+```
 
 ### Stop Everything
 ```bash
@@ -69,17 +75,47 @@ That's it! The script will:
 
 ### Access Services
 
-After starting, services are available at:
-- **Mentor Dashboard** — `http://localhost:15000` (monitoring interface)
-- **Device Simulator** — `http://localhost:14000` (test data generator)
-- **Devices API** — `http://localhost:14100/docs` (FastAPI interactive docs)
-- **Mentor API** — `http://localhost:15100` (Go backend)
+After starting, services are auto-discovered and available at:
+- **Mentor Dashboard** — `http://localhost:<auto-detected>` (monitoring interface)
+- **Device Simulator** — `http://localhost:<auto-detected>` (test data generator)  
+- **Devices API** — `http://localhost:30080/docs` (FastAPI interactive docs)
+- **Mentor API** — `http://localhost:30081` (Go backend)
 
-*Ports are configurable via `.env` file*
+Use `./scripts/discover.sh list` to see actual discovered URLs.
+
+*Frontend ports are auto-detected to avoid conflicts*
 
 ---
 
-## 📚 Documentation
+## � Service Discovery
+
+The platform includes smart service discovery that automatically handles port conflicts and service registration.
+
+### Discovery Commands
+```bash
+# List all registered services
+./scripts/discover.sh list
+
+# Get specific service URL
+./scripts/discover.sh get devices-backend
+
+# Check service health
+./scripts/discover.sh health
+
+# Wait for a service to be ready
+./scripts/discover.sh wait mentor-backend 60
+```
+
+### How It Works
+- **Zero Configuration**: No .env files needed, uses smart defaults
+- **Auto-Port Detection**: Finds available ports automatically, no conflicts
+- **Service Registry**: All services register their URLs in `.deploy/registry/`
+- **Kubernetes NodePort**: Backends use stable NodePort services (no port-forwarding)
+- **Health Monitoring**: Built-in health checks and service verification
+
+---
+
+## �📚 Documentation
 
 - **[First Time Setup](docs/FIRST_TIME_SETUP.md)** - Complete beginner's guide
 - **[Testing Guide](docs/TESTING.md)** - Unit, integration, and E2E tests
@@ -213,11 +249,19 @@ cd devices/frontend && npm run dev
 ### Useful Commands
 
 ```bash
-# Update images and redeploy
-./scripts/update-images.sh
+# Check service discovery status
+./scripts/discover.sh list
+./scripts/discover.sh health
 
-# Verify environment health
-./scripts/verify.sh
+# Comprehensive health check
+./scripts/health-check.sh
+
+# View service registry
+ls -la .deploy/registry/
+
+# Check Kubernetes services
+kubectl get svc -n default
+kubectl get pods -n default
 
 # View logs
 kubectl logs -f deployment/devices-backend -n default
@@ -242,13 +286,14 @@ kubectl describe pod <pod-name> -n default
 kubectl logs <pod-name> -n default
 ```
 
-**Port already in use:**
+**Port conflicts resolved:**
 ```bash
-# Find process using port
-lsof -iTCP:14100 -sTCP:LISTEN
+# The system auto-detects available ports, but if you see issues:
+./scripts/discover.sh list  # Check registered services
+lsof -i :4000 :5000        # Check what's using common ports
 
-# Kill it or change port in .env
-kill -9 <PID>
+# Or restart with fresh discovery
+./stop.sh && ./start.sh
 ```
 
 **Database connection issues:**

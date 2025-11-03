@@ -137,7 +137,7 @@ def main():
         log("Services are not healthy. Make sure they're running:", "ERROR")
         log("  ./scripts/start.sh", "INFO")
         log("  OR", "INFO")
-        log("  docker-compose -f docker-compose.test.yml up", "INFO")
+    log("  docker-compose -f .github/docker-compose.test.yml up", "INFO")
         return False
     
     # Test alert flow

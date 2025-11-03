@@ -61,6 +61,12 @@ spec:
               value: {{ .Values.minio.bucket | quote }}
             - name: FRONTEND_ORIGINS
               value: {{ .Values.frontendOrigins | default "http://localhost:14000" | quote }}
+            {{- if .Values.env }}
+            {{- range $key, $val := .Values.env }}
+            - name: {{ $key }}
+              value: {{ $val | quote }}
+            {{- end }}
+            {{- end }}
             {{- if .Values.mentorApiUrl }}
             - name: MENTOR_API_URL
               value: {{ .Values.mentorApiUrl | quote }}
