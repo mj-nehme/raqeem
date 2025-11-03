@@ -213,13 +213,15 @@ jobs:
           MINIO_SECRET_KEY: miniosecret
           MINIO_SECURE: "false"
           MENTOR_API_URL: http://127.0.0.1:8080
-        run: pytest -v --tb=short --cov=app --cov-report=xml --cov-report=term || echo "⚠️ Python tests failed but continuing CI"
-      - name: Upload Python coverage
-        uses: codecov/codecov-action@v4
+        run: pytest -v --tb=short --cov=app --cov-report=xml:coverage.xml --cov-report=term || echo "⚠️ Python tests failed but continuing CI"
+      - name: Upload Python coverage to Codecov
+        uses: codecov/codecov-action@v5
         continue-on-error: true
         with:
           file: devices/backend/src/coverage.xml
           flags: devices-backend
+          name: devices-backend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-mentor-backend:
     name: Test Mentor Backend (Go)
@@ -262,12 +264,14 @@ jobs:
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: "5432"
         run: go test ./... -v -race -coverprofile=coverage.out || echo "⚠️ Go tests failed but continuing CI"
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
+      - name: Upload Go coverage to Codecov
+        uses: codecov/codecov-action@v5
         continue-on-error: true
         with:
-          file: mentor/backend/src/coverage.out
+          files: mentor/backend/src/coverage.out
           flags: mentor-backend
+          name: mentor-backend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-mentor-frontend:
     name: Test Mentor Frontend (React)
