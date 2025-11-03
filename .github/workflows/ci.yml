@@ -208,7 +208,7 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://monitor:password@127.0.0.1:5432/monitoring_db
           SECRET_KEY: test-secret-key-for-ci
           ACCESS_TOKEN_EXPIRE_MINUTES: 10080
-          MINIO_ENDPOINT: http://127.0.0.1:9000
+          MINIO_ENDPOINT: localhost:9000
           MINIO_ACCESS_KEY: minio
           MINIO_SECRET_KEY: miniosecret
           MINIO_SECURE: "false"
