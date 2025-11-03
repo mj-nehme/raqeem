@@ -71,6 +71,26 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
     )
     db.add(obj)
     await db.commit()
+    # Optionally forward metrics to mentor backend if configured
+    if settings.mentor_api_url:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                forward = {
+                    "device_id": device_id,
+                    "cpu_usage": payload.get("cpu_usage"),
+                    "cpu_temp": payload.get("cpu_temp"),
+                    "memory_total": payload.get("memory_total"),
+                    "memory_used": payload.get("memory_used"),
+                    "swap_used": payload.get("swap_used"),
+                    "disk_total": payload.get("disk_total"),
+                    "disk_used": payload.get("disk_used"),
+                    "net_bytes_in": payload.get("net_bytes_in"),
+                    "net_bytes_out": payload.get("net_bytes_out"),
+                }
+                await client.post(f"{settings.mentor_api_url}/devices/metrics", json=forward)
+        except Exception:
+            # Do not fail ingestion if forwarding fails
+            pass
     return {"status": "ok"}
 
 
@@ -93,6 +113,24 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
     if to_add:
         await db.execute(dev_models.Process.__table__.insert(), to_add)
         await db.commit()
+        # Optionally forward processes to mentor backend if configured
+        if settings.mentor_api_url:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    forward = [
+                        {
+                            "device_id": device_id,
+                            "pid": p.get("pid"),
+                            "name": p.get("name"),
+                            "cpu": p.get("cpu"),
+                            "memory": p.get("memory"),
+                            "command": p.get("command"),
+                        }
+                        for p in processes
+                    ]
+                    await client.post(f"{settings.mentor_api_url}/devices/processes", json=forward)
+            except Exception:
+                pass
     return {"inserted": len(to_add)}
 
 
@@ -112,6 +150,21 @@ async def post_activity(device_id: str, activities: List[dict], db: AsyncSession
     if to_add:
         await db.execute(dev_models.ActivityLog.__table__.insert(), to_add)
         await db.commit()
+        # Optionally forward activities to mentor backend if configured
+        if settings.mentor_api_url:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    for a in activities:
+                        forward = {
+                            "device_id": device_id,
+                            "type": a.get("type"),
+                            "description": a.get("description"),
+                            "app": a.get("app"),
+                            "duration": a.get("duration"),
+                        }
+                        await client.post(f"{settings.mentor_api_url}/devices/activity", json=forward)
+            except Exception:
+                pass
     return {"inserted": len(to_add)}
 
 

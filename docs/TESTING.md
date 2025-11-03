@@ -203,7 +203,7 @@ npm install  # in frontend directories
 **Docker issues:**
 ```bash
 # Clean up containers
-docker-compose -f docker-compose.test.yml down -v
+docker-compose -f .github/docker-compose.test.yml down -v
 
 # Remove old images
 docker system prune -a
@@ -212,8 +212,8 @@ docker system prune -a
 **Services not healthy:**
 ```bash
 # Check logs
-docker-compose -f docker-compose.test.yml logs devices-backend
-docker-compose -f docker-compose.test.yml logs mentor-backend
+docker-compose -f .github/docker-compose.test.yml logs devices-backend
+docker-compose -f .github/docker-compose.test.yml logs mentor-backend
 ```
 
 ### Smoke Test Fails

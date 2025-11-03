@@ -1,3 +1,6 @@
+# Required for FastAPI/Pydantic settings
+env:
+  SECRET_KEY: "super-secret-key"
 replicaCount: 1
 
 image:

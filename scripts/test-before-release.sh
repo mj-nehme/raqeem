@@ -62,26 +62,35 @@ echo ""
 # Test 4: Check backend health
 print_test "Testing backend health"
 
-# Get ports from .env
-if [ -f .env ]; then
-  source .env
+# Get service URLs from discovery registry
+if [ -f .deploy/registry/devices-backend ]; then
+  source .deploy/registry/devices-backend
+  DEVICES_BACKEND_URL="$URL"
+else
+  DEVICES_BACKEND_URL="http://localhost:30080"
+fi
+
+if [ -f .deploy/registry/mentor-backend ]; then
+  source .deploy/registry/mentor-backend  
+  MENTOR_BACKEND_URL="$URL"
+else
+  MENTOR_BACKEND_URL="http://localhost:30081"
 fi
 
 sleep 2
 
-# Test Devices Backend
-if curl -sf "http://localhost:${DEVICES_BACKEND_PORT}/docs" > /dev/null; then
-  print_pass "Devices Backend responding on port ${DEVICES_BACKEND_PORT}"
+# Test backend endpoints using smart discovery
+if curl -sf "${DEVICES_BACKEND_URL}/docs" > /dev/null; then
+  print_pass "Devices Backend responding at ${DEVICES_BACKEND_URL}"
 else
-  print_fail "Devices Backend not responding on port ${DEVICES_BACKEND_PORT}"
+  print_fail "Devices Backend not responding at ${DEVICES_BACKEND_URL}"
   exit 1
 fi
 
-# Test Mentor Backend  
-if curl -sf "http://localhost:${MENTOR_BACKEND_PORT}/activities" > /dev/null; then
-  print_pass "Mentor Backend responding on port ${MENTOR_BACKEND_PORT}"
+if curl -sf "${MENTOR_BACKEND_URL}/health" > /dev/null; then
+  print_pass "Mentor Backend responding at ${MENTOR_BACKEND_URL}"
 else
-  print_fail "Mentor Backend not responding on port ${MENTOR_BACKEND_PORT}"
+  print_fail "Mentor Backend not responding at ${MENTOR_BACKEND_URL}"
   exit 1
 fi
 echo ""

@@ -3,12 +3,22 @@ import react from '@vitejs/plugin-react'
 
 export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
+  // Use stable port with fallback - no dynamic conflicts  
   const port = Number(env.VITE_MENTOR_FRONTEND_PORT || process.env.VITE_MENTOR_FRONTEND_PORT || 5000)
   return defineConfig({
     plugins: [react()],
     server: {
       port,
-      strictPort: false,
+      strictPort: true, // Fail if port is in use instead of auto-increment
+      host: true, // Listen on all interfaces
+      proxy: {
+        // Proxy API calls to stable Kubernetes NodePort service
+        '/api': {
+          target: env.VITE_MENTOR_API_URL || process.env.VITE_MENTOR_API_URL || 'http://localhost:30081',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, ''),
+        },
+      },
     },
     test: {
       environment: 'jsdom',
