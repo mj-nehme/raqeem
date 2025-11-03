@@ -18,7 +18,8 @@ export default ({ mode }) => {
     },
     test: {
       environment: 'jsdom',
-      setupFiles: './src/setupTests.js'
+      setupFiles: './src/setupTests.js',
+      globals: true
     }
   })
 }

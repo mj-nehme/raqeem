@@ -2,61 +2,38 @@
 
 import os
 import pytest
-from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
-from fastapi.testclient import TestClient
-from httpx import AsyncClient, ASGITransport
+from unittest.mock import patch, AsyncMock
 
-from app.db.base import Base  # your SQLAlchemy models metadata
-from app.main import app
-from app.db.session import get_db
+# Set required environment variables for testing
+TEST_ENV_VARS = {
+    'DATABASE_URL': 'postgresql://test:test@localhost:5432/test_db',
+    'MINIO_ENDPOINT': 'localhost:9000',
+    'MINIO_ACCESS_KEY': 'test_access_key',
+    'MINIO_SECRET_KEY': 'test_secret_key',
+    'MINIO_BUCKET_NAME': 'test-bucket',
+    'JWT_SECRET_KEY': 'test_jwt_secret_key_for_testing_purposes_only',
+    'ACCESS_TOKEN_EXPIRE_MINUTES': '30',
+    'MENTOR_BACKEND_URL': 'http://localhost:8080',
+    'REFRESH_TOKEN_EXPIRE_MINUTES': '10080'
+}
 
-load_dotenv()  # load .env variables
-
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-
-@pytest.fixture(scope="function")
-async def session_maker():
-    """Create an async engine and sessionmaker tied to the current event loop."""
-    engine = create_async_engine(DATABASE_URL, echo=False)
-    # Ensure tables exist for each test (idempotent)
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-    TestingSessionLocal = sessionmaker(
-        bind=engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-    )
-    try:
-        yield TestingSessionLocal
-    finally:
-        await engine.dispose()
-
+# Apply test environment variables
+for key, value in TEST_ENV_VARS.items():
+    os.environ.setdefault(key, value)
 
 @pytest.fixture(autouse=True)
-async def override_db_dependency(session_maker):
-    """Override FastAPI get_db to provide a new AsyncSession per request for this test."""
-    async def _get_db():
-        async with session_maker() as session:
-            yield session
-
-    app.dependency_overrides[get_db] = _get_db
-    yield
-    # cleanup override after test
-    app.dependency_overrides.pop(get_db, None)
-
-
-@pytest.fixture(scope="module")
-def client():
-    """Sync test client for FastAPI."""
-    with TestClient(app) as c:
-        yield c
-
-
-@pytest.fixture(scope="module")
-async def async_client():
-    """Async test client for FastAPI."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        yield ac
+def mock_dependencies():
+    """Mock external dependencies for all tests."""
+    with patch('app.db.database.database') as mock_db:
+        mock_db.execute = AsyncMock()
+        mock_db.fetch_all = AsyncMock(return_value=[])
+        mock_db.fetch_one = AsyncMock(return_value=None)
+        
+        with patch('app.core.minio_client.minio_client') as mock_minio:
+            mock_minio.put_object = AsyncMock()
+            mock_minio.presigned_get_object = AsyncMock(return_value="http://test-url")
+            
+            yield {
+                'database': mock_db,
+                'minio': mock_minio
+            }
