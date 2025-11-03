@@ -1,9 +1,5 @@
 """Test data models functionality without database connection."""
-import pytest
-from unittest import mock
 from app.models.devices import Device, DeviceMetrics, Process, ActivityLog, Alert
-from datetime import datetime, timezone
-import uuid
 
 
 class TestDevice:

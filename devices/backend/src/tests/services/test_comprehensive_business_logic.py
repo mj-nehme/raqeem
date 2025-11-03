@@ -2,7 +2,7 @@
 
 import pytest
 import os
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import patch, MagicMock
 from datetime import datetime, timedelta
 
 # Set environment variables before importing

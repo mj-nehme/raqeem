@@ -65,7 +65,7 @@ func TestReportAndGetAlerts(t *testing.T) {
 	// Prepare gin context for GetDeviceAlerts
 	w2 := httptest.NewRecorder()
 	c2, _ := gin.CreateTestContext(w2)
-	c2.Params = gin.Params{{Key: "id", Value: deviceID}}
+	c2.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 	c2.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts", nil)
 
 	GetDeviceAlerts(c2)

@@ -66,7 +66,6 @@ describe('ActivityForm Component', () => {
     test('shows validation for required fields', () => {
         render(<ActivityForm />)
 
-        const submitButton = screen.getByRole('button', { name: 'Add Activity' })
         const locationInput = screen.getByPlaceholderText('Location')
         const passwordInput = screen.getByPlaceholderText('Password')
         const fileInput = document.querySelector('input[type="file"]')

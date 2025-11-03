@@ -1,6 +1,5 @@
 """Test API endpoint logic without database connectivity."""
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import patch, AsyncMock
 from fastapi import HTTPException
 import datetime
 
@@ -380,7 +379,6 @@ class TestErrorHandling:
     
     def test_http_exception_creation(self):
         """Test HTTPException creation with proper status codes."""
-        from fastapi import HTTPException
         
         exceptions = [
             HTTPException(status_code=400, detail="Bad Request"),

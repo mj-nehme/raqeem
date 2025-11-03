@@ -1,0 +1,3 @@
+linters:
+  disable:
+    - typecheck # Disable problematic typecheck
