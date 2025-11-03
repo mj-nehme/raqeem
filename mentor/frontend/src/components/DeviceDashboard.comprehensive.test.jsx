@@ -1,6 +1,5 @@
 import { test, expect, vi, describe, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import DeviceDashboard from './DeviceDashboard'
 
 // Mock fetch

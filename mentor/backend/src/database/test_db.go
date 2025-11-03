@@ -22,7 +22,16 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	password := getEnvOrDefault("POSTGRES_PASSWORD", "password")
 	host := getEnvOrDefault("POSTGRES_HOST", "localhost")
 	port := getEnvOrDefault("POSTGRES_PORT", "5432")
-	dbname := getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
+
+	// For CI, use the main database; for local testing, use test database
+	var dbname string
+	if user == "monitor" {
+		// CI environment - use the monitoring_db
+		dbname = getEnvOrDefault("POSTGRES_DB", "monitoring_db")
+	} else {
+		// Local environment - use test database
+		dbname = getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
+	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		host, user, password, dbname, port)
@@ -85,7 +94,16 @@ func CreateTestDatabase() error {
 	password := getEnvOrDefault("POSTGRES_PASSWORD", "password")
 	host := getEnvOrDefault("POSTGRES_HOST", "localhost")
 	port := getEnvOrDefault("POSTGRES_PORT", "5432")
-	dbname := getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
+
+	// For CI, use the main database; for local testing, use test database
+	var dbname string
+	if user == "monitor" {
+		// CI environment - database already exists, no need to create
+		return nil
+	} else {
+		// Local environment - create test database
+		dbname = getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
+	}
 
 	// Connect to postgres database to create test database
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s sslmode=disable",
