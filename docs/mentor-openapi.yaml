@@ -3,8 +3,36 @@ info:
   title: Mentor Backend API
   version: 1.0.0
   description: |
-    OpenAPI specification for the Mentor backend. Covers device management, telemetry ingestion,
-    remote commands and alerts. This file is generated from the code and models in the repository.
+    OpenAPI specification for the Mentor backend. Covers device management, telemetry retrieval,
+    remote commands, and alerts. This backend serves the monitoring dashboard.
+    
+    ## Features
+    - Device listing and status monitoring
+    - Metrics retrieval and aggregation
+    - Alert management and viewing
+    - Remote command execution
+    - Screenshot retrieval with presigned URLs
+    - Activity log access
+    - Process information
+    
+    ## Base URL
+    Local: `http://localhost:30081`
+    Production: `https://dashboard-api.raqeem.example.com`
+    
+    ## Authentication
+    Currently no authentication required (MVP). For production deployment,
+    implement JWT bearer tokens or API key authentication.
+    
+    ## CORS
+    Configured via FRONTEND_ORIGIN environment variable. Set to your
+    dashboard URL (e.g., `http://localhost:5001`).
+    
+    ## Docs
+    - GitHub: https://github.com/mj-nehme/raqeem
+    - Full documentation: /docs in repository
+  contact:
+    name: Raqeem Team
+    url: https://github.com/mj-nehme/raqeem
 servers:
   - url: "{scheme}://{host}:{port}"
     variables:
@@ -19,7 +47,42 @@ servers:
         default: "PORT"
         description: "Set this to your mentor backend port (e.g., from .env: MENTOR_BACKEND_PORT)"
 
+# Authentication (Future)
+# Currently, no authentication is required for MVP release.
+# For production, consider implementing:
+# - JWT Bearer tokens for user authentication
+# - API keys for device-to-backend communication  
+# - Rate limiting per API key or IP address
+#
+# security:
+#   - ApiKeyAuth: []
+#   - BearerAuth: []
+
 paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns service health status. Used by Kubernetes liveness and readiness probes.
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  service:
+                    type: string
+                    example: "mentor-backend"
+              example:
+                status: "ok"
+                service: "mentor-backend"
+        "503":
+          description: Service unavailable
+
   /devices:
     get:
       summary: List registered devices
