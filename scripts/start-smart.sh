@@ -75,7 +75,7 @@ FRONTEND_ORIGIN="http://localhost:$MENTOR_FRONTEND_PORT"
 # Redeploy backends with correct CORS settings
 helm upgrade devices-backend ./charts/devices-backend --namespace "$NAMESPACE" \
   --set "frontendOrigins=$FRONTEND_ORIGINS" \
-  --set "mentorApiUrl=http://mentor-backend.${NAMESPACE}.svc.cluster.local:8080" \
+  --set "mentorApiUrl=http://mentor-backend.${NAMESPACE}.svc.cluster.local:80" \
   --reuse-values
 
 helm upgrade mentor-backend ./charts/mentor-backend --namespace "$NAMESPACE" \

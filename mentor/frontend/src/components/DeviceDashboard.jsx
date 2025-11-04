@@ -159,10 +159,10 @@ export default function DeviceDashboard() {
     const sendCommand = async () => {
         if (!command.trim() || !selectedDevice) return;
         try {
-            await fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/commands`, {
+            await fetch(`${BACKEND_URL}/devices/commands`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ command }),
+                body: JSON.stringify({ device_id: selectedDevice.id, command }),
             });
             setCommand('');
         } catch (err) {
