@@ -33,3 +33,10 @@ node_modules/
 *_RESULTS.md
 COMMIT_MSG.txt
 
+# Coverage reports
+coverage.xml
+coverage.out
+.coverage
+htmlcov/
+**/coverage/
+*.lcov
