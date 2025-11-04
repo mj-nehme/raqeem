@@ -11,7 +11,7 @@ def setup_cors(app):
     if len(origins) == 0:
         origins = [
             "http://localhost:4000",
-            "http://localhost:4001", 
+            "http://localhost:4001",
             "http://localhost:4002",
             "http://localhost:5000",
             "http://localhost:5001",
