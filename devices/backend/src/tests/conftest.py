@@ -2,7 +2,6 @@
 
 import os
 import pytest
-from unittest.mock import patch, AsyncMock
 
 # Set required environment variables for testing
 TEST_ENV_VARS = {
