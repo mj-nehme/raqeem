@@ -12,7 +12,8 @@ def setup_cors(app):
     app.add_middleware(
         CORSMiddleware,
         allow_origins=origins if not allow_all else ["*"],
-        allow_credentials=False if allow_all else True,
+        allow_credentials=False,  # Always False to avoid CORS issues with FormData/file uploads
         allow_methods=["*"],
         allow_headers=["*"],
+        expose_headers=["*"],  # Allow browsers to access all response headers
     )

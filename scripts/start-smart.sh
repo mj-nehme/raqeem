@@ -69,7 +69,7 @@ MENTOR_FRONTEND_PORT=$(find_available_port $MENTOR_FRONTEND_START_PORT)
 echo "  - Detected available ports: Devices=$DEVICES_FRONTEND_PORT, Mentor=$MENTOR_FRONTEND_PORT"
 
 # Update CORS settings for backends with actual frontend ports
-FRONTEND_ORIGINS="http://localhost:$DEVICES_FRONTEND_PORT\\,http://localhost:$MENTOR_FRONTEND_PORT"
+FRONTEND_ORIGINS="http://localhost:$DEVICES_FRONTEND_PORT,http://localhost:$MENTOR_FRONTEND_PORT"
 FRONTEND_ORIGIN="http://localhost:$MENTOR_FRONTEND_PORT"
 
 # Redeploy backends with correct CORS settings
