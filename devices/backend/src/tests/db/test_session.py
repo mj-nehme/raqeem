@@ -25,3 +25,15 @@ async def test_get_db_context_manager():
     except StopAsyncIteration:
         # This is expected - generator should stop after yielding once
         pass
+
+
+@pytest.mark.asyncio
+async def test_database_url_configured():
+    """Test that DATABASE_URL is configured."""
+    import os
+    assert os.getenv('DATABASE_URL') is not None
+
+
+def test_async_session_configured():
+    """Test that async session maker is configured."""
+    assert async_session is not None
