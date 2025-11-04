@@ -122,7 +122,7 @@ func TestDevice_OSTypes(t *testing.T) {
 func TestDeviceMetrics_Fields(t *testing.T) {
 	now := time.Now()
 	metrics := DeviceMetrics{
-		ID:          1,
+		ID:          "550e8400-e29b-41d4-a716-446655440000",
 		DeviceID:    "test-device-123",
 		Timestamp:   now,
 		CPUUsage:    50.5,
@@ -136,8 +136,8 @@ func TestDeviceMetrics_Fields(t *testing.T) {
 		NetBytesOut: 2048,
 	}
 
-	if metrics.ID != 1 {
-		t.Errorf("Expected ID to be 1, got %d", metrics.ID)
+	if metrics.ID != "550e8400-e29b-41d4-a716-446655440000" {
+		t.Errorf("Expected ID to be '550e8400-e29b-41d4-a716-446655440000', got %s", metrics.ID)
 	}
 	if metrics.DeviceID != "test-device-123" {
 		t.Errorf("Expected DeviceID to be 'test-device-123', got '%s'", metrics.DeviceID)
