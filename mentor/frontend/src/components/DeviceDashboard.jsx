@@ -52,7 +52,7 @@ import {
     Cell,
 } from 'recharts';
 
-const BACKEND_URL = import.meta.env && import.meta.env.VITE_MENTOR_API_URL;
+const BACKEND_URL = 'http://localhost:30081'; // Direct to mentor backend
 const COLORS = ['#1976d2', '#4caf50', '#ff9800', '#f44336', '#9c27b0'];
 
 function getDeviceIcon(type) {

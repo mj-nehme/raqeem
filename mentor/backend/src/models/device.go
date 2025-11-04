@@ -20,7 +20,7 @@ type Device struct {
 
 // DeviceMetrics stores the current system metrics
 type DeviceMetrics struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
+	ID        string    `json:"id" gorm:"primaryKey;type:uuid"`
 	DeviceID  string    `json:"device_id"`
 	Timestamp time.Time `json:"timestamp"`
 
