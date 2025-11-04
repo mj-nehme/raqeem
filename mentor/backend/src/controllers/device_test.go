@@ -73,3 +73,170 @@ func TestReportAndGetAlerts(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", w2.Code)
 	}
 }
+
+// TestEmptyArraySerialization verifies that endpoints return empty arrays [] instead of null
+// when no data exists for a device. This is important for frontend compatibility.
+func TestEmptyArraySerialization(t *testing.T) {
+	// Test without database - just verify the response format
+	gin.SetMode(gin.TestMode)
+
+	// Create a mock device ID that doesn't exist in the database
+	deviceID := "non-existent-device"
+
+	// Test GetDeviceProcesses
+	t.Run("GetDeviceProcesses returns empty array", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/processes", nil)
+
+		GetDeviceProcesses(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if body == "null" {
+			t.Errorf("GetDeviceProcesses returned null instead of empty array")
+		}
+		if body != "[]" {
+			t.Logf("Response body: %s", body)
+		}
+		// Verify it's a valid JSON array
+		var processes []models.Process
+		if err := json.Unmarshal(w.Body.Bytes(), &processes); err != nil {
+			t.Fatalf("failed to unmarshal response: %v", err)
+		}
+		if processes == nil {
+			t.Errorf("unmarshaled processes is nil, expected empty slice")
+		}
+	})
+
+	// Test GetDeviceMetrics
+	t.Run("GetDeviceMetrics returns empty array", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/metrics", nil)
+
+		GetDeviceMetrics(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if body == "null" {
+			t.Errorf("GetDeviceMetrics returned null instead of empty array")
+		}
+	})
+
+	// Test GetDeviceActivities
+	t.Run("GetDeviceActivities returns empty array", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/activities", nil)
+
+		GetDeviceActivities(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if body == "null" {
+			t.Errorf("GetDeviceActivities returned null instead of empty array")
+		}
+	})
+
+	// Test GetDeviceAlerts
+	t.Run("GetDeviceAlerts returns empty array", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts", nil)
+
+		GetDeviceAlerts(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if body == "null" {
+			t.Errorf("GetDeviceAlerts returned null instead of empty array")
+		}
+	})
+
+	// Test ListDevices
+	t.Run("ListDevices returns empty array", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		// Clear all devices
+		database.DB.Exec("DELETE FROM devices")
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Request, _ = http.NewRequest("GET", "/devices", nil)
+
+		ListDevices(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if body == "null" {
+			t.Errorf("ListDevices returned null instead of empty array")
+		}
+	})
+
+	// Test GetPendingCommands
+	t.Run("GetPendingCommands returns empty array", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/commands/pending", nil)
+
+		GetPendingCommands(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if body == "null" {
+			t.Errorf("GetPendingCommands returned null instead of empty array")
+		}
+	})
+}
