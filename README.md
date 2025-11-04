@@ -115,14 +115,28 @@ The platform includes smart service discovery that automatically handles port co
 
 ---
 
-## �📚 Documentation
+## 📚 Documentation
 
-- **[First Time Setup](docs/FIRST_TIME_SETUP.md)** - Complete beginner's guide
-- **[Testing Guide](docs/TESTING.md)** - Unit, integration, and E2E tests
+### Getting Started
+- **[First Time Setup](docs/FIRST_TIME_SETUP.md)** - Complete beginner's guide with step-by-step instructions
+- **[Architecture](docs/ARCHITECTURE.md)** - System design, components, data flow, and database schema
+- **[API Documentation](docs/API.md)** - REST API usage guide with examples and code samples
+
+### Development
+- **[Development Guide](docs/DEVELOPMENT.md)** - Local setup, coding standards, and contribution guidelines
+- **[Testing Guide](docs/TESTING.md)** - Unit, integration, and E2E testing practices
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
+
+### Deployment & Operations
+- **[Deployment Guide](docs/DEPLOYMENT.md)** - Production deployment on Kubernetes and AWS
+- **[Version Management](docs/VERSION_MANAGEMENT.md)** - Release workflow and semantic versioning
+- **[Release Workflow](docs/RELEASE_WORKFLOW.md)** - Pre-release testing and validation
+
+### Advanced
 - **[Local CI](docs/LOCAL_CI.md)** - Run GitHub Actions locally with `act`
-- **[Version Management](docs/VERSION_MANAGEMENT.md)** - Release workflow
-- **[Release Workflow](docs/RELEASE_WORKFLOW.md)** - Pre-release testing
-- **[API Documentation](docs/)** - OpenAPI specs for both backends
+- **[OpenAPI Specifications](docs/)** - Complete API specs:
+  - [Devices Backend API](docs/devices-openapi.yaml)
+  - [Mentor Backend API](docs/mentor-openapi.yaml)
 
 ---
 
