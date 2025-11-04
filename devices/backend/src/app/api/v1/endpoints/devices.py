@@ -226,3 +226,83 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
             "current_user": device.current_user,
         })
     return devices
+
+
+@router.get("/{device_id}/commands/pending")
+async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db)):
+    """Get pending commands for a device"""
+    res = await db.execute(
+        select(dev_models.RemoteCommand)
+        .where(dev_models.RemoteCommand.device_id == device_id)
+        .where(dev_models.RemoteCommand.status == "pending")
+        .order_by(dev_models.RemoteCommand.created_at.asc())
+    )
+    commands = res.scalars().all()
+    return [
+        {
+            "id": cmd.id,
+            "device_id": cmd.device_id,
+            "command": cmd.command,
+            "status": cmd.status,
+            "created_at": cmd.created_at.isoformat() if cmd.created_at else None,
+        }
+        for cmd in commands
+    ]
+
+
+@router.post("/commands/{command_id}/result")
+async def submit_command_result(command_id: int, payload: dict, db: AsyncSession = Depends(get_db)):
+    """Submit command execution result"""
+    res = await db.execute(
+        select(dev_models.RemoteCommand).where(dev_models.RemoteCommand.id == command_id)
+    )
+    command = res.scalars().first()
+    if not command:
+        raise HTTPException(status_code=404, detail="Command not found")
+    
+    # Update command with result
+    command.status = payload.get("status", "completed")
+    command.result = payload.get("result", "")
+    command.exit_code = payload.get("exit_code", 0)
+    command.completed_at = datetime.datetime.utcnow()
+    db.add(command)
+    await db.commit()
+    
+    # Forward result to mentor backend if configured
+    if settings.mentor_api_url:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                forward_payload = {
+                    "id": command.id,
+                    "status": command.status,
+                    "result": command.result,
+                    "exit_code": command.exit_code,
+                }
+                await client.post(f"{settings.mentor_api_url}/commands/status", json=forward_payload)
+        except Exception:
+            # Don't fail if forwarding fails
+            pass
+    
+    return {"status": "ok", "command_id": command_id}
+
+
+@router.post("/{device_id}/commands")
+async def create_command(device_id: str, payload: dict, db: AsyncSession = Depends(get_db)):
+    """Create a new command for a device (forwarded from mentor backend)"""
+    command = dev_models.RemoteCommand(
+        device_id=device_id,
+        command=payload.get("command", ""),
+        status="pending",
+        created_at=datetime.datetime.utcnow(),
+    )
+    db.add(command)
+    await db.commit()
+    await db.refresh(command)
+    
+    return {
+        "id": command.id,
+        "device_id": command.device_id,
+        "command": command.command,
+        "status": command.status,
+        "created_at": command.created_at.isoformat() if command.created_at else None,
+    }

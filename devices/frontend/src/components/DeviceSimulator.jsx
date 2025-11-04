@@ -191,6 +191,96 @@ function DeviceSimulator() {
         }
     }, [deviceId]);
 
+    const pollCommands = useCallback(async () => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/commands/pending`);
+            if (response.ok) {
+                const commands = await response.json();
+                for (const cmd of commands) {
+                    await executeCommand(cmd);
+                }
+            }
+        } catch (error) {
+            // Silently fail command polling to avoid log spam
+        }
+    }, [deviceId]);
+
+    const executeCommand = async (cmd) => {
+        try {
+            addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
+            
+            let result = '';
+            let exitCode = 0;
+            
+            // Simple command execution simulation
+            switch (cmd.command.toLowerCase()) {
+                case 'get_info':
+                    result = JSON.stringify({
+                        device_id: deviceId,
+                        name: deviceName || `${deviceType}-${deviceId.slice(-4)}`,
+                        type: deviceType,
+                        os: deviceOS,
+                        user: currentUser || 'simulator-user',
+                        uptime: Math.floor(Math.random() * 86400),
+                    });
+                    break;
+                case 'status':
+                    result = 'Device is online and operational';
+                    break;
+                case 'restart':
+                    result = 'Device restart initiated';
+                    break;
+                case 'get_processes':
+                    result = JSON.stringify([
+                        { name: 'chrome', cpu: 15.2, memory: 512000 },
+                        { name: 'vscode', cpu: 8.5, memory: 256000 },
+                        { name: 'terminal', cpu: 2.1, memory: 64000 },
+                    ]);
+                    break;
+                default:
+                    if (cmd.command.startsWith('get_logs')) {
+                        result = 'Log line 1\nLog line 2\nLog line 3';
+                    } else if (cmd.command.startsWith('restart_service')) {
+                        const service = cmd.command.split(' ')[1] || 'unknown';
+                        result = `Service ${service} restarted successfully`;
+                    } else {
+                        result = `Command executed: ${cmd.command}`;
+                    }
+            }
+            
+            // Submit result back to backend
+            const submitResponse = await fetch(`${BACKEND_URL}/commands/${cmd.id}/result`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'completed',
+                    result: result,
+                    exit_code: exitCode,
+                }),
+            });
+            
+            if (submitResponse.ok) {
+                addLog(`✓ Command completed: ${cmd.command}`, 'success');
+            }
+        } catch (error) {
+            addLog(`✗ Command error: ${error.message}`, 'error');
+            // Try to report failure
+            try {
+                await fetch(`${BACKEND_URL}/commands/${cmd.id}/result`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: 'failed',
+                        result: error.message,
+                        exit_code: 1,
+                    }),
+                });
+            } catch (e) {
+                // Ignore if we can't report the failure
+            }
+        }
+    };
+
     const startSimulation = () => {
         if (!isRegistered) {
             addLog('Please register device first', 'warning');
@@ -204,6 +294,17 @@ function DeviceSimulator() {
         setIsRunning(false);
         addLog('⏸️ Simulation stopped', 'info');
     };
+
+    // Poll for commands every 5 seconds when device is registered
+    useEffect(() => {
+        if (!isRegistered) return;
+
+        const interval = setInterval(() => {
+            pollCommands();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [isRegistered, pollCommands]);
 
     // Auto-send data when simulation is running
     useEffect(() => {
