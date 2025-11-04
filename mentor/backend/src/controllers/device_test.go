@@ -101,20 +101,24 @@ func TestEmptyArraySerialization(t *testing.T) {
 			t.Fatalf("expected status 200, got %d", w.Code)
 		}
 
+		// Verify response is not null
 		body := w.Body.String()
 		if body == "null" {
 			t.Errorf("GetDeviceProcesses returned null instead of empty array")
 		}
-		if body != "[]" {
-			t.Logf("Response body: %s", body)
-		}
+		
 		// Verify it's a valid JSON array
 		var processes []models.Process
 		if err := json.Unmarshal(w.Body.Bytes(), &processes); err != nil {
-			t.Fatalf("failed to unmarshal response: %v", err)
+			t.Fatalf("failed to unmarshal response: %v, body: %s", err, body)
 		}
+		
+		// Verify the unmarshaled result is an empty slice, not nil
 		if processes == nil {
 			t.Errorf("unmarshaled processes is nil, expected empty slice")
+		}
+		if len(processes) != 0 {
+			t.Logf("Note: Expected empty array but got %d processes (may have data from other tests)", len(processes))
 		}
 	})
 

@@ -239,7 +239,7 @@ func GetDeviceScreenshots(c *gin.Context) {
 		}
 	}
 
-	var shots []models.Screenshot
+	shots := make([]models.Screenshot, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
