@@ -304,11 +304,19 @@ jobs:
       - name: Install dependencies
         working-directory: mentor/frontend
         run: npm ci --prefer-offline --no-audit
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: mentor/frontend
         env:
           VITE_MENTOR_API_URL: http://127.0.0.1:8080
-        run: npm run test -- --run || echo "⚠️ Mentor frontend tests failed but continuing CI"
+        run: npm run test:coverage -- --run || echo "⚠️ Mentor frontend tests failed but continuing CI"
+      - name: Upload Mentor Frontend coverage to Codecov
+        uses: codecov/codecov-action@v5
+        continue-on-error: true
+        with:
+          files: mentor/frontend/coverage/lcov.info
+          flags: mentor-frontend
+          name: mentor-frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   test-devices-frontend:
     name: Test Devices Frontend (React)
@@ -341,11 +349,19 @@ jobs:
       - name: Install dependencies
         working-directory: devices/frontend
         run: npm ci --prefer-offline --no-audit
-      - name: Run tests
+      - name: Run tests with coverage
         working-directory: devices/frontend
         env:
           VITE_DEVICES_API_URL: http://127.0.0.1:8000
-        run: npm run test -- --run || echo "⚠️ Devices frontend tests failed but continuing CI"
+        run: npm run test:coverage -- --run || echo "⚠️ Devices frontend tests failed but continuing CI"
+      - name: Upload Devices Frontend coverage to Codecov
+        uses: codecov/codecov-action@v5
+        continue-on-error: true
+        with:
+          files: devices/frontend/coverage/lcov.info
+          flags: devices-frontend
+          name: devices-frontend
+          token: ${{ secrets.CODECOV_TOKEN }}
 
   build-images:
     name: Push Docker Images

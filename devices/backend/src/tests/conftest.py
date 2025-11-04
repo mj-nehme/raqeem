@@ -6,7 +6,7 @@ from unittest.mock import patch, AsyncMock
 
 # Set required environment variables for testing
 TEST_ENV_VARS = {
-    'DATABASE_URL': 'postgresql://test:test@localhost:5432/test_db',
+    'DATABASE_URL': 'postgresql+asyncpg://test:test@localhost:5432/test_db',
     'MINIO_ENDPOINT': 'localhost:9000',
     'MINIO_ACCESS_KEY': 'test_access_key',
     'MINIO_SECRET_KEY': 'test_secret_key',
@@ -24,16 +24,6 @@ for key, value in TEST_ENV_VARS.items():
 @pytest.fixture(autouse=True)
 def mock_dependencies():
     """Mock external dependencies for all tests."""
-    with patch('app.db.database.database') as mock_db:
-        mock_db.execute = AsyncMock()
-        mock_db.fetch_all = AsyncMock(return_value=[])
-        mock_db.fetch_one = AsyncMock(return_value=None)
-        
-        with patch('app.core.minio_client.minio_client') as mock_minio:
-            mock_minio.put_object = AsyncMock()
-            mock_minio.presigned_get_object = AsyncMock(return_value="http://test-url")
-            
-            yield {
-                'database': mock_db,
-                'minio': mock_minio
-            }
+    # Tests use actual database with proper DATABASE_URL in CI
+    # No need to mock database or minio since tests run with proper environment
+    yield

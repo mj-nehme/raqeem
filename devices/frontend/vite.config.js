@@ -19,7 +19,18 @@ export default ({ mode }) => {
     test: {
       environment: 'jsdom',
       setupFiles: './src/setupTests.js',
-      globals: true
+      globals: true,
+      coverage: {
+        provider: 'v8',
+        reporter: ['text', 'json', 'html', 'lcov'],
+        reportsDirectory: './coverage',
+        exclude: [
+          'node_modules/',
+          'src/setupTests.js',
+          '**/*.{test,spec}.{js,jsx,ts,tsx}',
+          '**/coverage/**'
+        ]
+      }
     }
   })
 }

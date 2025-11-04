@@ -21,9 +21,8 @@ TEST_ENV_VARS = {
 for key, value in TEST_ENV_VARS.items():
     os.environ.setdefault(key, value)
 
-# Mock dependencies before importing app
-with patch('app.db.database.database'), patch('app.core.minio_client.minio_client'):
-    from app.main import app
+# Import app after setting test environment
+from app.main import app
 
 @pytest.fixture
 def client():

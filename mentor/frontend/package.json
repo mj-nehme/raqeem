@@ -9,6 +9,7 @@
         "preview": "vite preview",
         "lint": "eslint . --ext .jsx,.js || true",
         "test": "vitest run --reporter=dot",
+        "test:coverage": "vitest run --coverage --reporter=dot",
         "test:ui": "vitest"
     },
     "dependencies": {
