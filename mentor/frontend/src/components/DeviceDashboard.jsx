@@ -487,9 +487,9 @@ export default function DeviceDashboard() {
                                                                                 {cmd.result && cmd.status === 'completed' && (
                                                                                     <>
                                                                                         <br />
-                                                                                        <Typography component="span" variant="caption" color="text.secondary">
-                                                                                            Result: {cmd.result.substring(0, 100)}
-                                                                                            {cmd.result.length > 100 ? '...' : ''}
+                                                                                        <Typography component="span" variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                                                                                            Result: {String(cmd.result).substring(0, 100)}
+                                                                                            {String(cmd.result).length > 100 ? '...' : ''}
                                                                                         </Typography>
                                                                                     </>
                                                                                 )}

@@ -292,13 +292,25 @@ func CreateRemoteCommand(c *gin.Context) {
 			payload := map[string]interface{}{
 				"command": cmd.Command,
 			}
-			jsonData, _ := json.Marshal(payload)
+			jsonData, err := json.Marshal(payload)
+			if err != nil {
+				fmt.Printf("Error marshaling command payload: %v\n", err)
+				return
+			}
 			client := &http.Client{Timeout: 5 * time.Second}
-			_, _ = client.Post(
+			resp, err := client.Post(
 				fmt.Sprintf("%s/devices/%s/commands", devicesAPIURL, cmd.DeviceID),
 				"application/json",
 				bytes.NewBuffer(jsonData),
 			)
+			if err != nil {
+				fmt.Printf("Error forwarding command to devices backend: %v\n", err)
+				return
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode >= 400 {
+				fmt.Printf("Devices backend returned error status: %d\n", resp.StatusCode)
+			}
 		}()
 	}
 

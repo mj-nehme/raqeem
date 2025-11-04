@@ -209,11 +209,27 @@ function DeviceSimulator() {
         try {
             addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
             
+            // Whitelist of allowed commands
+            const allowedCommands = [
+                'get_info',
+                'status',
+                'restart',
+                'get_processes',
+                'get_logs',
+                'restart_service',
+                'screenshot'
+            ];
+            
+            const commandBase = cmd.command.toLowerCase().split(' ')[0];
+            if (!allowedCommands.includes(commandBase)) {
+                throw new Error('Command not allowed');
+            }
+            
             let result = '';
             let exitCode = 0;
             
             // Simple command execution simulation
-            switch (cmd.command.toLowerCase()) {
+            switch (commandBase) {
                 case 'get_info':
                     result = JSON.stringify({
                         device_id: deviceId,
@@ -237,15 +253,18 @@ function DeviceSimulator() {
                         { name: 'terminal', cpu: 2.1, memory: 64000 },
                     ]);
                     break;
+                case 'get_logs':
+                    result = 'Log line 1\nLog line 2\nLog line 3';
+                    break;
+                case 'restart_service':
+                    const service = cmd.command.split(' ')[1] || 'unknown';
+                    result = `Service ${service} restarted successfully`;
+                    break;
+                case 'screenshot':
+                    result = 'Screenshot captured successfully';
+                    break;
                 default:
-                    if (cmd.command.startsWith('get_logs')) {
-                        result = 'Log line 1\nLog line 2\nLog line 3';
-                    } else if (cmd.command.startsWith('restart_service')) {
-                        const service = cmd.command.split(' ')[1] || 'unknown';
-                        result = `Service ${service} restarted successfully`;
-                    } else {
-                        result = `Command executed: ${cmd.command}`;
-                    }
+                    result = `Command executed: ${cmd.command}`;
             }
             
             // Submit result back to backend
