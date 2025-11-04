@@ -8,3 +8,4 @@ boto3
 pydantic
 pydantic-settings
 httpx
+python-multipart
