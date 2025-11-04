@@ -5,14 +5,15 @@ import pytest
 
 # Set required environment variables for testing
 TEST_ENV_VARS = {
-    'DATABASE_URL': 'postgresql+asyncpg://test:test@localhost:5432/test_db',
+    'DATABASE_URL': 'postgresql+asyncpg://monitor:monitorpw@localhost:5432/monitoring_db',
     'MINIO_ENDPOINT': 'localhost:9000',
-    'MINIO_ACCESS_KEY': 'test_access_key',
-    'MINIO_SECRET_KEY': 'test_secret_key',
+    'MINIO_ACCESS_KEY': 'minioadmin',
+    'MINIO_SECRET_KEY': 'minioadmin',
     'MINIO_BUCKET_NAME': 'test-bucket',
-    'JWT_SECRET_KEY': 'test_jwt_secret_key_for_testing_purposes_only',
+    'MINIO_SECURE': 'false',
+    'SECRET_KEY': 'test_jwt_secret_key_for_testing_purposes_only',
     'ACCESS_TOKEN_EXPIRE_MINUTES': '30',
-    'MENTOR_BACKEND_URL': 'http://localhost:8080',
+    'MENTOR_API_URL': 'http://localhost:8080',
     'REFRESH_TOKEN_EXPIRE_MINUTES': '10080'
 }
 

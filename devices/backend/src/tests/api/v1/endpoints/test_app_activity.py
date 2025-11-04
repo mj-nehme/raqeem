@@ -19,9 +19,54 @@ async def test_create_app_activity():
 
 
 @pytest.mark.asyncio
+async def test_create_app_activity_with_app_name():
+    """Test creating activity with app_name field."""
+    payload = {
+        "user_id": "user-with-app",
+        "activity": "closed_app",
+        "app_name": "Chrome",
+        "timestamp": "2025-06-25T10:00:00Z"
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.post("/api/v1/app_activity/", json=payload)
+    assert response.status_code == 201
+    data = response.json()
+    assert data["activity"] == payload["activity"]
+
+
+@pytest.mark.asyncio
+async def test_create_app_activity_minimal():
+    """Test creating activity with minimal required fields."""
+    payload = {
+        "user_id": "minimal-user",
+        "activity": "app_switch"
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.post("/api/v1/app_activity/", json=payload)
+    assert response.status_code == 201
+
+
+@pytest.mark.asyncio
 async def test_get_app_activity_list():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get("/api/v1/app_activity/")
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
+
+
+@pytest.mark.asyncio
+async def test_get_app_activity_list_with_data():
+    """Test getting activities after creating some."""
+    payload = {
+        "user_id": "activity-list-user",
+        "activity": "test_activity"
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        await ac.post("/api/v1/app_activity/", json=payload)
+        response = await ac.get("/api/v1/app_activity/")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) > 0
+
