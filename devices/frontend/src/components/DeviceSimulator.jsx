@@ -16,7 +16,8 @@ function DeviceSimulator() {
         metricsCount: 0,
         activitiesCount: 0,
         alertsCount: 0,
-        screenshotsCount: 0
+        screenshotsCount: 0,
+        processesCount: 0
     });
 
     // Generate random device ID
@@ -191,6 +192,37 @@ function DeviceSimulator() {
         }
     }, [deviceId]);
 
+    const sendProcesses = useCallback(async () => {
+        try {
+            // Generate realistic process list
+            const processNames = [
+                'chrome', 'firefox', 'vscode', 'slack', 'terminal', 'spotify',
+                'docker', 'node', 'python', 'postgres', 'redis', 'nginx'
+            ];
+            
+            const processes = Array.from({ length: Math.floor(Math.random() * 8) + 5 }, (_, i) => ({
+                pid: 1000 + Math.floor(Math.random() * 9000),
+                name: processNames[Math.floor(Math.random() * processNames.length)],
+                cpu: Math.random() * 50,
+                memory: Math.floor(Math.random() * 1024 * 1024 * 1024), // Up to 1GB
+                command: `/usr/bin/${processNames[Math.floor(Math.random() * processNames.length)]}`
+            }));
+
+            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/processes`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(processes)
+            });
+
+            if (response.ok) {
+                setStats(prev => ({ ...prev, processesCount: (prev.processesCount || 0) + processes.length }));
+                addLog(`💻 ${processes.length} processes sent`, 'success');
+            }
+        } catch (error) {
+            addLog(`✗ Processes error: ${error.message}`, 'error');
+        }
+    }, [deviceId]);
+
     const startSimulation = () => {
         if (!isRegistered) {
             addLog('Please register device first', 'warning');
@@ -226,10 +258,15 @@ function DeviceSimulator() {
             if (Math.random() > 0.7) {
                 sendScreenshot();
             }
+
+            // 40% chance to send processes
+            if (Math.random() > 0.6) {
+                sendProcesses();
+            }
         }, 5000); // Every 5 seconds
 
         return () => clearInterval(interval);
-    }, [isRunning, isRegistered, sendMetrics, sendActivities, sendAlert, sendScreenshot]);
+    }, [isRunning, isRegistered, sendMetrics, sendActivities, sendAlert, sendScreenshot, sendProcesses]);
 
     return (
         <div className="simulator">
@@ -323,7 +360,7 @@ function DeviceSimulator() {
                                 setDeviceId(generateDeviceId());
                                 setIsRegistered(false);
                                 setIsRunning(false);
-                                setStats({ metricsCount: 0, activitiesCount: 0, alertsCount: 0, screenshotsCount: 0 });
+                                setStats({ metricsCount: 0, activitiesCount: 0, alertsCount: 0, screenshotsCount: 0, processesCount: 0 });
                                 addLog('Device reset', 'info');
                             }}
                         >
@@ -405,6 +442,10 @@ function DeviceSimulator() {
                         <div className="stat">
                             <div className="stat-value">{stats.screenshotsCount}</div>
                             <div className="stat-label">Screenshots Sent</div>
+                        </div>
+                        <div className="stat">
+                            <div className="stat-value">{stats.processesCount}</div>
+                            <div className="stat-label">Processes Sent</div>
                         </div>
                     </div>
                 </div>
