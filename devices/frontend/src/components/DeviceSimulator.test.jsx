@@ -27,11 +27,11 @@ describe('DeviceSimulator Component', () => {
         // Check that input fields exist
         expect(screen.getByPlaceholderText(/My Device/i)).toBeInTheDocument()
         expect(screen.getByPlaceholderText(/simulator-user/i)).toBeInTheDocument()
-        
+
         // Check that selects exist by finding options
         expect(screen.getByText('Laptop')).toBeInTheDocument()
         expect(screen.getByText('macOS')).toBeInTheDocument()
-        
+
         expect(screen.getByRole('button', { name: /register device/i })).toBeInTheDocument()
     })
 
@@ -57,7 +57,7 @@ describe('DeviceSimulator Component', () => {
         // Find the type select element
         const selects = document.querySelectorAll('select')
         const typeSelect = Array.from(selects).find(s => s.value === 'laptop')
-        
+
         fireEvent.change(typeSelect, { target: { value: 'desktop' } })
 
         expect(typeSelect.value).toBe('desktop')
@@ -69,7 +69,7 @@ describe('DeviceSimulator Component', () => {
         // Find the OS select element
         const selects = document.querySelectorAll('select')
         const osSelect = Array.from(selects).find(s => s.value === 'macOS')
-        
+
         fireEvent.change(osSelect, { target: { value: 'Linux' } })
 
         expect(osSelect.value).toBe('Linux')
@@ -97,7 +97,7 @@ describe('DeviceSimulator Component', () => {
 
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
-                'http://localhost:3000/api/v1/devices/register',
+                'http://localhost:3000/api/devices/register',
                 expect.objectContaining({
                     method: 'POST',
                     headers: {
@@ -301,7 +301,7 @@ describe('DeviceSimulator Component', () => {
         })
 
         // Mock HTMLCanvasElement.prototype.toBlob
-        HTMLCanvasElement.prototype.toBlob = function(callback) {
+        HTMLCanvasElement.prototype.toBlob = function (callback) {
             callback(new Blob(['fake-image-data'], { type: 'image/png' }))
         }
 

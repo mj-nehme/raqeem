@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './DeviceSimulator.css';
 
 const BACKEND_URL = import.meta.env.VITE_DEVICES_API_URL;
-const API_BASE_URL = `${BACKEND_URL}/v1`;
+const API_BASE_URL = BACKEND_URL;
 
 function DeviceSimulator() {
     const [deviceId, setDeviceId] = useState('');
@@ -196,7 +196,7 @@ function DeviceSimulator() {
     const executeCommand = useCallback(async (cmd) => {
         try {
             addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
-            
+
             // Whitelist of allowed commands
             const allowedCommands = [
                 'get_info',
@@ -207,15 +207,15 @@ function DeviceSimulator() {
                 'restart_service',
                 'screenshot'
             ];
-            
+
             const commandBase = cmd.command.toLowerCase().split(' ')[0];
             if (!allowedCommands.includes(commandBase)) {
                 throw new Error('Command not allowed');
             }
-            
+
             let result = '';
             let exitCode = 0;
-            
+
             // Simple command execution simulation
             switch (commandBase) {
                 case 'get_info':
@@ -255,7 +255,7 @@ function DeviceSimulator() {
                 default:
                     result = `Command executed: ${cmd.command}`;
             }
-            
+
             // Submit result back to backend
             const submitResponse = await fetch(`${API_BASE_URL}/commands/${cmd.id}/result`, {
                 method: 'POST',
@@ -266,7 +266,7 @@ function DeviceSimulator() {
                     exit_code: exitCode,
                 }),
             });
-            
+
             if (submitResponse.ok) {
                 addLog(`✓ Command completed: ${cmd.command}`, 'success');
             }
@@ -310,7 +310,7 @@ function DeviceSimulator() {
                 'chrome', 'firefox', 'vscode', 'slack', 'terminal', 'spotify',
                 'docker', 'node', 'python', 'postgres', 'redis', 'nginx'
             ];
-            
+
             const processes = Array.from({ length: Math.floor(Math.random() * 8) + 5 }, () => ({
                 pid: 1000 + Math.floor(Math.random() * 9000),
                 name: processNames[Math.floor(Math.random() * processNames.length)],

@@ -38,13 +38,36 @@ wait_for_service_ready "postgres" "$NAMESPACE"
 helm upgrade --install minio ./charts/minio --namespace "$NAMESPACE"
 wait_for_service_ready "minio" "$NAMESPACE"
 
+echo ""
+echo "🌐 Detecting available frontend ports..."
+
+# Find available ports for frontends (avoiding NodePorts)
+DEVICES_FRONTEND_PORT=$(find_available_port $DEVICES_FRONTEND_START_PORT)
+MENTOR_FRONTEND_PORT=$(find_available_port $MENTOR_FRONTEND_START_PORT)
+
+echo "  - Detected available ports: Devices=$DEVICES_FRONTEND_PORT, Mentor=$MENTOR_FRONTEND_PORT"
+
+# Build CORS origins lists for backends
+DEVICES_FRONTEND_URL="http://localhost:$DEVICES_FRONTEND_PORT"
+MENTOR_FRONTEND_URL="http://localhost:$MENTOR_FRONTEND_PORT"
+
+# For devices backend: allow both frontend origins (escape commas for helm)
+DEVICES_CORS_ORIGINS="${DEVICES_FRONTEND_URL}\\,${MENTOR_FRONTEND_URL}"
+
+# For mentor backend: allow both frontend origins (escape commas for helm)
+MENTOR_CORS_ORIGINS="${DEVICES_FRONTEND_URL}\\,${MENTOR_FRONTEND_URL}"
+
+echo "  - CORS Origins: Devices=[$DEVICES_CORS_ORIGINS], Mentor=[$MENTOR_CORS_ORIGINS]"
+
 # Get actual NodePort assignments (Kubernetes auto-assigns if not specified)
 DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
 MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
 
 # Deploy mentor backend first to get its URL for devices backend
 if [[ -z "$MENTOR_NODEPORT" ]]; then
-  helm upgrade --install mentor-backend ./charts/mentor-backend --namespace "$NAMESPACE"
+  helm upgrade --install mentor-backend ./charts/mentor-backend \
+    --namespace "$NAMESPACE" \
+    --set-string frontendOrigin="$MENTOR_CORS_ORIGINS"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
   MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
 fi
@@ -52,19 +75,29 @@ fi
 # Set mentor API URL for devices backend
 MENTOR_API_URL="http://localhost:$MENTOR_NODEPORT"
 
-# Deploy devices backend with MENTOR_API_URL pointing to mentor backend
+# Deploy devices backend with MENTOR_API_URL and CORS origins
 if [[ -z "$DEVICES_NODEPORT" ]]; then
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
-    --set mentorApiUrl="$MENTOR_API_URL"
+    --set-string mentorApiUrl="$MENTOR_API_URL" \
+    --set-string frontendOrigins="$DEVICES_CORS_ORIGINS"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
   DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
 else
-  # If devices-backend already exists, upgrade it with mentor URL
+  # If devices-backend already exists, upgrade it with mentor URL and CORS
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
-    --set mentorApiUrl="$MENTOR_API_URL"
+    --set-string mentorApiUrl="$MENTOR_API_URL" \
+    --set-string frontendOrigins="$DEVICES_CORS_ORIGINS"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
+fi
+
+# Update mentor backend with CORS origins if it was already deployed
+if [[ -n "$MENTOR_NODEPORT" ]]; then
+  helm upgrade --install mentor-backend ./charts/mentor-backend \
+    --namespace "$NAMESPACE" \
+    --set-string frontendOrigin="$MENTOR_CORS_ORIGINS"
+  wait_for_service_ready "mentor-backend" "$NAMESPACE"
 fi
 
 # Register backend services in discovery registry
@@ -72,13 +105,7 @@ register_service "devices-backend" "http://localhost:$DEVICES_NODEPORT" "$DEVICE
 register_service "mentor-backend" "http://localhost:$MENTOR_NODEPORT" "$MENTOR_NODEPORT"
 
 echo ""
-echo "🌐 Starting frontends with auto-detected ports..."
-
-# Find available ports for frontends (avoiding NodePorts)
-DEVICES_FRONTEND_PORT=$(find_available_port $DEVICES_FRONTEND_START_PORT)
-MENTOR_FRONTEND_PORT=$(find_available_port $MENTOR_FRONTEND_START_PORT)
-
-echo "  - Detected available ports: Devices=$DEVICES_FRONTEND_PORT, Mentor=$MENTOR_FRONTEND_PORT"
+echo "🌐 Starting frontends with detected ports..."
 
 # Start mentor frontend
 echo "  - Starting Mentor Frontend on port $MENTOR_FRONTEND_PORT..."
@@ -137,5 +164,9 @@ echo "  - Mentor Backend:    http://localhost:$MENTOR_NODEPORT/health"
 echo "  - Mentor Dashboard:  http://localhost:$MENTOR_FRONTEND_PORT"
 echo "  - Device Simulator:  http://localhost:$DEVICES_FRONTEND_PORT"
 echo ""
-echo "🗂️  Service Registry: .deploy/registry/"
+echo "� CORS Configuration:"
+echo "  - Devices Backend allows: $DEVICES_CORS_ORIGINS"
+echo "  - Mentor Backend allows:  $MENTOR_CORS_ORIGINS"
+echo ""
+echo "�🗂️  Service Registry: .deploy/registry/"
 echo "💡 To stop: ./scripts/stop-smart.sh"
