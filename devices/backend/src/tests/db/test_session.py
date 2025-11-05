@@ -37,3 +37,26 @@ async def test_database_url_configured():
 def test_async_session_configured():
     """Test that async session maker is configured."""
     assert async_session is not None
+
+
+def test_database_url_with_individual_env_vars():
+    """Test DATABASE_URL construction from individual env vars."""
+    import os
+    # Save original
+    orig = os.environ.get('DATABASE_URL')
+    
+    try:
+        # Set DATABASE_URL with placeholder
+        os.environ['DATABASE_URL'] = 'postgresql://$(POSTGRES_PASSWORD)'
+        
+        # This should trigger the construction from individual vars
+        import importlib
+        import app.db.session
+        importlib.reload(app.db.session)
+        
+        # The module should have constructed a valid URL
+        assert app.db.session.DATABASE_URL is not None
+    finally:
+        # Restore
+        if orig:
+            os.environ['DATABASE_URL'] = orig

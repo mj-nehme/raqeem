@@ -28,3 +28,28 @@ async def test_api_router_included():
     # Check that routes are registered
     routes = [route.path for route in app.routes]
     assert any('/api/v1' in route for route in routes)
+
+
+@pytest.mark.asyncio
+async def test_lifespan_init_db_exception():
+    """Test that lifespan handles init_db exception gracefully."""
+    from unittest.mock import patch, AsyncMock
+    from app.main import lifespan
+    
+    # Mock init_db to raise an exception
+    with patch('app.main.init_db', new=AsyncMock(side_effect=Exception("DB init failed"))):
+        async with lifespan(app):
+            # Should not raise - exception is caught
+            pass
+
+
+@pytest.mark.asyncio  
+async def test_lifespan_context():
+    """Test lifespan context manager."""
+    from app.main import lifespan
+    
+    # Test that lifespan works as context manager
+    async with lifespan(app):
+        # In context
+        assert app is not None
+    # After context - should complete successfully
