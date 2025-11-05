@@ -200,7 +200,7 @@ function DeviceSimulator() {
                 'docker', 'node', 'python', 'postgres', 'redis', 'nginx'
             ];
             
-            const processes = Array.from({ length: Math.floor(Math.random() * 8) + 5 }, (_, i) => ({
+            const processes = Array.from({ length: Math.floor(Math.random() * 8) + 5 }, () => ({
                 pid: 1000 + Math.floor(Math.random() * 9000),
                 name: processNames[Math.floor(Math.random() * processNames.length)],
                 cpu: Math.random() * 50,
