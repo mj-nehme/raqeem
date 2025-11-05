@@ -19,14 +19,11 @@ node_modules/
 **/dist/
 **/build/
 
-# Test coverage
-**/coverage/
-
 # Python cache
 **/__pycache__/
 **/.pytest_cache/
 
-# Coverage files
+# Coverage files (all formats)
 coverage.out
 **/coverage.out
 **/*coverage*.out
@@ -36,8 +33,10 @@ coverage.xml
 **/.coverage
 **/coverage/
 coverage/
+htmlcov/
 lcov.info
 **/lcov.info
+*.lcov
 
 # Deployment state
 .deploy/
@@ -48,11 +47,3 @@ lcov.info
 *_VALIDATION.md
 *_RESULTS.md
 COMMIT_MSG.txt
-
-# Coverage reports
-coverage.xml
-coverage.out
-.coverage
-htmlcov/
-**/coverage/
-*.lcov
