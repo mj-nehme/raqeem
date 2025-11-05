@@ -17,7 +17,7 @@ class Device(Base):
     location = Column(Text, nullable=True)
     ip_address = Column(Text, nullable=True)
     mac_address = Column(Text, nullable=True)
-    current_user = Column(Text, nullable=True)
+    current_user = Column(Text, nullable=True)  # SQLAlchemy handles reserved words in queries
 
 
 class DeviceMetrics(Base):

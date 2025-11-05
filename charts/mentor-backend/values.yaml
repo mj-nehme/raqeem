@@ -2,8 +2,8 @@ replicaCount: 1
 
 image:
   repository: jaafarn/raqeem-mentor-backend
-  tag: v0.0.4
-  pullPolicy: IfNotPresent
+  tag: "0.0.5"
+  pullPolicy: Never
 
 service:
   type: NodePort
