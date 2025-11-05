@@ -451,7 +451,7 @@ async def test_list_devices_multiple():
 
 @pytest.mark.asyncio
 async def test_list_devices_with_existing():
-    """Test listing devices returns empty list when none exist."""
+    """Test listing devices with existing devices in database."""
     # This test assumes a fresh database or will get existing devices
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get("/api/v1/devices/")
