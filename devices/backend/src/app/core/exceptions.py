@@ -8,7 +8,6 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 import os
-import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -98,26 +97,25 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     Catch-all exception handler to ensure CORS headers are present on all errors.
     This is critical for preventing CORS errors when internal server errors occur.
     """
-    # Log full exception with traceback
+    # Log full exception with traceback (logger.exception includes traceback automatically)
     logger.exception(
         f"Unhandled exception on {request.method} {request.url.path}: "
         f"{type(exc).__name__}: {str(exc)}"
     )
     
-    # Log traceback for debugging
-    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
-    logger.error(f"Traceback:\n{tb}")
-    
     headers = get_cors_headers(request)
     
-    # Provide more detailed error messages in development
-    error_detail = "Internal server error"
+    # Control error detail exposure via environment variable
+    debug_mode = os.getenv("DEBUG", "false").lower() in ("true", "1", "yes")
     
-    # Include exception type and message for debugging
-    # In production, you might want to hide these details
-    error_detail = f"{type(exc).__name__}: {str(exc)}"
+    if debug_mode:
+        # In development, show detailed error information
+        error_detail = f"{type(exc).__name__}: {str(exc)}"
+    else:
+        # In production, show generic error message
+        error_detail = "Internal server error"
     
-    # Add hints for common errors
+    # Add hints for common errors (helpful even in production)
     hints = []
     if "database" in str(exc).lower() or "connection" in str(exc).lower():
         hints.append("Database connection issue detected. Check DATABASE_URL and database availability.")
@@ -127,7 +125,7 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     
     response_content = {
         "detail": error_detail,
-        "error_type": type(exc).__name__
+        "error_type": type(exc).__name__ if debug_mode else "InternalError"
     }
     
     if hints:
