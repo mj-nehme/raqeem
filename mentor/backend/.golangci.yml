@@ -1,3 +1,5 @@
-linters:
-  disable:
-    - typecheck # Disable problematic typecheck
+version: "2"
+
+# Note: typecheck is not a configurable linter in v2.x
+# Type checking is always performed and cannot be disabled
+# See: https://golangci-lint.run/docs/product/migration-guide/#typecheck
