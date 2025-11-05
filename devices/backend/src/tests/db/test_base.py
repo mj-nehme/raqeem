@@ -1,4 +1,3 @@
-import pytest
 from app.db.base import Base
 
 

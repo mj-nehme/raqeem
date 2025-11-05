@@ -14,7 +14,6 @@ The script will register the device once, then periodically POST metrics, proces
 import argparse
 import os
 import random
-import string
 import time
 import uuid
 import requests
@@ -112,11 +111,11 @@ def run_loop(base_url, device_id, interval):
     while True:
         try:
             metrics = random_metrics()
-            mres = post_metrics(base_url, device_id, metrics)
+            post_metrics(base_url, device_id, metrics)
             procs = random_process_list(random.randint(3, 8))
-            pres = post_processes(base_url, device_id, procs)
+            post_processes(base_url, device_id, procs)
             act = random_activity()
-            ares = post_activity(base_url, device_id, act)
+            post_activity(base_url, device_id, act)
             count += 1
             print(f"[{datetime.utcnow().isoformat()}] Sent batch #{count}: metrics={metrics['cpu_usage']}% mem={metrics['memory_usage']}MB procs={len(procs)}")
         except Exception as e:

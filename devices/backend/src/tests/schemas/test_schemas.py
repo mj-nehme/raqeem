@@ -1,4 +1,3 @@
-import pytest
 from uuid import uuid4
 from datetime import datetime
 from app.schemas.app_activity import AppActivityCreate, AppActivityOut
