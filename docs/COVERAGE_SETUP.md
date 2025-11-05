@@ -64,7 +64,7 @@ A local script for collecting coverage across all components. Useful for:
 **File**: `codecov.yml`
 
 Configured with:
-- **Target coverage**: 70% minimum
+- **Target coverage**: 90% minimum (per MVP requirements)
 - **Threshold**: 5% (allow up to 5% decrease)
 - **Flags**: Separate tracking for each component
   - `mentor-backend`
@@ -73,6 +73,10 @@ Configured with:
   - `devices-frontend`
 - **Comments**: Enabled on PRs with coverage diff and flag details
 - **Carryforward**: Enabled to handle missing coverage uploads
+
+### Key Features
+
+**Coverage on Test Failure**: Both frontend applications are configured with `reportOnFailure: true` in their Vitest configurations, ensuring coverage reports are generated even when some tests fail. This provides comprehensive coverage data regardless of test status.
 
 ## Codecov Integration
 
@@ -204,10 +208,11 @@ Check:
 
 ### Low Coverage Warnings
 
-The Codecov configuration sets a 70% target. To improve:
+The Codecov configuration sets a 90% target (per MVP requirements). To improve:
 1. Add more test cases for untested functions
 2. Check the Codecov dashboard for specific uncovered lines
 3. Focus on critical paths and error handling
+4. Use local coverage reports to identify gaps quickly
 
 ## Best Practices
 

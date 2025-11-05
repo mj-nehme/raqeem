@@ -28,6 +28,7 @@ export default ({ mode }) => {
         provider: 'v8',
         reporter: ['text', 'json', 'html', 'lcov'],
         reportsDirectory: './coverage',
+        reportOnFailure: true, // Generate coverage even when tests fail
         exclude: [
           'node_modules/',
           'src/setupTests.js',
