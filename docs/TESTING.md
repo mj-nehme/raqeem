@@ -246,14 +246,119 @@ Expected test execution times:
 | Integration test | ~30-60s | Includes docker-compose up |
 | Full CI pipeline | ~3-5min | Includes builds |
 
+## Test Coverage
+
+### Overview
+
+The project has comprehensive test coverage tracking for all components (backend and frontend). Coverage is automatically collected in the CI/CD pipeline and uploaded to [Codecov](https://codecov.io/gh/mj-nehme/raqeem).
+
+**Coverage Target**: 90% for all components as per MVP requirements
+
+### Running Coverage Locally
+
+#### Python Backend (Devices)
+```bash
+cd devices/backend/src
+pytest --cov=app --cov-report=html --cov-report=term
+# Open htmlcov/index.html to view detailed report
+```
+
+#### Go Backend (Mentor)
+```bash
+cd mentor/backend/src
+go test ./... -race -coverprofile=coverage.out
+go tool cover -html=coverage.out  # Opens in browser
+```
+
+#### Devices Frontend (React)
+```bash
+cd devices/frontend
+npm run test:coverage -- --run
+# Open coverage/index.html to view detailed report
+```
+
+#### Mentor Frontend (React)
+```bash
+cd mentor/frontend
+npm run test:coverage -- --run
+# Open coverage/index.html to view detailed report
+```
+
+### Coverage Files Generated
+
+- **Python**: `devices/backend/src/coverage.xml` (XML format for Codecov)
+- **Go**: `mentor/backend/src/coverage.out` (Go coverage format)
+- **Devices Frontend**: `devices/frontend/coverage/lcov.info` (LCOV format)
+- **Mentor Frontend**: `mentor/frontend/coverage/lcov.info` (LCOV format)
+
+### Viewing Combined Coverage
+
+1. Visit the [Codecov Dashboard](https://codecov.io/gh/mj-nehme/raqeem)
+2. View overall project coverage and trends
+3. Select individual components using the "Flags" filter:
+   - `devices-backend` - Python backend coverage
+   - `mentor-backend` - Go backend coverage
+   - `devices-frontend` - Devices React frontend coverage
+   - `mentor-frontend` - Mentor React frontend coverage
+
+### Coverage in CI/CD
+
+The GitHub Actions workflow (`.github/workflows/ci.yml`) automatically:
+1. Runs tests for all four components in parallel
+2. Generates coverage reports for each component
+3. Uploads coverage to Codecov with component-specific flags
+4. Comments on PRs with coverage changes
+
+**Note**: Coverage is generated even when tests fail, ensuring comprehensive reporting.
+
+### Coverage Configuration
+
+Coverage is configured in the following files:
+- **Python**: `devices/backend/src/pytest.ini` and `devices/backend/src/pyproject.toml`
+- **Go**: Command-line flags in CI workflow
+- **Frontends**: `vite.config.js` in each frontend directory
+- **Codecov**: `codecov.yml` at repository root
+
+### Improving Coverage
+
+To improve coverage for a specific component:
+
+1. **Identify uncovered code**: Check Codecov dashboard or local HTML reports
+2. **Add tests**: Write tests for uncovered functions/lines
+3. **Run coverage locally**: Verify improvements before committing
+4. **Check CI results**: Ensure coverage increases after PR merge
+
+Example workflow:
+```bash
+# Check current coverage
+cd devices/frontend
+npm run test:coverage -- --run
+
+# View detailed report
+open coverage/index.html  # macOS
+xdg-open coverage/index.html  # Linux
+
+# Add tests for uncovered code
+vim src/components/MyComponent.test.jsx
+
+# Verify improvement
+npm run test:coverage -- --run
+```
+
 ## CI/CD Pipeline
 
 GitHub Actions workflow (`.github/workflows/ci.yml`):
 
 1. **Setup** - Provision Postgres service
-2. **Python Tests** - Install deps, run pytest
-3. **Go Tests** - Install Go, run go test
-4. **Frontend Tests** - Install Node, run vitest x2
+2. **Linting** - Run linters (ruff, mypy, golangci-lint, ESLint)
+3. **Build** - Verify Docker images build successfully
+4. **Tests** - Run tests with coverage for all components:
+   - Python Backend (pytest + coverage)
+   - Go Backend (go test + coverage)
+   - Devices Frontend (vitest + coverage)
+   - Mentor Frontend (vitest + coverage)
+5. **Coverage Upload** - Upload all coverage reports to Codecov
+6. **Docker Push** - Push images to Docker Hub (on master branch only)
 
 Runs on:
 - Every push to `main`/`master`
