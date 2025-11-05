@@ -23,7 +23,7 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 
 	// Check if we should use PostgreSQL (only if explicitly configured for CI)
 	usePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS") == "true"
-	
+
 	if usePostgres {
 		// Use PostgreSQL for tests (CI environment)
 		user := getEnvOrDefault("POSTGRES_USER", "postgres")
@@ -58,14 +58,14 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 			t.Fatalf("Failed to create SQLite test database: %v", err)
 			return nil
 		}
-		
+
 		// Enable WAL mode for better concurrency support in SQLite
 		sqlDB, err := db.DB()
 		if err == nil {
 			sqlDB.Exec("PRAGMA journal_mode=WAL;")
 			sqlDB.Exec("PRAGMA busy_timeout=5000;") // 5 second timeout for locks
 		}
-		
+
 		log.Printf("Test database connected successfully (SQLite in-memory)")
 	}
 
@@ -111,7 +111,7 @@ func CleanupTestDB(t *testing.T, db *gorm.DB) {
 func CreateTestDatabase() error {
 	// Check if we should use PostgreSQL
 	usePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS") == "true"
-	
+
 	if !usePostgres {
 		// SQLite doesn't need database creation
 		return nil

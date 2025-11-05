@@ -32,7 +32,7 @@ func GeneratePresignedURL(filename string) string {
 	if client == nil {
 		return ""
 	}
-	
+
 	ctx := context.Background()
 	reqParams := url.Values{}
 	reqParams.Set("response-content-disposition", "inline")

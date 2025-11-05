@@ -23,6 +23,19 @@ node_modules/
 **/__pycache__/
 **/.pytest_cache/
 
+# Coverage files
+coverage.out
+**/coverage.out
+**/*coverage*.out
+coverage.xml
+**/coverage.xml
+.coverage
+**/.coverage
+**/coverage/
+coverage/
+lcov.info
+**/lcov.info
+
 # Deployment state
 .deploy/
 

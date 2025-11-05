@@ -171,7 +171,7 @@ func TestLogActivity(t *testing.T) {
 	req, _ := http.NewRequest("POST", "/devices/"+deviceID+"/activity", nil)
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, req)
-	
+
 	// Should handle request (might be 200 or 400 depending on body)
 	assert.True(t, w.Code == http.StatusOK || w.Code == http.StatusBadRequest)
 }

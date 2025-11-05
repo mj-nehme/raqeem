@@ -23,7 +23,7 @@ func TestGeneratePresignedURLMultipleCalls(t *testing.T) {
 	url1 := GeneratePresignedURL("file1.jpg")
 	url2 := GeneratePresignedURL("file2.jpg")
 	url3 := GeneratePresignedURL("file3.jpg")
-	
+
 	// All should return empty string when client is not initialized
 	assert.Equal(t, "", url1)
 	assert.Equal(t, "", url2)

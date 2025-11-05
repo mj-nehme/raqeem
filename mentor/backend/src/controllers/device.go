@@ -47,7 +47,7 @@ func UpdateDeviceMetrics(c *gin.Context) {
 	if metrics.ID == "" {
 		metrics.ID = uuid.New().String()
 	}
-	
+
 	metrics.Timestamp = time.Now()
 
 	if err := database.DB.Create(&metrics).Error; err != nil {

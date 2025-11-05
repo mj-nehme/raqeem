@@ -4,7 +4,6 @@ import '@testing-library/jest-dom'
 import DeviceSimulator from './DeviceSimulator'
 
 // Mock fetch
-// eslint-disable-next-line no-undef
 global.fetch = vi.fn()
 
 // Mock environment variable
