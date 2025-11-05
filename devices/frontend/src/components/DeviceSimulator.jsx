@@ -200,12 +200,12 @@ function DeviceSimulator() {
                     await executeCommand(cmd);
                 }
             }
-        } catch (error) {
+        } catch {
             // Silently fail command polling to avoid log spam
         }
-    }, [deviceId]);
+    }, [deviceId, executeCommand]);
 
-    const executeCommand = async (cmd) => {
+    const executeCommand = useCallback(async (cmd) => {
         try {
             addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
             
@@ -256,10 +256,11 @@ function DeviceSimulator() {
                 case 'get_logs':
                     result = 'Log line 1\nLog line 2\nLog line 3';
                     break;
-                case 'restart_service':
+                case 'restart_service': {
                     const service = cmd.command.split(' ')[1] || 'unknown';
                     result = `Service ${service} restarted successfully`;
                     break;
+                }
                 case 'screenshot':
                     result = 'Screenshot captured successfully';
                     break;
@@ -294,11 +295,11 @@ function DeviceSimulator() {
                         exit_code: 1,
                     }),
                 });
-            } catch (e) {
+            } catch {
                 // Ignore if we can't report the failure
             }
         }
-    };
+    }, [deviceId, deviceName, deviceType, deviceOS, currentUser]);
 
     const startSimulation = () => {
         if (!isRegistered) {
