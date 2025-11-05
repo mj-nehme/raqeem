@@ -125,6 +125,7 @@ The platform includes smart service discovery that automatically handles port co
 ### Development
 - **[Development Guide](docs/DEVELOPMENT.md)** - Local setup, coding standards, and contribution guidelines
 - **[Testing Guide](docs/TESTING.md)** - Unit, integration, and E2E testing practices
+- **[Testing Best Practices](docs/TESTING_BEST_PRACTICES.md)** - Comprehensive testing strategies and coverage guidelines
 - **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common issues and solutions
 
 ### Deployment & Operations
