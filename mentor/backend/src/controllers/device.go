@@ -354,7 +354,11 @@ func CreateRemoteCommand(c *gin.Context) {
 				fmt.Printf("Error forwarding command to devices backend: %v\n", err)
 				return
 			}
-			defer resp.Body.Close()
+			defer func() {
+				if err := resp.Body.Close(); err != nil {
+					fmt.Printf("Error closing response body: %v\n", err)
+				}
+			}()
 			if resp.StatusCode >= 400 {
 				fmt.Printf("Devices backend returned error status: %d\n", resp.StatusCode)
 			}
