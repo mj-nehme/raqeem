@@ -57,6 +57,9 @@ def register_device(device_id, name, device_type, os_name):
     """Register a device."""
     log(f"Registering {name}...")
     
+    # Use abs(hash()) to ensure positive values for IP and MAC generation
+    hash_val = abs(hash(device_id))
+    
     payload = {
         "id": device_id,
         "name": name,
@@ -64,8 +67,8 @@ def register_device(device_id, name, device_type, os_name):
         "os": os_name,
         "current_user": "test-user",
         "location": "E2E Test Lab",
-        "ip_address": f"192.168.1.{hash(device_id) % 255}",
-        "mac_address": f"{hash(device_id) % 256:02X}:BB:CC:DD:EE:FF"
+        "ip_address": f"192.168.1.{hash_val % 255}",
+        "mac_address": f"{hash_val % 256:02X}:BB:CC:DD:EE:FF"
     }
     
     try:
@@ -104,7 +107,7 @@ def submit_metrics(device_id, cpu, memory_pct):
         )
         response.raise_for_status()
         return True
-    except:
+    except requests.exceptions.RequestException:
         return False
 
 
@@ -125,7 +128,7 @@ def submit_activity(device_id, activity_type, app, description):
         )
         response.raise_for_status()
         return True
-    except:
+    except requests.exceptions.RequestException:
         return False
 
 
@@ -147,7 +150,7 @@ def submit_alert(device_id, level, alert_type, message, value, threshold):
         )
         response.raise_for_status()
         return True
-    except:
+    except requests.exceptions.RequestException:
         return False
 
 
@@ -164,7 +167,7 @@ def upload_screenshot(device_id):
         )
         response.raise_for_status()
         return True
-    except:
+    except requests.exceptions.RequestException:
         return False
 
 

@@ -68,11 +68,24 @@ max_wait=60
 waited=0
 all_healthy=false
 
+echo "Checking service health (timeout: ${max_wait}s)..."
 while [ $waited -lt $max_wait ]; do
-  devices_health=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps devices-backend 2>/dev/null | grep -c "healthy" || echo "0")
-  mentor_health=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps mentor-backend 2>/dev/null | grep -c "healthy" || echo "0")
+  # Check if services are healthy
+  devices_status=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps --format json devices-backend 2>/dev/null | grep -o '"Health":"[^"]*"' | cut -d'"' -f4 || echo "")
+  mentor_status=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps --format json mentor-backend 2>/dev/null | grep -o '"Health":"[^"]*"' | cut -d'"' -f4 || echo "")
   
-  if [ "$devices_health" = "1" ] && [ "$mentor_health" = "1" ]; then
+  # Fallback to grep method if JSON parsing fails
+  if [ -z "$devices_status" ]; then
+    devices_health=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps devices-backend 2>/dev/null | grep -c "healthy" || echo "0")
+    [ "$devices_health" = "1" ] && devices_status="healthy"
+  fi
+  
+  if [ -z "$mentor_status" ]; then
+    mentor_health=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps mentor-backend 2>/dev/null | grep -c "healthy" || echo "0")
+    [ "$mentor_health" = "1" ] && mentor_status="healthy"
+  fi
+  
+  if [ "$devices_status" = "healthy" ] && [ "$mentor_status" = "healthy" ]; then
     all_healthy=true
     break
   fi
