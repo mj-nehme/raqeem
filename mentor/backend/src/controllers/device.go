@@ -1,10 +1,13 @@
 package controllers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"mentor-backend/database"
 	"mentor-backend/models"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -288,6 +291,35 @@ func CreateRemoteCommand(c *gin.Context) {
 		return
 	}
 
+	// Forward command to devices backend if DEVICES_API_URL is set
+	devicesAPIURL := os.Getenv("DEVICES_API_URL")
+	if devicesAPIURL != "" {
+		go func() {
+			payload := map[string]interface{}{
+				"command": cmd.Command,
+			}
+			jsonData, err := json.Marshal(payload)
+			if err != nil {
+				fmt.Printf("Error marshaling command payload: %v\n", err)
+				return
+			}
+			client := &http.Client{Timeout: 5 * time.Second}
+			resp, err := client.Post(
+				fmt.Sprintf("%s/devices/%s/commands", devicesAPIURL, cmd.DeviceID),
+				"application/json",
+				bytes.NewBuffer(jsonData),
+			)
+			if err != nil {
+				fmt.Printf("Error forwarding command to devices backend: %v\n", err)
+				return
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode >= 400 {
+				fmt.Printf("Devices backend returned error status: %d\n", resp.StatusCode)
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, cmd)
 }
 
@@ -297,6 +329,29 @@ func GetPendingCommands(c *gin.Context) {
 
 	var commands []models.RemoteCommand
 	if err := database.DB.Where("device_id = ? AND status = ?", deviceID, "pending").
+		Find(&commands).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, commands)
+}
+
+// GetDeviceCommands returns command history for a device
+func GetDeviceCommands(c *gin.Context) {
+	deviceID := c.Param("id")
+	limit := 100
+	if l := c.Query("limit"); l != "" {
+		if _, err := fmt.Sscanf(l, "%d", &limit); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit parameter"})
+			return
+		}
+	}
+
+	var commands []models.RemoteCommand
+	if err := database.DB.Where("device_id = ?", deviceID).
+		Order("created_at desc").
+		Limit(limit).
 		Find(&commands).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

@@ -66,6 +66,7 @@ func main() {
 	r.GET("/devices/:id/alerts", controllers.GetDeviceAlerts)
 	r.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshots)
 	r.GET("/devices/:id/commands/pending", controllers.GetPendingCommands)
+	r.GET("/devices/:id/commands", controllers.GetDeviceCommands)
 	r.POST("/commands/status", controllers.UpdateCommandStatus)
 	r.POST("/devices/:id/alerts", controllers.ReportAlert)
 
