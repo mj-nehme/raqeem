@@ -1,0 +1,15 @@
+# Go build artifacts
+mentor-backend
+*.test
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test coverage
+*.out
+coverage.txt
+
+# Dependency directories
+vendor/

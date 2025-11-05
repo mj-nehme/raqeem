@@ -129,7 +129,7 @@ func UpdateProcessList(c *gin.Context) {
 
 // ListDevices returns all registered devices
 func ListDevices(c *gin.Context) {
-	var devices []models.Device
+	devices := make([]models.Device, 0)
 
 	// Mark devices as offline if not seen in last 5 minutes
 	database.DB.Model(&models.Device{}).
@@ -155,7 +155,7 @@ func GetDeviceMetrics(c *gin.Context) {
 		}
 	}
 
-	var metrics []models.DeviceMetrics
+	metrics := make([]models.DeviceMetrics, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -178,7 +178,7 @@ func GetDeviceProcesses(c *gin.Context) {
 		}
 	}
 
-	var processes []models.Process
+	processes := make([]models.Process, 0)
 	// Return most recent snapshot of processes for device (ordered by cpu desc, then timestamp desc)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc, cpu desc").
@@ -202,7 +202,7 @@ func GetDeviceActivities(c *gin.Context) {
 		}
 	}
 
-	var logs []models.ActivityLog
+	logs := make([]models.ActivityLog, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -225,7 +225,7 @@ func GetDeviceAlerts(c *gin.Context) {
 		}
 	}
 
-	var alerts []models.Alert
+	alerts := make([]models.Alert, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -248,7 +248,7 @@ func GetDeviceScreenshots(c *gin.Context) {
 		}
 	}
 
-	var shots []models.Screenshot
+	shots := make([]models.Screenshot, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -327,7 +327,7 @@ func CreateRemoteCommand(c *gin.Context) {
 func GetPendingCommands(c *gin.Context) {
 	deviceID := c.Param("id")
 
-	var commands []models.RemoteCommand
+	commands := make([]models.RemoteCommand, 0)
 	if err := database.DB.Where("device_id = ? AND status = ?", deviceID, "pending").
 		Find(&commands).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
