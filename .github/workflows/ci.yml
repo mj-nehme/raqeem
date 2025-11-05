@@ -109,6 +109,7 @@ jobs:
           version: v1.60.3
           working-directory: mentor/backend/src
           args: --timeout=3m
+          skip-cache: true
 
   lint-devices-frontend:
     name: Lint Devices Frontend (ESLint)
