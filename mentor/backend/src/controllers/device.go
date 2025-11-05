@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"mentor-backend/database"
 	"mentor-backend/models"
+	"mentor-backend/s3"
 	"net/http"
 	"os"
 	"time"
@@ -257,18 +258,21 @@ func GetDeviceScreenshots(c *gin.Context) {
 		return
 	}
 
-	// Return as-is; frontend supports 'screenshot_url' or 'url' if available.
-	// We map to include a generic 'url' pointing to the stored path for convenience.
+	// Generate presigned URLs for screenshots
 	resp := make([]gin.H, 0, len(shots))
 	for _, s := range shots {
+		// Generate presigned URL for the screenshot
+		screenshotURL := s3.GeneratePresignedURL(s.Path)
+		
 		resp = append(resp, gin.H{
-			"id":         s.ID,
-			"device_id":  s.DeviceID,
-			"timestamp":  s.Timestamp,
-			"path":       s.Path,
-			"resolution": s.Resolution,
-			"size":       s.Size,
-			"url":        s.Path,
+			"id":             s.ID,
+			"device_id":      s.DeviceID,
+			"timestamp":      s.Timestamp,
+			"path":           s.Path,
+			"resolution":     s.Resolution,
+			"size":           s.Size,
+			"url":            screenshotURL,
+			"screenshot_url": screenshotURL, // Also provide as screenshot_url for frontend compatibility
 		})
 	}
 
@@ -403,4 +407,22 @@ func ReportAlert(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, alert)
+}
+
+// StoreScreenshot stores screenshot metadata forwarded from devices backend
+func StoreScreenshot(c *gin.Context) {
+	var screenshot models.Screenshot
+	if err := c.BindJSON(&screenshot); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	screenshot.Timestamp = time.Now()
+
+	if err := database.DB.Create(&screenshot).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, screenshot)
 }

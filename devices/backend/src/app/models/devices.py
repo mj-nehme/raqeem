@@ -90,3 +90,14 @@ class RemoteCommand(Base):
     completed_at = Column(TIMESTAMP, nullable=True)
     result = Column(Text, nullable=True)
     exit_code = Column(Integer, nullable=True)
+
+
+class DeviceScreenshot(Base):
+    __tablename__ = "device_screenshots"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_id = Column(String, nullable=False)
+    timestamp = Column(TIMESTAMP, server_default=sa.func.now())
+    path = Column(Text, nullable=False)
+    resolution = Column(Text, nullable=True)
+    size = Column(BigInteger, nullable=True)

@@ -5,9 +5,12 @@ from datetime import datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import uuid
+import httpx
 
 from app.db.session import get_db
 from app.models.screenshots import Screenshot as ScreenshotModel
+from app.models import devices as dev_models
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -33,11 +36,40 @@ async def create_screenshot(
         file_id = str(uuid.uuid4())
         filename = f"{file_id}.png"
         
-        # For now, just store the filename as image_path
-        # In production, you'd upload to S3 or file storage
+        # Read file to get size
+        content = await file.read()
+        file_size = len(content)
+        
+        # Store in legacy screenshots table for backward compatibility
         obj = ScreenshotModel(user_id=device_id, image_path=filename)
-        async with db.begin():
-            db.add(obj)
+        db.add(obj)
+        
+        # Also store in device_screenshots table with proper schema
+        device_screenshot = dev_models.DeviceScreenshot(
+            device_id=device_id,
+            path=filename,
+            resolution="800x600",  # Default resolution
+            size=file_size
+        )
+        db.add(device_screenshot)
+        await db.commit()
+        
+        # Forward to mentor backend if configured
+        if settings.mentor_api_url:
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    payload = {
+                        "device_id": device_id,
+                        "path": filename,
+                        "resolution": "800x600",
+                        "size": file_size
+                    }
+                    # Mentor backend expects POST to /devices/:id/screenshots but we'll create an endpoint
+                    # For now, we'll use a direct POST endpoint that mentor should implement
+                    await client.post(f"{settings.mentor_api_url}/devices/screenshots", json=payload)
+            except Exception:
+                # Don't fail if forwarding fails
+                pass
         
         return {
             "id": str(obj.id),
