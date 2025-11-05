@@ -86,6 +86,59 @@ python3 tests/integration/test_alert_flow.py
 docker-compose -f .github/docker-compose.test.yml down -v
 ```
 
+### NEW: Comprehensive Integration Test Suite
+
+**Purpose**: Complete test coverage for all system communication patterns  
+**Duration**: ~3-5 minutes (includes all tests)  
+**Requirements**: Docker and docker-compose
+
+The comprehensive test suite includes:
+
+#### 1. test_devices_backend_db_s3.py
+Tests Devices Backend communication with PostgreSQL and MinIO:
+- ✓ Device registration (DB write)
+- ✓ Metrics storage (DB write)
+- ✓ Activity logging (DB write)
+- ✓ Alert storage (DB write)
+- ✓ Screenshot upload to S3 (MinIO)
+
+#### 2. test_mentor_backend_db_s3.py
+Tests Mentor Backend communication with PostgreSQL and MinIO:
+- ✓ Device listing (DB read)
+- ✓ Alert submission and storage (DB write/read)
+- ✓ Metrics retrieval (DB read)
+- ✓ Screenshot presigned URL generation (S3)
+
+#### 3. test_backend_communication.py
+Tests Backend-to-Backend communication (alert forwarding):
+- ✓ Device registration in devices backend
+- ✓ Alert submission to devices backend
+- ✓ Automatic forwarding to mentor backend
+- ✓ Alert retrieval from mentor backend
+- ✓ Data consistency verification
+
+#### 4. test_e2e_system_flow.py
+Tests complete end-to-end system workflows:
+- ✓ Multiple device scenarios
+- ✓ Normal device operation with metrics/activities/alerts
+- ✓ Critical device with multiple alerts
+- ✓ Screenshot uploads
+- ✓ Cross-device data verification
+
+Usage:
+```bash
+# Run all tests (recommended)
+./tests/integration/run_all_integration_tests.sh
+
+# Run individual tests
+docker-compose -f .github/docker-compose.test.yml up -d
+python3 tests/integration/test_devices_backend_db_s3.py
+python3 tests/integration/test_mentor_backend_db_s3.py
+python3 tests/integration/test_backend_communication.py
+python3 tests/integration/test_e2e_system_flow.py
+```
+
+
 ## Prerequisites
 
 ### All Tests

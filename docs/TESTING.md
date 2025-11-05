@@ -61,17 +61,28 @@ This validates:
 
 ### 3. Integration Tests (Pre-Deployment)
 
-Full end-to-end test with docker-compose:
+Full end-to-end tests with docker-compose covering all system communication patterns:
 
 ```bash
+# Run comprehensive integration test suite (recommended)
+./tests/integration/run_all_integration_tests.sh
+
+# Or run legacy single test
 ./tests/integration/run_integration_tests.sh
 ```
 
+The comprehensive test suite includes:
+- **Devices Backend ↔ DB & S3**: Device registration, metrics, activities, alerts, screenshot uploads
+- **Mentor Backend ↔ DB & S3**: Device listing, alert storage/retrieval, presigned URLs
+- **Backend-to-Backend Communication**: Alert forwarding pipeline and data consistency
+- **End-to-End System Flow**: Complete workflows with multiple devices and scenarios
+
 This:
 - Starts Postgres, MinIO, and both backends in Docker
-- Runs complete alert pipeline test
-- Validates data persistence
-- Shows logs on failure
+- Runs all integration tests systematically
+- Validates data persistence across components
+- Shows detailed logs on failure
+- Provides summary of test results
 
 ### 4. CI Tests (GitHub Actions)
 
@@ -111,7 +122,11 @@ act -j build-and-test
 
 | Test | What It Validates | File |
 |------|------------------|------|
-| `test_alert_flow` | Complete alert pipeline:<br>1. Device registration<br>2. Alert submission<br>3. Storage in devices DB<br>4. Forwarding to mentor<br>5. Storage in mentor DB<br>6. Retrieval from mentor API | `tests/integration/test_alert_flow.py` |
+| `test_devices_backend_db_s3` | **Devices Backend ↔ DB & S3**:<br>1. Device registration (DB)<br>2. Metrics storage (DB)<br>3. Activity logging (DB)<br>4. Alert storage (DB)<br>5. Screenshot upload (S3) | `tests/integration/test_devices_backend_db_s3.py` |
+| `test_mentor_backend_db_s3` | **Mentor Backend ↔ DB & S3**:<br>1. Device listing (DB)<br>2. Alert submission and retrieval (DB)<br>3. Metrics retrieval (DB)<br>4. Screenshot presigned URLs (S3) | `tests/integration/test_mentor_backend_db_s3.py` |
+| `test_backend_communication` | **Backend-to-Backend Communication**:<br>1. Device registration<br>2. Alert submission to devices backend<br>3. Automatic forwarding to mentor<br>4. Data consistency verification | `tests/integration/test_backend_communication.py` |
+| `test_e2e_system_flow` | **End-to-End System Flow**:<br>1. Multiple device scenarios<br>2. Normal and critical operations<br>3. Complete data flow pipeline<br>4. Cross-device verification | `tests/integration/test_e2e_system_flow.py` |
+| `test_alert_flow` | **Alert Pipeline (Legacy)**:<br>1. Device registration<br>2. Alert submission<br>3. Storage in devices DB<br>4. Forwarding to mentor<br>5. Storage in mentor DB<br>6. Retrieval from mentor API | `tests/integration/test_alert_flow.py` |
 
 ## Testing Checklist (Before Release)
 
