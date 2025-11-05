@@ -3,6 +3,8 @@
 [![CI](https://github.com/mj-nehme/raqeem/actions/workflows/ci.yml/badge.svg)](https://github.com/mj-nehme/raqeem/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/mj-nehme/raqeem/branch/master/graph/badge.svg)](https://codecov.io/gh/mj-nehme/raqeem)
 [![Release](https://img.shields.io/github/v/release/mj-nehme/raqeem)](https://github.com/mj-nehme/raqeem/releases)
+[![Go Version](https://img.shields.io/badge/go-1.23%2B-blue)](https://golang.org)
+[![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 
 > Full-stack IoT device monitoring platform with real-time telemetry, alerts, and analytics
 
@@ -72,10 +74,55 @@ After `./start.sh`, services auto-discover ports:
 ## Architecture
 
 ```
-Device Simulator → Devices Backend (FastAPI) → PostgreSQL
-                     ↓ alerts
-Monitor Dashboard ← Mentor Backend (Go) → Screenshots (MinIO)
+┌──────────────────────┐     ┌──────────────────────┐
+│  Mentor Frontend     │     │  Devices Frontend    │
+│  (React/Vite)        │     │  (React/Vite)        │
+│  - Device Dashboard  │     │  - Device Simulator  │
+│  - Metrics & Charts  │     │  - Auto-simulation   │
+│  - Screenshots       │     │  - Manual Controls   │
+│  - Activities/Alerts │     │  - Test Data Gen     │
+└──────────┬───────────┘     └──────────┬───────────┘
+           │ HTTP                       │ HTTP
+           │                            │
+      ┌────▼────────┐              ┌────▼──────────┐
+      │   Mentor    │              │   Devices     │
+      │  Backend    │◄─────────────│   Backend     │
+      │    (Go)     │  Alert Fwd   │  (FastAPI)    │
+      └──────┬──────┘              └───────┬───────┘
+             │                             │
+             └─────────────┬───────────────┘
+                           │
+        ┌──────────────────▼──────────────────┐
+        │         PostgreSQL                  │
+        │  - Devices, Metrics, Activities     │
+        │  - Users, Alerts, Commands          │
+        └──────────────────┬──────────────────┘
+                           │
+        ┌──────────────────▼──────────────────┐
+        │       MinIO (S3-compatible)         │
+        │  - Screenshot Storage               │
+        │  - Presigned URLs                   │
+        └─────────────────────────────────────┘
 ```
+
+### Components
+
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Devices Backend** | FastAPI (Python) | High-throughput telemetry ingestion |
+| **Mentor Backend** | Go + Gin | Device management & analytics |
+| **Mentor Frontend** | React + Vite | Monitoring dashboard |
+| **Devices Frontend** | React + Vite | Interactive device simulator |
+| **PostgreSQL** | Database | Persistent storage for all data |
+| **MinIO** | Object Storage | S3-compatible screenshot storage |
+
+### Data Flow
+
+1. **Device Registration** → Device Simulator → Devices Backend → PostgreSQL
+2. **Telemetry Ingestion** → Device Simulator → Devices Backend → PostgreSQL
+3. **Alert Forwarding** → Devices Backend → Mentor Backend → PostgreSQL
+4. **Screenshot Upload** → Device Simulator → Devices Backend → MinIO
+5. **Dashboard Display** → Mentor Frontend → Mentor Backend → PostgreSQL + MinIO
 
 ## Contributing
 
