@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import './DeviceSimulator.css';
 
 const BACKEND_URL = import.meta.env.VITE_DEVICES_API_URL;
+const API_BASE_URL = `${BACKEND_URL}/v1`;
 
 function DeviceSimulator() {
     const [deviceId, setDeviceId] = useState('');
@@ -51,7 +52,7 @@ function DeviceSimulator() {
                 ).join(':')
             };
 
-            const response = await fetch(`${BACKEND_URL}/devices/register`, {
+            const response = await fetch(`${API_BASE_URL}/devices/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -82,7 +83,7 @@ function DeviceSimulator() {
                 net_bytes_out: Math.floor(Math.random() * 500000)
             };
 
-            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/metrics`, {
+            const response = await fetch(`${API_BASE_URL}/devices/${deviceId}/metrics`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(metrics)
@@ -109,7 +110,7 @@ function DeviceSimulator() {
                 duration: Math.floor(Math.random() * 300)
             }));
 
-            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/activities`, {
+            const response = await fetch(`${API_BASE_URL}/devices/${deviceId}/activities`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(activities)
@@ -137,7 +138,7 @@ function DeviceSimulator() {
                 threshold: 80
             }];
 
-            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/alerts`, {
+            const response = await fetch(`${API_BASE_URL}/devices/${deviceId}/alerts`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(alerts)
@@ -177,7 +178,7 @@ function DeviceSimulator() {
                 formData.append('device_id', deviceId);
                 formData.append('file', blob, `screenshot-${Date.now()}.png`);
 
-                const response = await fetch(`${BACKEND_URL}/screenshots`, {
+                const response = await fetch(`${API_BASE_URL}/screenshots`, {
                     method: 'POST',
                     body: formData
                 });
@@ -256,7 +257,7 @@ function DeviceSimulator() {
             }
             
             // Submit result back to backend
-            const submitResponse = await fetch(`${BACKEND_URL}/commands/${cmd.id}/result`, {
+            const submitResponse = await fetch(`${API_BASE_URL}/commands/${cmd.id}/result`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -273,7 +274,7 @@ function DeviceSimulator() {
             addLog(`✗ Command error: ${error.message}`, 'error');
             // Try to report failure
             try {
-                await fetch(`${BACKEND_URL}/commands/${cmd.id}/result`, {
+                await fetch(`${API_BASE_URL}/commands/${cmd.id}/result`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -290,7 +291,7 @@ function DeviceSimulator() {
 
     const pollCommands = useCallback(async () => {
         try {
-            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/commands/pending`);
+            const response = await fetch(`${API_BASE_URL}/devices/${deviceId}/commands/pending`);
             if (response.ok) {
                 const commands = await response.json();
                 for (const cmd of commands) {
@@ -318,7 +319,7 @@ function DeviceSimulator() {
                 command: `/usr/bin/${processNames[Math.floor(Math.random() * processNames.length)]}`
             }));
 
-            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/processes`, {
+            const response = await fetch(`${API_BASE_URL}/devices/${deviceId}/processes`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(processes)
