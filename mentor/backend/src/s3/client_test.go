@@ -9,7 +9,7 @@ import (
 func TestGeneratePresignedURLWithoutInit(t *testing.T) {
 	// Reset client to nil to ensure clean state
 	client = nil
-	
+
 	// Test that GeneratePresignedURL handles nil client gracefully
 	url := GeneratePresignedURL("test.jpg")
 	assert.Equal(t, "", url, "Should return empty string when client is not initialized")
@@ -18,7 +18,7 @@ func TestGeneratePresignedURLWithoutInit(t *testing.T) {
 func TestGeneratePresignedURLEmptyFilename(t *testing.T) {
 	// Ensure client is nil
 	client = nil
-	
+
 	// Test with empty filename
 	url := GeneratePresignedURL("")
 	assert.Equal(t, "", url)
@@ -27,7 +27,7 @@ func TestGeneratePresignedURLEmptyFilename(t *testing.T) {
 func TestGeneratePresignedURLMultipleCalls(t *testing.T) {
 	// Ensure client is nil
 	client = nil
-	
+
 	// Test multiple calls work correctly
 	url1 := GeneratePresignedURL("file1.jpg")
 	url2 := GeneratePresignedURL("file2.jpg")
@@ -50,7 +50,7 @@ func TestInitClientDoesNotCrash(t *testing.T) {
 func TestGeneratePresignedURLVariousFilenames(t *testing.T) {
 	// Ensure client is nil
 	client = nil
-	
+
 	testCases := []struct {
 		name     string
 		filename string
@@ -74,7 +74,7 @@ func TestGeneratePresignedURLVariousFilenames(t *testing.T) {
 func TestGeneratePresignedURLNilSafety(t *testing.T) {
 	// Explicitly set client to nil and test
 	client = nil
-	
+
 	// Call multiple times to ensure no state issues
 	for i := 0; i < 5; i++ {
 		url := GeneratePresignedURL("test.jpg")
@@ -85,10 +85,10 @@ func TestGeneratePresignedURLNilSafety(t *testing.T) {
 func TestGeneratePresignedURLConcurrency(t *testing.T) {
 	// Ensure client is nil
 	client = nil
-	
+
 	// Test concurrent calls don't cause issues
 	done := make(chan bool, 3)
-	
+
 	for i := 0; i < 3; i++ {
 		go func() {
 			url := GeneratePresignedURL("concurrent-test.jpg")
@@ -96,7 +96,7 @@ func TestGeneratePresignedURLConcurrency(t *testing.T) {
 			done <- true
 		}()
 	}
-	
+
 	// Wait for all goroutines
 	for i := 0; i < 3; i++ {
 		<-done
@@ -106,22 +106,22 @@ func TestGeneratePresignedURLConcurrency(t *testing.T) {
 func TestGeneratePresignedURLEdgeCases(t *testing.T) {
 	// Ensure client is nil
 	client = nil
-	
+
 	edgeCases := []string{
-		"",           // empty
-		" ",          // space
-		".",          // dot
-		"..",         // double dot
-		"/",          // slash
-		"\\",         // backslash
-		"file.jpeg",  // different extension
-		"file.png",   // another extension
-		"FILE.JPG",   // uppercase
-		"file",       // no extension
-		"file.",      // trailing dot
-		".file",      // leading dot
+		"",          // empty
+		" ",         // space
+		".",         // dot
+		"..",        // double dot
+		"/",         // slash
+		"\\",        // backslash
+		"file.jpeg", // different extension
+		"file.png",  // another extension
+		"FILE.JPG",  // uppercase
+		"file",      // no extension
+		"file.",     // trailing dot
+		".file",     // leading dot
 	}
-	
+
 	for _, filename := range edgeCases {
 		url := GeneratePresignedURL(filename)
 		assert.Equal(t, "", url, "Should return empty string for: %s", filename)

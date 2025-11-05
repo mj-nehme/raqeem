@@ -263,7 +263,7 @@ func GetDeviceScreenshots(c *gin.Context) {
 	for _, s := range shots {
 		// Generate presigned URL for the screenshot
 		screenshotURL := s3.GeneratePresignedURL(s.Path)
-		
+
 		resp = append(resp, gin.H{
 			"id":             s.ID,
 			"device_id":      s.DeviceID,

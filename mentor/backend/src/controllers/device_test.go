@@ -106,13 +106,13 @@ func TestEmptyArraySerialization(t *testing.T) {
 		if body == "null" {
 			t.Errorf("GetDeviceProcesses returned null instead of empty array")
 		}
-		
+
 		// Verify it's a valid JSON array
 		var processes []models.Process
 		if err := json.Unmarshal(w.Body.Bytes(), &processes); err != nil {
 			t.Fatalf("failed to unmarshal response: %v, body: %s", err, body)
 		}
-		
+
 		// Verify the unmarshaled result is an empty slice, not nil
 		if processes == nil {
 			t.Errorf("unmarshaled processes is nil, expected empty slice")
@@ -312,14 +312,14 @@ func TestStoreScreenshot(t *testing.T) {
 		t.Skip("POSTGRES_* env vars not set; skipping integration test")
 	}
 	setupTestDB(t)
-	
+
 	// Ensure tables are migrated
 	if err := database.DB.AutoMigrate(&models.Screenshot{}); err != nil {
 		t.Fatalf("AutoMigrate Screenshot failed: %v", err)
 	}
 
 	deviceID := "test-device-screenshot"
-	
+
 	// Clean up any existing screenshots for this device
 	database.DB.Where("device_id = ?", deviceID).Delete(&models.Screenshot{})
 
