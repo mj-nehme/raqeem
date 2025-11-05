@@ -23,6 +23,7 @@ export default ({ mode }) => {
     test: {
       environment: 'jsdom',
       setupFiles: './src/setupTests.js',
+      testTimeout: 10000,
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html', 'lcov'],

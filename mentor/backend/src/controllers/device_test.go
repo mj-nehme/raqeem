@@ -243,4 +243,66 @@ func TestEmptyArraySerialization(t *testing.T) {
 			t.Errorf("GetPendingCommands returned null instead of empty array")
 		}
 	})
+
+	// Test GetDeviceCommands
+	t.Run("GetDeviceCommands returns empty array", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/commands", nil)
+
+		GetDeviceCommands(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+
+		body := w.Body.String()
+		if body == "null" {
+			t.Errorf("GetDeviceCommands returned null instead of empty array")
+		}
+	})
+
+	// Test GetDeviceCommands with limit parameter
+	t.Run("GetDeviceCommands respects limit parameter", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/commands?limit=10", nil)
+
+		GetDeviceCommands(c)
+
+		if w.Code != http.StatusOK {
+			t.Fatalf("expected status 200, got %d", w.Code)
+		}
+	})
+
+	// Test GetDeviceCommands with invalid limit parameter
+	t.Run("GetDeviceCommands handles invalid limit", func(t *testing.T) {
+		if os.Getenv("POSTGRES_HOST") == "" {
+			t.Skip("POSTGRES_* env vars not set; skipping integration test")
+		}
+		setupTestDB(t)
+
+		w := httptest.NewRecorder()
+		c, _ := gin.CreateTestContext(w)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/commands?limit=invalid", nil)
+
+		GetDeviceCommands(c)
+
+		if w.Code != http.StatusBadRequest {
+			t.Fatalf("expected status 400, got %d", w.Code)
+		}
+	})
 }
