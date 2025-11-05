@@ -3,6 +3,7 @@ package controllers
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -63,8 +64,8 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		assert.Equal(t, "pending", result.Status)
 		assert.Equal(t, "get_info", result.Command)
 
-		// Give goroutine time to complete
-		time.Sleep(100 * time.Millisecond)
+		// Note: Goroutine forwarding is fire-and-forget, no synchronization needed
+		// The command is already saved successfully to the database
 	})
 
 	t.Run("CreateCommand with invalid JSON", func(t *testing.T) {
@@ -101,8 +102,8 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		// Should still return 200 even if forwarding fails
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		// Give goroutine time to fail
-		time.Sleep(100 * time.Millisecond)
+		// Note: Goroutine forwarding errors are logged but don't affect response
+		// No synchronization needed as test verifies successful command creation
 
 		// Restore
 		os.Setenv("DEVICES_API_URL", mockServer.URL)
@@ -301,7 +302,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 		for i := 0; i < 50; i++ {
 			processes[i] = models.Process{
 				DeviceID: "test-device-many",
-				Name:     "process" + string(rune(i)),
+				Name:     fmt.Sprintf("process%d", i),
 				PID:      i + 1,
 				CPU:      1.0,
 				Memory:   1024,
