@@ -38,6 +38,10 @@ lcov.info
 **/lcov.info
 *.lcov
 
+# Test results
+test-results.json
+**/test-results.json
+
 # Deployment state
 .deploy/
 
