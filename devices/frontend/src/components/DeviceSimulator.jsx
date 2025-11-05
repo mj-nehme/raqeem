@@ -30,10 +30,10 @@ function DeviceSimulator() {
         }
     }, [deviceId]);
 
-    const addLog = (message, type = 'info') => {
+    const addLog = useCallback((message, type = 'info') => {
         const timestamp = new Date().toLocaleTimeString();
         setLogs(prev => [{ timestamp, message, type }, ...prev.slice(0, 49)]);
-    };
+    }, []);
 
     const registerDevice = async () => {
         try {
@@ -94,7 +94,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Metrics error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendActivities = useCallback(async () => {
         try {
@@ -121,7 +121,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Activities error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendAlert = useCallback(async () => {
         try {
@@ -149,7 +149,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Alert error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendScreenshot = useCallback(async () => {
         try {
@@ -189,23 +189,9 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Screenshot error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
-    const pollCommands = useCallback(async () => {
-        try {
-            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/commands/pending`);
-            if (response.ok) {
-                const commands = await response.json();
-                for (const cmd of commands) {
-                    await executeCommand(cmd);
-                }
-            }
-        } catch (error) {
-            // Silently fail command polling to avoid log spam
-        }
-    }, [deviceId]);
-
-    const executeCommand = async (cmd) => {
+    const executeCommand = useCallback(async (cmd) => {
         try {
             addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
             
@@ -256,10 +242,11 @@ function DeviceSimulator() {
                 case 'get_logs':
                     result = 'Log line 1\nLog line 2\nLog line 3';
                     break;
-                case 'restart_service':
+                case 'restart_service': {
                     const service = cmd.command.split(' ')[1] || 'unknown';
                     result = `Service ${service} restarted successfully`;
                     break;
+                }
                 case 'screenshot':
                     result = 'Screenshot captured successfully';
                     break;
@@ -294,11 +281,25 @@ function DeviceSimulator() {
                         exit_code: 1,
                     }),
                 });
-            } catch (e) {
+            } catch {
                 // Ignore if we can't report the failure
             }
         }
-    };
+    }, [deviceId, deviceName, deviceType, deviceOS, currentUser, addLog]);
+
+    const pollCommands = useCallback(async () => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/commands/pending`);
+            if (response.ok) {
+                const commands = await response.json();
+                for (const cmd of commands) {
+                    await executeCommand(cmd);
+                }
+            }
+        } catch {
+            // Silently fail command polling to avoid log spam
+        }
+    }, [deviceId, executeCommand]);
 
     const startSimulation = () => {
         if (!isRegistered) {
