@@ -303,3 +303,122 @@ async def test_post_processes_replaces_existing():
         response = await ac.post(f"/api/v1/devices/{device_id}/processes", json=processes2)
         assert response.status_code == 200
         assert response.json()["inserted"] == 1
+
+
+@pytest.mark.asyncio
+async def test_get_pending_commands():
+    """Test getting pending commands for a device."""
+    device_id = "test-device-commands"
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get(f"/api/v1/devices/{device_id}/commands/pending")
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+
+
+@pytest.mark.asyncio
+async def test_create_command_success():
+    """Test creating a command for a device."""
+    device_id = "test-device-cmd-create"
+    payload = {
+        "command": "get_info"
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["device_id"] == device_id
+    assert data["command"] == "get_info"
+    assert data["status"] == "pending"
+    assert "id" in data
+
+
+@pytest.mark.asyncio
+async def test_create_command_not_allowed():
+    """Test creating a command with disallowed command fails."""
+    device_id = "test-device-cmd-fail"
+    payload = {
+        "command": "rm -rf /"
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=payload)
+    assert response.status_code == 400
+    assert "not allowed" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_create_command_various_allowed():
+    """Test creating commands with various allowed command types."""
+    device_id = "test-device-cmd-various"
+    allowed_commands = ["status", "restart", "get_processes", "get_logs", "restart_service", "screenshot"]
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        for cmd in allowed_commands:
+            payload = {"command": cmd}
+            response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=payload)
+            assert response.status_code == 200, f"Command {cmd} should be allowed"
+            data = response.json()
+            assert data["command"] == cmd
+
+
+@pytest.mark.asyncio
+async def test_submit_command_result_success():
+    """Test submitting command execution result."""
+    device_id = "test-device-cmd-result"
+    
+    # First create a command
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        create_payload = {"command": "get_info"}
+        create_response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=create_payload)
+        assert create_response.status_code == 200
+        command_id = create_response.json()["id"]
+        
+        # Now submit result
+        result_payload = {
+            "status": "completed",
+            "result": "Command output here",
+            "exit_code": 0
+        }
+        response = await ac.post(f"/api/v1/devices/commands/{command_id}/result", json=result_payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
+        assert data["command_id"] == command_id
+
+
+@pytest.mark.asyncio
+async def test_submit_command_result_not_found():
+    """Test submitting result for non-existent command fails."""
+    command_id = 999999
+    result_payload = {
+        "status": "completed",
+        "result": "Output",
+        "exit_code": 0
+    }
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.post(f"/api/v1/devices/commands/{command_id}/result", json=result_payload)
+    assert response.status_code == 404
+    assert "not found" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_submit_command_result_failed_status():
+    """Test submitting command result with failed status."""
+    device_id = "test-device-cmd-fail-result"
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Create command
+        create_payload = {"command": "get_info"}
+        create_response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=create_payload)
+        command_id = create_response.json()["id"]
+        
+        # Submit failed result
+        result_payload = {
+            "status": "failed",
+            "result": "Error occurred",
+            "exit_code": 1
+        }
+        response = await ac.post(f"/api/v1/devices/commands/{command_id}/result", json=result_payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "ok"
