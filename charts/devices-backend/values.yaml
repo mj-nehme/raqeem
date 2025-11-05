@@ -37,9 +37,10 @@ minio:
     key: secretkey
 
 # CORS configuration - frontend origin(s)
-# Can be a single origin or comma-separated list
-# This default is overridden by start.sh using the DEVICES_FRONTEND_PORT from .env
-frontendOrigins: "http://localhost:14000"
+# Can be a single origin or comma-separated list (e.g., "http://localhost:4002,http://localhost:5002")
+# If not set or empty, defaults to common development ports (4000-4002, 5000-5002)
+# This value is automatically set by start-smart.sh with detected frontend ports
+frontendOrigins: ""
 
 nodeSelector: {}
 
