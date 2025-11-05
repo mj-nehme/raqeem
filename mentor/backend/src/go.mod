@@ -2,7 +2,7 @@ module mentor-backend
 
 go 1.24.0
 
-toolchain go1.24.9
+toolchain go1.24.6
 
 require (
 	github.com/gin-contrib/cors v1.3.0
