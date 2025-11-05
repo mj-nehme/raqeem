@@ -30,10 +30,10 @@ function DeviceSimulator() {
         }
     }, [deviceId]);
 
-    const addLog = (message, type = 'info') => {
+    const addLog = useCallback((message, type = 'info') => {
         const timestamp = new Date().toLocaleTimeString();
         setLogs(prev => [{ timestamp, message, type }, ...prev.slice(0, 49)]);
-    };
+    }, []);
 
     const registerDevice = async () => {
         try {
@@ -94,7 +94,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Metrics error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendActivities = useCallback(async () => {
         try {
@@ -121,7 +121,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Activities error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendAlert = useCallback(async () => {
         try {
@@ -149,7 +149,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Alert error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendScreenshot = useCallback(async () => {
         try {
@@ -189,7 +189,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Screenshot error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const executeCommand = useCallback(async (cmd) => {
         try {
@@ -285,7 +285,7 @@ function DeviceSimulator() {
                 // Ignore if we can't report the failure
             }
         }
-    }, [deviceId, deviceName, deviceType, deviceOS, currentUser]);
+    }, [deviceId, deviceName, deviceType, deviceOS, currentUser, addLog]);
 
     const pollCommands = useCallback(async () => {
         try {
