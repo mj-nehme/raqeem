@@ -42,17 +42,29 @@ wait_for_service_ready "minio" "$NAMESPACE"
 DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
 MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
 
-# If services don't exist yet, deploy them and get ports
-if [[ -z "$DEVICES_NODEPORT" ]]; then
-  helm upgrade --install devices-backend ./charts/devices-backend --namespace "$NAMESPACE"
-  wait_for_service_ready "devices-backend" "$NAMESPACE"
-  DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
-fi
-
+# Deploy mentor backend first to get its URL for devices backend
 if [[ -z "$MENTOR_NODEPORT" ]]; then
   helm upgrade --install mentor-backend ./charts/mentor-backend --namespace "$NAMESPACE"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
   MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
+fi
+
+# Set mentor API URL for devices backend
+MENTOR_API_URL="http://localhost:$MENTOR_NODEPORT"
+
+# Deploy devices backend with MENTOR_API_URL pointing to mentor backend
+if [[ -z "$DEVICES_NODEPORT" ]]; then
+  helm upgrade --install devices-backend ./charts/devices-backend \
+    --namespace "$NAMESPACE" \
+    --set mentorApiUrl="$MENTOR_API_URL"
+  wait_for_service_ready "devices-backend" "$NAMESPACE"
+  DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
+else
+  # If devices-backend already exists, upgrade it with mentor URL
+  helm upgrade --install devices-backend ./charts/devices-backend \
+    --namespace "$NAMESPACE" \
+    --set mentorApiUrl="$MENTOR_API_URL"
+  wait_for_service_ready "devices-backend" "$NAMESPACE"
 fi
 
 # Register backend services in discovery registry
