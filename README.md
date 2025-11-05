@@ -38,7 +38,8 @@ First time? → [Setup Guide](docs/FIRST_TIME_SETUP.md)
 After `./start.sh`, services auto-discover ports:
 - **Monitor Dashboard** — View all devices and metrics
 - **Device Simulator** — Generate test data
-- **API Docs** — http://localhost:30080/docs (FastAPI)
+- **Devices API Docs** — http://localhost:30080/docs (FastAPI Swagger UI)
+- **Mentor API Docs** — http://localhost:30081/docs (Swagger UI)
 - **Service URLs** — `./scripts/discover.sh list`
 
 ## Documentation

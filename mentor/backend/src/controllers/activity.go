@@ -10,6 +10,17 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ListActivities returns a list of activities with optional filtering
+// @Summary List activities
+// @Description Get a list of activities with optional filtering by user_id, location, and time range
+// @Tags activities
+// @Produce json
+// @Param user_id query string false "Filter by user ID"
+// @Param location query string false "Filter by location"
+// @Param start_time query string false "Filter by start time (RFC3339 format)"
+// @Param end_time query string false "Filter by end time (RFC3339 format)"
+// @Success 200 {array} map[string]interface{}
+// @Router /activities [get]
 func ListActivities(c *gin.Context) {
 	var activities []models.Activity
 	query := database.DB

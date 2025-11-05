@@ -15,6 +15,16 @@ import (
 )
 
 // RegisterDevice registers a new device or updates existing device info
+// @Summary Register a device
+// @Description Register a new device or update existing device information
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param device body models.Device true "Device information"
+// @Success 200 {object} models.Device
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/register [post]
 func RegisterDevice(c *gin.Context) {
 	var device models.Device
 	if err := c.BindJSON(&device); err != nil {
@@ -128,6 +138,13 @@ func UpdateProcessList(c *gin.Context) {
 }
 
 // ListDevices returns all registered devices
+// @Summary List all devices
+// @Description Get a list of all registered devices with their current status
+// @Tags devices
+// @Produce json
+// @Success 200 {array} models.Device
+// @Failure 500 {object} map[string]string
+// @Router /devices [get]
 func ListDevices(c *gin.Context) {
 	devices := make([]models.Device, 0)
 
@@ -145,6 +162,16 @@ func ListDevices(c *gin.Context) {
 }
 
 // GetDeviceMetrics returns metrics for a specific device
+// @Summary Get device metrics
+// @Description Get recent metrics for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID"
+// @Param limit query int false "Number of records to return" default(60)
+// @Success 200 {array} models.DeviceMetrics
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/metrics [get]
 func GetDeviceMetrics(c *gin.Context) {
 	deviceID := c.Param("id")
 	limit := 60 // Last hour by default, one point per minute
@@ -215,6 +242,16 @@ func GetDeviceActivities(c *gin.Context) {
 }
 
 // GetDeviceAlerts returns recent alerts for a device
+// @Summary Get device alerts
+// @Description Get recent alerts for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID"
+// @Param limit query int false "Number of records to return" default(100)
+// @Success 200 {array} models.Alert
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/alerts [get]
 func GetDeviceAlerts(c *gin.Context) {
 	deviceID := c.Param("id")
 	limit := 100

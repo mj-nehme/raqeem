@@ -11,8 +11,28 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	_ "mentor-backend/docs" // swagger docs
 )
 
+// @title Raqeem Mentor Backend API
+// @version 1.0
+// @description Device management and monitoring dashboard API for Raqeem IoT platform
+// @description Provides endpoints for device listing, metrics retrieval, alert management, and remote command execution
+
+// @contact.name API Support
+// @contact.url https://github.com/mj-nehme/raqeem
+// @contact.email support@example.com
+
+// @license.name MIT
+// @license.url https://opensource.org/licenses/MIT
+
+// @host localhost:30081
+// @BasePath /
+
+// @schemes http https
 func main() {
 	database.Connect()
 
@@ -45,6 +65,13 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	// Swagger documentation routes
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	r.GET("/docs", func(c *gin.Context) {
+		c.Redirect(301, "/swagger/index.html")
+	})
+
 	// mentor endpoints
 	r.GET("/activities", controllers.ListActivities)
 

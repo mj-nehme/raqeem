@@ -1,0 +1,269 @@
+basePath: /
+definitions:
+  models.Alert:
+    properties:
+      device_id:
+        type: string
+      id:
+        type: integer
+      level:
+        description: info, warning, error, critical
+        type: string
+      message:
+        type: string
+      threshold:
+        description: threshold that was exceeded
+        type: number
+      timestamp:
+        type: string
+      type:
+        description: cpu, memory, disk, network, security
+        type: string
+      value:
+        description: measured value that triggered alert
+        type: number
+    type: object
+  models.Device:
+    properties:
+      current_user:
+        type: string
+      id:
+        type: string
+      ip_address:
+        type: string
+      is_online:
+        type: boolean
+      last_seen:
+        type: string
+      location:
+        type: string
+      mac_address:
+        type: string
+      name:
+        type: string
+      os:
+        type: string
+      type:
+        description: laptop, desktop, mobile, etc.
+        type: string
+    type: object
+  models.DeviceMetrics:
+    properties:
+      cpu_temp:
+        description: celsius
+        type: number
+      cpu_usage:
+        description: CPU metrics
+        type: number
+      device_id:
+        type: string
+      disk_total:
+        description: Disk metrics
+        type: integer
+      disk_used:
+        description: bytes
+        type: integer
+      id:
+        type: string
+      memory_total:
+        description: Memory metrics
+        type: integer
+      memory_used:
+        description: bytes
+        type: integer
+      net_bytes_in:
+        description: Network metrics
+        type: integer
+      net_bytes_out:
+        description: bytes/sec
+        type: integer
+      swap_used:
+        description: bytes
+        type: integer
+      timestamp:
+        type: string
+    type: object
+host: localhost:30081
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+    url: https://github.com/mj-nehme/raqeem
+  description: |-
+    Device management and monitoring dashboard API for Raqeem IoT platform
+    Provides endpoints for device listing, metrics retrieval, alert management, and remote command execution
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Raqeem Mentor Backend API
+  version: "1.0"
+paths:
+  /activities:
+    get:
+      description: Get a list of activities with optional filtering by user_id, location,
+        and time range
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by location
+        in: query
+        name: location
+        type: string
+      - description: Filter by start time (RFC3339 format)
+        in: query
+        name: start_time
+        type: string
+      - description: Filter by end time (RFC3339 format)
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              additionalProperties: true
+              type: object
+            type: array
+      summary: List activities
+      tags:
+      - activities
+  /devices:
+    get:
+      description: Get a list of all registered devices with their current status
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Device'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: List all devices
+      tags:
+      - devices
+  /devices/{id}/alerts:
+    get:
+      description: Get recent alerts for a specific device
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 100
+        description: Number of records to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Alert'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get device alerts
+      tags:
+      - devices
+  /devices/{id}/metrics:
+    get:
+      description: Get recent metrics for a specific device
+      parameters:
+      - description: Device ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - default: 60
+        description: Number of records to return
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DeviceMetrics'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get device metrics
+      tags:
+      - devices
+  /devices/register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new device or update existing device information
+      parameters:
+      - description: Device information
+        in: body
+        name: device
+        required: true
+        schema:
+          $ref: '#/definitions/models.Device'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Device'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register a device
+      tags:
+      - devices
+schemes:
+- http
+- https
+swagger: "2.0"

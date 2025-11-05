@@ -17,7 +17,15 @@ async def lifespan(app: FastAPI):
 	# Shutdown: nothing to clean up currently
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+	title="Raqeem Devices Backend API",
+	description="High-throughput telemetry ingestion API for IoT device monitoring. Handles device registration, metrics collection, activity logging, and alert submission.",
+	version="1.0.0",
+	lifespan=lifespan,
+	docs_url="/docs",
+	redoc_url="/redoc",
+	openapi_url="/openapi.json"
+)
 
 # Setup CORS
 setup_cors(app)
