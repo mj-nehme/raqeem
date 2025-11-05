@@ -1,7 +1,18 @@
 import os
 from fastapi.middleware.cors import CORSMiddleware
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def setup_cors(app):
+    """
+    Setup CORS middleware with dynamic origin detection.
+    
+    CORS headers must be present on ALL responses, including error responses.
+    The exception handlers in app.core.exceptions are configured to ensure
+    CORS headers are added even when exceptions occur.
+    """
     # Comma-separated list of allowed origins from env FRONTEND_ORIGINS
     raw = os.getenv("FRONTEND_ORIGINS", "")
     origins = [o.strip() for o in raw.split(",") if o.strip()]
@@ -17,6 +28,8 @@ def setup_cors(app):
             "http://localhost:5001",
             "http://localhost:5002",
         ]
+    
+    logger.info(f"CORS configured for origins: {origins}")
 
     app.add_middleware(
         CORSMiddleware,

@@ -2,6 +2,9 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,12 +23,22 @@ if DATABASE_URL and "$(POSTGRES_PASSWORD)" in DATABASE_URL:
     DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}"
 
 if not DATABASE_URL:
-    raise ValueError(
+    error_msg = (
         "DATABASE_URL environment variable is not set. "
         "Please set it in .env file or environment variables."
     )
+    logger.error(error_msg)
+    raise ValueError(error_msg)
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+logger.info(f"Connecting to database: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'configured'}")
+
+engine = create_async_engine(
+    DATABASE_URL, 
+    echo=True,
+    pool_pre_ping=True,  # Enable connection health checks
+    pool_size=5,
+    max_overflow=10
+)
 
 async_session = sessionmaker(
     bind=engine,
@@ -35,5 +48,15 @@ async_session = sessionmaker(
 
 # Dependency
 async def get_db():
+    """
+    Database session dependency with proper error handling.
+    """
     async with async_session() as session:
-        yield session
+        try:
+            yield session
+        except Exception as e:
+            logger.error(f"Database session error: {e}")
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
