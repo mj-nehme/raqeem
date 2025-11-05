@@ -13,6 +13,7 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/models"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -119,6 +120,7 @@ func TestComplexQueryParameters(t *testing.T) {
 	baseTime := time.Now()
 	for i := 0; i < 20; i++ {
 		metrics := models.DeviceMetrics{
+			ID:        uuid.New().String(),
 			DeviceID:  deviceID,
 			CPUUsage:  float64(10 + i*5),
 			Timestamp: baseTime.Add(time.Duration(i) * time.Minute),
