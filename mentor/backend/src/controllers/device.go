@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // RegisterDevice registers a new device or updates existing device info
@@ -42,6 +43,11 @@ func UpdateDeviceMetrics(c *gin.Context) {
 		return
 	}
 
+	// Generate UUID for the metrics record if not provided
+	if metrics.ID == "" {
+		metrics.ID = uuid.New().String()
+	}
+	
 	metrics.Timestamp = time.Now()
 
 	if err := database.DB.Create(&metrics).Error; err != nil {
