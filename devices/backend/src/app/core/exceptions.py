@@ -8,6 +8,7 @@ from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 import logging
 import os
+import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +51,9 @@ def get_cors_headers(request: Request) -> dict:
         headers["Access-Control-Allow-Methods"] = "*"
         headers["Access-Control-Allow-Headers"] = "*"
         headers["Access-Control-Expose-Headers"] = "*"
+        logger.debug(f"Adding CORS headers for origin: {origin}")
+    else:
+        logger.debug(f"Origin not in allowed list: {origin}")
     
     return headers
 
@@ -58,7 +62,10 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
     """
     Handle HTTP exceptions and ensure CORS headers are present.
     """
-    logger.error(f"HTTP exception: {exc.status_code} - {exc.detail}")
+    logger.error(
+        f"HTTP exception on {request.method} {request.url.path}: "
+        f"{exc.status_code} - {exc.detail}"
+    )
     
     headers = get_cors_headers(request)
     
@@ -73,7 +80,9 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     """
     Handle validation errors and ensure CORS headers are present.
     """
-    logger.error(f"Validation error: {exc.errors()}")
+    logger.error(
+        f"Validation error on {request.method} {request.url.path}: {exc.errors()}"
+    )
     
     headers = get_cors_headers(request)
     
@@ -89,7 +98,15 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     Catch-all exception handler to ensure CORS headers are present on all errors.
     This is critical for preventing CORS errors when internal server errors occur.
     """
-    logger.exception(f"Unhandled exception: {type(exc).__name__}: {str(exc)}")
+    # Log full exception with traceback
+    logger.exception(
+        f"Unhandled exception on {request.method} {request.url.path}: "
+        f"{type(exc).__name__}: {str(exc)}"
+    )
+    
+    # Log traceback for debugging
+    tb = "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
+    logger.error(f"Traceback:\n{tb}")
     
     headers = get_cors_headers(request)
     
@@ -100,12 +117,25 @@ async def general_exception_handler(request: Request, exc: Exception) -> JSONRes
     # In production, you might want to hide these details
     error_detail = f"{type(exc).__name__}: {str(exc)}"
     
+    # Add hints for common errors
+    hints = []
+    if "database" in str(exc).lower() or "connection" in str(exc).lower():
+        hints.append("Database connection issue detected. Check DATABASE_URL and database availability.")
+    
+    if "asyncpg" in str(exc).lower():
+        hints.append("PostgreSQL async driver issue. Verify database is running and accessible.")
+    
+    response_content = {
+        "detail": error_detail,
+        "error_type": type(exc).__name__
+    }
+    
+    if hints:
+        response_content["hints"] = hints
+    
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={
-            "detail": error_detail,
-            "error_type": type(exc).__name__
-        },
+        content=response_content,
         headers=headers
     )
 
@@ -115,6 +145,7 @@ def setup_exception_handlers(app):
     Register all exception handlers with the FastAPI app.
     This must be called after CORS middleware is added.
     """
+    logger.info("Setting up exception handlers for CORS error prevention")
     app.add_exception_handler(StarletteHTTPException, http_exception_handler)
     app.add_exception_handler(RequestValidationError, validation_exception_handler)
     app.add_exception_handler(Exception, general_exception_handler)

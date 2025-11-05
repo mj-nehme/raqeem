@@ -10,8 +10,11 @@ async def test_health_check():
         response = await ac.get("/health")
     assert response.status_code == 200
     data = response.json()
-    assert data["status"] == "ok"
+    # Status can be "ok" or "degraded" depending on database availability
+    assert data["status"] in ["ok", "degraded"]
     assert data["service"] == "devices-backend"
+    # Database status should be present
+    assert "database" in data
 
 
 @pytest.mark.asyncio
