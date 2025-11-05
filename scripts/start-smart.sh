@@ -49,18 +49,21 @@ if [[ -z "$MENTOR_NODEPORT" ]]; then
   MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
 fi
 
+# Set mentor API URL for devices backend
+MENTOR_API_URL="http://localhost:$MENTOR_NODEPORT"
+
 # Deploy devices backend with MENTOR_API_URL pointing to mentor backend
 if [[ -z "$DEVICES_NODEPORT" ]]; then
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
-    --set mentorApiUrl="http://localhost:$MENTOR_NODEPORT"
+    --set mentorApiUrl="$MENTOR_API_URL"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
   DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
 else
   # If devices-backend already exists, upgrade it with mentor URL
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
-    --set mentorApiUrl="http://localhost:$MENTOR_NODEPORT"
+    --set mentorApiUrl="$MENTOR_API_URL"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
 fi
 

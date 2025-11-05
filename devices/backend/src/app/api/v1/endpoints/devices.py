@@ -56,6 +56,8 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         result = {"device_id": device_id, "created": True}
     
     # Forward device registration to mentor backend if configured
+    # Note: Input is already validated by this endpoint, and mentor backend
+    # will perform its own validation via BindJSON
     if settings.mentor_api_url:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
