@@ -102,7 +102,7 @@ Raqeem is a full-stack IoT device monitoring platform built with microservices a
 **Purpose**: Device management, analytics, and monitoring dashboard API
 
 **Technology Stack**:
-- Go 1.23+
+- Go 1.25+
 - Gin web framework
 - GORM (ORM)
 - PostgreSQL driver

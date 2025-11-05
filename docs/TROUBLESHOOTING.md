@@ -667,7 +667,7 @@ go clean -cache
 go build
 
 # Verify go version
-go version  # Should be 1.23+
+go version  # Should be 1.25+
 ```
 
 ### Issue: FastAPI Server Won't Start

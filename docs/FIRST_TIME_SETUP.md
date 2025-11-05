@@ -37,7 +37,7 @@ Before you begin, ensure you have these tools installed:
   ```
 
 ### Optional Tools (for development)
-- **Go 1.23+** - For mentor backend development
+- **Go 1.25+** - For mentor backend development
 - **Python 3.11+** - For devices backend development
 
 ## 📋 Step-by-Step Setup

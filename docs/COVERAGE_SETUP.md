@@ -19,7 +19,7 @@ The CI workflow includes comprehensive test jobs for:
 - ✅ **React Frontend** (Mentor) - vitest with coverage
 
 Each test job:
-1. Sets up the required runtime (Python 3.11 / Go 1.23 / Node 20)
+1. Sets up the required runtime (Python 3.11 / Go 1.25 / Node 20)
 2. Installs dependencies with caching for faster builds
 3. Runs tests with coverage collection
 4. Uploads coverage reports to Codecov with appropriate flags
