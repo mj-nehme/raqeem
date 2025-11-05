@@ -191,20 +191,6 @@ function DeviceSimulator() {
         }
     }, [deviceId]);
 
-    const pollCommands = useCallback(async () => {
-        try {
-            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/commands/pending`);
-            if (response.ok) {
-                const commands = await response.json();
-                for (const cmd of commands) {
-                    await executeCommand(cmd);
-                }
-            }
-        } catch {
-            // Silently fail command polling to avoid log spam
-        }
-    }, [deviceId, executeCommand]);
-
     const executeCommand = useCallback(async (cmd) => {
         try {
             addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
@@ -300,6 +286,20 @@ function DeviceSimulator() {
             }
         }
     }, [deviceId, deviceName, deviceType, deviceOS, currentUser]);
+
+    const pollCommands = useCallback(async () => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/commands/pending`);
+            if (response.ok) {
+                const commands = await response.json();
+                for (const cmd of commands) {
+                    await executeCommand(cmd);
+                }
+            }
+        } catch {
+            // Silently fail command polling to avoid log spam
+        }
+    }, [deviceId, executeCommand]);
 
     const startSimulation = () => {
         if (!isRegistered) {
