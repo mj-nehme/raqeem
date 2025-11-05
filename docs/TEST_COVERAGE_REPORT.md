@@ -4,11 +4,13 @@
 
 This document provides a comprehensive overview of test coverage across all components of the Raqeem IoT monitoring platform.
 
-**Current Overall Status:**
-- **Go Backend (Mentor)**: 69.9% (controllers), 52.5% (overall)
-- **Python Backend (Devices)**: 72% (without DB), estimated 60-70% (with DB in CI)
-- **Frontend (Mentor)**: Tests running, some async issues
-- **Frontend (Devices)**: 68% passing (26/38 tests)
+**Current Overall Status (as of 2025-11-05):**
+- **Go Backend (Mentor)**: 82.1% (controllers), 59.9% (overall)
+- **Python Backend (Devices)**: 82% (with passing tests)
+- **Frontend (Mentor)**: 50.5% (6 passing, 8 failing tests)
+- **Frontend (Devices)**: 43.3% (26 passing, 12 failing tests)
+
+**Overall Average**: ~59% across all components
 
 ## Component Breakdown
 
@@ -18,30 +20,31 @@ This document provides a comprehensive overview of test coverage across all comp
 
 | Package | Coverage | Status |
 |---------|----------|--------|
-| controllers | 69.9% | ✅ Good |
+| controllers | 82.1% | ✅ Good |
 | database | 40.3% | ⚠️ Moderate |
 | s3 | 11.8% | ⚠️ Low |
 | models | N/A | 📝 No logic |
-| **Overall** | **52.5%** | **⚠️ Needs Improvement** |
+| **Overall** | **59.9%** | **⚠️ Needs Improvement** |
 
 #### Detailed Coverage
 
 **controllers/device.go:**
-- RegisterDevice: 100%
-- UpdateDeviceMetrics: 100%
-- UpdateProcessList: 100%
-- LogActivity: 100%
+- RegisterDevice: 81.8%
+- UpdateDeviceMetrics: 83.3%
+- UpdateProcessList: 61.9%
+- LogActivity: 77.8%
 - ListDevices: 66.7%
-- GetDeviceMetrics: 81.8%
+- GetDeviceMetrics: 100% ✅
 - GetDeviceProcesses: 81.8%
-- GetDeviceActivities: 81.8%
+- GetDeviceActivities: 100% ✅
 - GetDeviceAlerts: 81.8%
-- GetDeviceScreenshots: 85.7%
-- CreateRemoteCommand: 38.5%
+- GetDeviceScreenshots: 86.7%
+- CreateRemoteCommand: Improved with new tests ✅
 - GetPendingCommands: 66.7%
-- GetDeviceCommands: Newly tested ✅
+- GetDeviceCommands: 81.8% ✅
 - UpdateCommandStatus: 80.0%
 - ReportAlert: 77.8%
+- StoreScreenshot: 50.0% (newly tested)
 
 **controllers/activity.go:**
 - ListActivities: 100% ✅
