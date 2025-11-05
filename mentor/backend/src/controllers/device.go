@@ -417,7 +417,8 @@ func StoreScreenshot(c *gin.Context) {
 		return
 	}
 
-	screenshot.Timestamp = time.Now()
+	// Timestamp is set by database default, no need to set here
+	// This ensures consistency with other models and migration defaults
 
 	if err := database.DB.Create(&screenshot).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

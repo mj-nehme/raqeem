@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import uuid
 import httpx
+import logging
 
 from app.db.session import get_db
 from app.models.screenshots import Screenshot as ScreenshotModel
@@ -13,6 +14,10 @@ from app.models import devices as dev_models
 from app.core.config import settings
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
+
+# Default screenshot resolution when not provided
+DEFAULT_SCREENSHOT_RESOLUTION = "800x600"
 
 class ScreenshotCreate(BaseModel):
     user_id: str
@@ -48,7 +53,7 @@ async def create_screenshot(
         device_screenshot = dev_models.DeviceScreenshot(
             device_id=device_id,
             path=filename,
-            resolution="800x600",  # Default resolution
+            resolution=DEFAULT_SCREENSHOT_RESOLUTION,
             size=file_size
         )
         db.add(device_screenshot)
@@ -61,13 +66,17 @@ async def create_screenshot(
                     payload = {
                         "device_id": device_id,
                         "path": filename,
-                        "resolution": "800x600",
+                        "resolution": DEFAULT_SCREENSHOT_RESOLUTION,
                         "size": file_size
                     }
-                    # Mentor backend expects POST to /devices/:id/screenshots but we'll create an endpoint
-                    # For now, we'll use a direct POST endpoint that mentor should implement
+                    # Forward screenshot metadata to mentor backend
                     await client.post(f"{settings.mentor_api_url}/devices/screenshots", json=payload)
-            except Exception:
+            except (httpx.RequestError, httpx.TimeoutException) as e:
+                # Log forwarding errors but don't fail the screenshot upload
+                logger.warning(f"Failed to forward screenshot to mentor backend: {e}")
+            except Exception as e:
+                # Catch any other unexpected errors
+                logger.error(f"Unexpected error forwarding screenshot: {e}")
                 # Don't fail if forwarding fails
                 pass
         
