@@ -1,8 +1,8 @@
 # Dockerfile
-FROM golang:1.23-alpine
+FROM golang:1.25-alpine
 
 # Version and metadata
-LABEL version="0.0.4"
+LABEL version="0.1.0"
 LABEL description="Raqeem Mentor Backend - Go device management and analytics service"
 
 WORKDIR /app
