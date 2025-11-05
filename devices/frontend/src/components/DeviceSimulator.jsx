@@ -30,10 +30,10 @@ function DeviceSimulator() {
         }
     }, [deviceId]);
 
-    const addLog = (message, type = 'info') => {
+    const addLog = useCallback((message, type = 'info') => {
         const timestamp = new Date().toLocaleTimeString();
         setLogs(prev => [{ timestamp, message, type }, ...prev.slice(0, 49)]);
-    };
+    }, []);
 
     const registerDevice = async () => {
         try {
@@ -94,7 +94,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Metrics error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendActivities = useCallback(async () => {
         try {
@@ -121,7 +121,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Activities error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendAlert = useCallback(async () => {
         try {
@@ -149,7 +149,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Alert error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const sendScreenshot = useCallback(async () => {
         try {
@@ -189,7 +189,117 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Screenshot error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
+
+    const executeCommand = useCallback(async (cmd) => {
+        try {
+            addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
+            
+            // Whitelist of allowed commands
+            const allowedCommands = [
+                'get_info',
+                'status',
+                'restart',
+                'get_processes',
+                'get_logs',
+                'restart_service',
+                'screenshot'
+            ];
+            
+            const commandBase = cmd.command.toLowerCase().split(' ')[0];
+            if (!allowedCommands.includes(commandBase)) {
+                throw new Error('Command not allowed');
+            }
+            
+            let result = '';
+            let exitCode = 0;
+            
+            // Simple command execution simulation
+            switch (commandBase) {
+                case 'get_info':
+                    result = JSON.stringify({
+                        device_id: deviceId,
+                        name: deviceName || `${deviceType}-${deviceId.slice(-4)}`,
+                        type: deviceType,
+                        os: deviceOS,
+                        user: currentUser || 'simulator-user',
+                        uptime: Math.floor(Math.random() * 86400),
+                    });
+                    break;
+                case 'status':
+                    result = 'Device is online and operational';
+                    break;
+                case 'restart':
+                    result = 'Device restart initiated';
+                    break;
+                case 'get_processes':
+                    result = JSON.stringify([
+                        { name: 'chrome', cpu: 15.2, memory: 512000 },
+                        { name: 'vscode', cpu: 8.5, memory: 256000 },
+                        { name: 'terminal', cpu: 2.1, memory: 64000 },
+                    ]);
+                    break;
+                case 'get_logs':
+                    result = 'Log line 1\nLog line 2\nLog line 3';
+                    break;
+                case 'restart_service': {
+                    const service = cmd.command.split(' ')[1] || 'unknown';
+                    result = `Service ${service} restarted successfully`;
+                    break;
+                }
+                case 'screenshot':
+                    result = 'Screenshot captured successfully';
+                    break;
+                default:
+                    result = `Command executed: ${cmd.command}`;
+            }
+            
+            // Submit result back to backend
+            const submitResponse = await fetch(`${BACKEND_URL}/commands/${cmd.id}/result`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    status: 'completed',
+                    result: result,
+                    exit_code: exitCode,
+                }),
+            });
+            
+            if (submitResponse.ok) {
+                addLog(`✓ Command completed: ${cmd.command}`, 'success');
+            }
+        } catch (error) {
+            addLog(`✗ Command error: ${error.message}`, 'error');
+            // Try to report failure
+            try {
+                await fetch(`${BACKEND_URL}/commands/${cmd.id}/result`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        status: 'failed',
+                        result: error.message,
+                        exit_code: 1,
+                    }),
+                });
+            } catch {
+                // Ignore if we can't report the failure
+            }
+        }
+    }, [deviceId, deviceName, deviceType, deviceOS, currentUser, addLog]);
+
+    const pollCommands = useCallback(async () => {
+        try {
+            const response = await fetch(`${BACKEND_URL}/devices/${deviceId}/commands/pending`);
+            if (response.ok) {
+                const commands = await response.json();
+                for (const cmd of commands) {
+                    await executeCommand(cmd);
+                }
+            }
+        } catch {
+            // Silently fail command polling to avoid log spam
+        }
+    }, [deviceId, executeCommand]);
 
     const startSimulation = () => {
         if (!isRegistered) {
@@ -204,6 +314,17 @@ function DeviceSimulator() {
         setIsRunning(false);
         addLog('⏸️ Simulation stopped', 'info');
     };
+
+    // Poll for commands every 5 seconds when device is registered
+    useEffect(() => {
+        if (!isRegistered) return;
+
+        const interval = setInterval(() => {
+            pollCommands();
+        }, 5000);
+
+        return () => clearInterval(interval);
+    }, [isRegistered, pollCommands]);
 
     // Auto-send data when simulation is running
     useEffect(() => {

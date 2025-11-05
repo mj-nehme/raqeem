@@ -4,9 +4,34 @@ info:
   description: |
     API for device telemetry ingestion, device registration, and data collection.
     This backend receives data from monitored devices and stores it in PostgreSQL and MinIO.
+    
+    ## Features
+    - Device registration and management
+    - Real-time metrics ingestion (CPU, memory, disk, network)
+    - Activity logging (application usage, file access)
+    - Alert collection with auto-forwarding to Mentor Backend
+    - Screenshot upload to S3-compatible storage (MinIO)
+    - Process information tracking
+    
+    ## Base URL
+    Local: `http://localhost:30080/api/v1`
+    Production: `https://api.raqeem.example.com/api/v1`
+    
+    ## Authentication
+    Currently no authentication required (MVP). For production deployment,
+    implement JWT bearer tokens or API key authentication.
+    
+    ## Rate Limiting
+    No rate limiting in MVP. Recommended for production: 100 req/min per IP.
+    
+    ## Docs
+    - Interactive API docs: `/docs` (Swagger UI)
+    - Alternative docs: `/redoc` (ReDoc)
+    - GitHub: https://github.com/mj-nehme/raqeem
   version: 1.0.0
   contact:
     name: Raqeem Team
+    url: https://github.com/mj-nehme/raqeem
 servers:
   - url: "{scheme}://{host}:{port}/api/v1"
     variables:
@@ -25,6 +50,8 @@ servers:
     description: Production server
 
 tags:
+  - name: health
+    description: Service health check
   - name: devices
     description: Device registration and management
   - name: metrics
@@ -46,7 +73,60 @@ tags:
   - name: app_activity
     description: Application activity logging (legacy)
 
+# Authentication (Future)
+# Currently, no authentication is required for MVP release.
+# For production, consider implementing:
+# - JWT Bearer tokens for user authentication
+# - API keys for device-to-backend communication
+# - Rate limiting per API key or IP address
+#
+# security:
+#   - ApiKeyAuth: []
+#   - BearerAuth: []
+
 paths:
+  /health:
+    get:
+      tags:
+        - health
+      summary: Health check endpoint
+      description: Returns service health status. Used by Kubernetes liveness and readiness probes.
+      operationId: getHealth
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  service:
+                    type: string
+                    example: "devices-backend"
+                  version:
+                    type: string
+                    example: "1.0.0"
+              example:
+                status: "ok"
+                service: "devices-backend"
+                version: "1.0.0"
+        "503":
+          description: Service unavailable
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "error"
+                  message:
+                    type: string
+                    example: "Database connection failed"
+
   /devices/register:
     post:
       tags:

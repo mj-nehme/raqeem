@@ -1,13 +1,17 @@
 package controllers
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"mentor-backend/database"
 	"mentor-backend/models"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // RegisterDevice registers a new device or updates existing device info
@@ -40,6 +44,11 @@ func UpdateDeviceMetrics(c *gin.Context) {
 	if err := c.BindJSON(&metrics); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
+	}
+
+	// Generate UUID for the metrics record if not provided
+	if metrics.ID == "" {
+		metrics.ID = uuid.New().String()
 	}
 
 	metrics.Timestamp = time.Now()
@@ -120,7 +129,7 @@ func UpdateProcessList(c *gin.Context) {
 
 // ListDevices returns all registered devices
 func ListDevices(c *gin.Context) {
-	var devices []models.Device
+	devices := make([]models.Device, 0)
 
 	// Mark devices as offline if not seen in last 5 minutes
 	database.DB.Model(&models.Device{}).
@@ -146,7 +155,7 @@ func GetDeviceMetrics(c *gin.Context) {
 		}
 	}
 
-	var metrics []models.DeviceMetrics
+	metrics := make([]models.DeviceMetrics, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -169,7 +178,7 @@ func GetDeviceProcesses(c *gin.Context) {
 		}
 	}
 
-	var processes []models.Process
+	processes := make([]models.Process, 0)
 	// Return most recent snapshot of processes for device (ordered by cpu desc, then timestamp desc)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc, cpu desc").
@@ -193,7 +202,7 @@ func GetDeviceActivities(c *gin.Context) {
 		}
 	}
 
-	var logs []models.ActivityLog
+	logs := make([]models.ActivityLog, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -216,7 +225,7 @@ func GetDeviceAlerts(c *gin.Context) {
 		}
 	}
 
-	var alerts []models.Alert
+	alerts := make([]models.Alert, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -239,7 +248,7 @@ func GetDeviceScreenshots(c *gin.Context) {
 		}
 	}
 
-	var shots []models.Screenshot
+	shots := make([]models.Screenshot, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -282,6 +291,35 @@ func CreateRemoteCommand(c *gin.Context) {
 		return
 	}
 
+	// Forward command to devices backend if DEVICES_API_URL is set
+	devicesAPIURL := os.Getenv("DEVICES_API_URL")
+	if devicesAPIURL != "" {
+		go func() {
+			payload := map[string]interface{}{
+				"command": cmd.Command,
+			}
+			jsonData, err := json.Marshal(payload)
+			if err != nil {
+				fmt.Printf("Error marshaling command payload: %v\n", err)
+				return
+			}
+			client := &http.Client{Timeout: 5 * time.Second}
+			resp, err := client.Post(
+				fmt.Sprintf("%s/devices/%s/commands", devicesAPIURL, cmd.DeviceID),
+				"application/json",
+				bytes.NewBuffer(jsonData),
+			)
+			if err != nil {
+				fmt.Printf("Error forwarding command to devices backend: %v\n", err)
+				return
+			}
+			defer resp.Body.Close()
+			if resp.StatusCode >= 400 {
+				fmt.Printf("Devices backend returned error status: %d\n", resp.StatusCode)
+			}
+		}()
+	}
+
 	c.JSON(http.StatusOK, cmd)
 }
 
@@ -289,8 +327,31 @@ func CreateRemoteCommand(c *gin.Context) {
 func GetPendingCommands(c *gin.Context) {
 	deviceID := c.Param("id")
 
-	var commands []models.RemoteCommand
+	commands := make([]models.RemoteCommand, 0)
 	if err := database.DB.Where("device_id = ? AND status = ?", deviceID, "pending").
+		Find(&commands).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, commands)
+}
+
+// GetDeviceCommands returns command history for a device
+func GetDeviceCommands(c *gin.Context) {
+	deviceID := c.Param("id")
+	limit := 100
+	if l := c.Query("limit"); l != "" {
+		if _, err := fmt.Sscanf(l, "%d", &limit); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit parameter"})
+			return
+		}
+	}
+
+	var commands []models.RemoteCommand
+	if err := database.DB.Where("device_id = ?", deviceID).
+		Order("created_at desc").
+		Limit(limit).
 		Find(&commands).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

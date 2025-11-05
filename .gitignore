@@ -23,6 +23,21 @@ node_modules/
 **/__pycache__/
 **/.pytest_cache/
 
+# Coverage files (all formats)
+coverage.out
+**/coverage.out
+**/*coverage*.out
+coverage.xml
+**/coverage.xml
+.coverage
+**/.coverage
+**/coverage/
+coverage/
+htmlcov/
+lcov.info
+**/lcov.info
+*.lcov
+
 # Deployment state
 .deploy/
 
@@ -32,4 +47,3 @@ node_modules/
 *_VALIDATION.md
 *_RESULTS.md
 COMMIT_MSG.txt
-
