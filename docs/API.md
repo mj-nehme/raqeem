@@ -42,6 +42,8 @@ Raqeem provides two REST APIs for device monitoring and management. This guide c
 
 **Technology**: Gin (Go)
 
+**Documentation**: Interactive docs at `/docs` (Swagger UI) and `/swagger/index.html`
+
 **Key Features**:
 - Device listing and details
 - Metrics retrieval
@@ -919,7 +921,7 @@ func main() {
 
 ### Swagger UI (Devices Backend)
 
-Access interactive API documentation:
+Access interactive API documentation for the Devices Backend:
 
 **URL**: `http://localhost:30080/docs`
 
@@ -930,7 +932,7 @@ Features:
 
 ### ReDoc (Devices Backend)
 
-Alternative documentation interface:
+Alternative documentation interface for the Devices Backend:
 
 **URL**: `http://localhost:30080/redoc`
 
@@ -939,11 +941,22 @@ Features:
 - Better for reference and sharing
 - Printable format
 
+### Swagger UI (Mentor Backend)
+
+Access interactive API documentation for the Mentor Backend:
+
+**URL**: `http://localhost:30081/docs` or `http://localhost:30081/swagger/index.html`
+
+Features:
+- Try out API calls directly in the browser
+- View request/response schemas for device management endpoints
+- Download OpenAPI specification
+
 ### OpenAPI Specifications
 
-Full specifications available:
-- [devices-openapi.yaml](devices-openapi.yaml) - Devices Backend API
-- [mentor-openapi.yaml](mentor-openapi.yaml) - Mentor Backend API
+Download the OpenAPI specifications directly:
+- **Devices Backend**: `http://localhost:30080/openapi.json`
+- **Mentor Backend**: `http://localhost:30081/swagger/doc.json`
 
 ## Best Practices
 
