@@ -71,6 +71,7 @@ export default function DeviceDashboard() {
     const [activities, setActivities] = useState([]);
     const [alerts, setAlerts] = useState([]);
     const [screenshots, setScreenshots] = useState([]);
+    const [commands, setCommands] = useState([]);
     const [command, setCommand] = useState('');
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
@@ -102,25 +103,28 @@ export default function DeviceDashboard() {
         setRefreshing(true);
         setLoading(true);
         try {
-            const [metricsRes, processesRes, activitiesRes, alertsRes, screenshotsRes] = await Promise.all([
+            const [metricsRes, processesRes, activitiesRes, alertsRes, screenshotsRes, commandsRes] = await Promise.all([
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/metrics`),
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/processes`),
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/activities`),
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/alerts`),
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/screenshots`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/commands`),
             ]);
-            const [metricsData, processesData, activitiesData, alertsData, screenshotsData] = await Promise.all([
+            const [metricsData, processesData, activitiesData, alertsData, screenshotsData, commandsData] = await Promise.all([
                 metricsRes.json(),
                 processesRes.json(),
                 activitiesRes.json(),
                 alertsRes.json(),
                 screenshotsRes.json(),
+                commandsRes.json(),
             ]);
             setMetrics(Array.isArray(metricsData) ? metricsData.slice(-50) : []);
             setProcesses(Array.isArray(processesData) ? processesData : []);
             setActivities(Array.isArray(activitiesData) ? activitiesData : []);
             setAlerts(Array.isArray(alertsData) ? alertsData : []);
             setScreenshots(Array.isArray(screenshotsData) ? screenshotsData : []);
+            setCommands(Array.isArray(commandsData) ? commandsData : []);
         } catch (err) {
             console.error('Failed to fetch device details:', err);
         } finally {
@@ -349,7 +353,7 @@ export default function DeviceDashboard() {
                                                 <Tab label="Activity" />
                                                 <Tab label="Alerts" />
                                                 <Tab label="Screenshots" />
-                                                <Tab label="Remote Control" />
+                                                <Tab label="Commands" />
                                             </Tabs>
                                         </Box>
                                         <CardContent>
@@ -435,11 +439,76 @@ export default function DeviceDashboard() {
                                             )}
                                             {tabValue === 4 && (
                                                 <Box>
-                                                    <Typography variant="h6" gutterBottom>Remote Control</Typography>
-                                                    <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-                                                        <TextField fullWidth placeholder="Enter command..." value={command} onChange={(e) => setCommand(e.target.value)} onKeyPress={(e) => { if (e.key === 'Enter') sendCommand(); }} />
-                                                        <Button variant="contained" startIcon={<Send />} onClick={sendCommand} disabled={!command.trim()}>Send</Button>
+                                                    <Typography variant="h6" gutterBottom>Commands</Typography>
+                                                    <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 3 }}>
+                                                        <TextField 
+                                                            fullWidth 
+                                                            placeholder="Enter command (e.g., get_info, status, restart)..." 
+                                                            value={command} 
+                                                            onChange={(e) => setCommand(e.target.value)} 
+                                                            onKeyPress={(e) => { if (e.key === 'Enter') sendCommand(); }} 
+                                                        />
+                                                        <Button variant="contained" startIcon={<Send />} onClick={sendCommand} disabled={!command.trim()}>
+                                                            Send
+                                                        </Button>
                                                     </Box>
+                                                    
+                                                    <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
+                                                        Command History
+                                                    </Typography>
+                                                    {commands.length === 0 ? (
+                                                        <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
+                                                            No commands sent yet
+                                                        </Typography>
+                                                    ) : (
+                                                        <List>
+                                                            {commands.map((cmd) => (
+                                                                <ListItem key={cmd.id} divider>
+                                                                    <ListItemIcon>
+                                                                        {cmd.status === 'completed' ? (
+                                                                            <Info color="success" />
+                                                                        ) : cmd.status === 'failed' ? (
+                                                                            <Error color="error" />
+                                                                        ) : cmd.status === 'pending' ? (
+                                                                            <CircularProgress size={20} />
+                                                                        ) : (
+                                                                            <History />
+                                                                        )}
+                                                                    </ListItemIcon>
+                                                                    <ListItemText
+                                                                        primary={cmd.command}
+                                                                        secondary={
+                                                                            <>
+                                                                                <Typography component="span" variant="body2" color="text.primary">
+                                                                                    Status: {cmd.status}
+                                                                                </Typography>
+                                                                                {' • '}
+                                                                                {new Date(cmd.created_at).toLocaleString()}
+                                                                                {cmd.result && cmd.status === 'completed' && (
+                                                                                    <>
+                                                                                        <br />
+                                                                                        <Typography component="span" variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
+                                                                                            Result: {String(cmd.result).substring(0, 100)}
+                                                                                            {String(cmd.result).length > 100 ? '...' : ''}
+                                                                                        </Typography>
+                                                                                    </>
+                                                                                )}
+                                                                            </>
+                                                                        }
+                                                                    />
+                                                                    <Chip
+                                                                        label={cmd.status}
+                                                                        size="small"
+                                                                        color={
+                                                                            cmd.status === 'completed' ? 'success' : 
+                                                                            cmd.status === 'failed' ? 'error' : 
+                                                                            cmd.status === 'pending' ? 'warning' : 'default'
+                                                                        }
+                                                                    />
+                                                                </ListItem>
+                                                            ))}
+                                                        </List>
+                                                    )}
                                                 </Box>
                                             )}
                                         </CardContent>

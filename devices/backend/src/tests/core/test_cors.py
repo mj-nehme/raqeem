@@ -43,6 +43,6 @@ def test_cors_allows_all_origins_by_default(client):
         headers={"Origin": "http://any-domain.com"}
     )
     assert response.status_code == 200
-    # When allow_origins=["*"], the header should be "*"
+    # Should have CORS headers for any origin when properly configured
     if "access-control-allow-origin" in response.headers:
         assert response.headers["access-control-allow-origin"] in ["*", "http://any-domain.com"]

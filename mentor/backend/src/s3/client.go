@@ -28,6 +28,11 @@ func InitClient() {
 }
 
 func GeneratePresignedURL(filename string) string {
+	// Return empty string if client is not initialized (e.g., in tests)
+	if client == nil {
+		return ""
+	}
+
 	ctx := context.Background()
 	reqParams := url.Values{}
 	reqParams.Set("response-content-disposition", "inline")

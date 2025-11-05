@@ -27,10 +27,10 @@ describe('ActivityForm Component', () => {
         expect(screen.getByPlaceholderText('Password')).toBeInTheDocument()
         expect(screen.getByRole('button', { name: 'Add Activity' })).toBeInTheDocument()
 
-        const fileInput = screen.getByLabelText(/file/i) || screen.getByDisplayValue('')
+        const fileInput = document.querySelector('input[type="file"]')
         expect(fileInput).toBeInTheDocument()
-        expect(fileInput).toHaveAttribute('type', 'file')
         expect(fileInput).toHaveAttribute('accept', 'image/*')
+        expect(fileInput).toHaveAttribute('required')
     })
 
     test('updates location input value', () => {
@@ -54,7 +54,7 @@ describe('ActivityForm Component', () => {
     test('handles file selection', () => {
         render(<ActivityForm />)
 
-        const fileInput = screen.getByLabelText(/file/i) || document.querySelector('input[type="file"]')
+        const fileInput = document.querySelector('input[type="file"]')
         const testFile = new File(['test image'], 'test.png', { type: 'image/png' })
 
         fireEvent.change(fileInput, { target: { files: [testFile] } })

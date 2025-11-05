@@ -77,3 +77,16 @@ class Alert(Base):
     message = Column(Text, nullable=True)
     value = Column(Float, nullable=True)
     threshold = Column(Float, nullable=True)
+
+
+class RemoteCommand(Base):
+    __tablename__ = "remote_commands"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    device_id = Column(String, nullable=False)
+    command = Column(Text, nullable=False)
+    status = Column(Text, nullable=False)  # pending, running, completed, failed
+    created_at = Column(TIMESTAMP, server_default=sa.func.now())
+    completed_at = Column(TIMESTAMP, nullable=True)
+    result = Column(Text, nullable=True)
+    exit_code = Column(Integer, nullable=True)
