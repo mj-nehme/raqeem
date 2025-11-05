@@ -62,8 +62,8 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 		// Enable WAL mode for better concurrency support in SQLite
 		sqlDB, err := db.DB()
 		if err == nil {
-			sqlDB.Exec("PRAGMA journal_mode=WAL;")
-			sqlDB.Exec("PRAGMA busy_timeout=5000;") // 5 second timeout for locks
+			_, _ = sqlDB.Exec("PRAGMA journal_mode=WAL;")
+			_, _ = sqlDB.Exec("PRAGMA busy_timeout=5000;") // 5 second timeout for locks
 		}
 
 		log.Printf("Test database connected successfully (SQLite in-memory)")

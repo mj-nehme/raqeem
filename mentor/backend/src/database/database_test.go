@@ -268,7 +268,7 @@ func TestConcurrentDatabaseAccess(t *testing.T) {
 	// Enable WAL mode for SQLite to allow concurrent writes
 	sqlDB, err := db.DB()
 	if err == nil {
-		sqlDB.Exec("PRAGMA journal_mode=WAL;")
+		_, _ = sqlDB.Exec("PRAGMA journal_mode=WAL;")
 	}
 
 	// Test concurrent access doesn't cause issues
