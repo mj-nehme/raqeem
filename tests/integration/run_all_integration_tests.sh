@@ -23,23 +23,34 @@ cd "$PROJECT_ROOT"
 
 # Check prerequisites
 echo "Checking prerequisites..."
-for cmd in docker docker-compose python3; do
+for cmd in docker python3; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo -e "${RED}✗ Missing required command: $cmd${NC}"
     exit 1
   fi
 done
+
+# Check for docker compose (v2) or docker-compose (v1)
+if docker compose version >/dev/null 2>&1; then
+  DOCKER_COMPOSE="docker compose"
+elif command -v docker-compose >/dev/null 2>&1; then
+  DOCKER_COMPOSE="docker-compose"
+else
+  echo -e "${RED}✗ Docker Compose not found${NC}"
+  exit 1
+fi
+
 echo -e "${GREEN}✓ Prerequisites satisfied${NC}"
 echo ""
 
 # Clean up any existing containers
 echo "Cleaning up existing containers..."
-docker-compose -f .github/docker-compose.test.yml down -v 2>/dev/null || true
+$DOCKER_COMPOSE -f .github/docker-compose.test.yml down -v 2>/dev/null || true
 echo ""
 
 # Start services
-echo "Starting services with docker-compose..."
-docker-compose -f .github/docker-compose.test.yml up -d --build
+echo "Starting services with docker compose..."
+$DOCKER_COMPOSE -f .github/docker-compose.test.yml up -d --build
 
 if [ $? -ne 0 ]; then
   echo -e "${RED}✗ Failed to start services${NC}"
@@ -58,8 +69,8 @@ waited=0
 all_healthy=false
 
 while [ $waited -lt $max_wait ]; do
-  devices_health=$(docker-compose -f .github/docker-compose.test.yml ps devices-backend 2>/dev/null | grep -c "healthy" || echo "0")
-  mentor_health=$(docker-compose -f .github/docker-compose.test.yml ps mentor-backend 2>/dev/null | grep -c "healthy" || echo "0")
+  devices_health=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps devices-backend 2>/dev/null | grep -c "healthy" || echo "0")
+  mentor_health=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps mentor-backend 2>/dev/null | grep -c "healthy" || echo "0")
   
   if [ "$devices_health" = "1" ] && [ "$mentor_health" = "1" ]; then
     all_healthy=true
@@ -170,11 +181,11 @@ if [ $failed_tests -gt 0 ]; then
   echo ""
   echo "Devices Backend logs (last 50 lines):"
   echo "---"
-  docker-compose -f .github/docker-compose.test.yml logs --tail=50 devices-backend
+  $DOCKER_COMPOSE -f .github/docker-compose.test.yml logs --tail=50 devices-backend
   echo ""
   echo "Mentor Backend logs (last 50 lines):"
   echo "---"
-  docker-compose -f .github/docker-compose.test.yml logs --tail=50 mentor-backend
+  $DOCKER_COMPOSE -f .github/docker-compose.test.yml logs --tail=50 mentor-backend
   echo "=============================================================================="
 fi
 
@@ -184,7 +195,7 @@ read -p "Keep services running for manual testing? (y/n) " -n 1 -r
 echo
 if [[ ! $REPLY =~ ^[Yy]$ ]]; then
   echo "Stopping services..."
-  docker-compose -f .github/docker-compose.test.yml down -v
+  $DOCKER_COMPOSE -f .github/docker-compose.test.yml down -v
   echo -e "${GREEN}✓ Services stopped and cleaned up${NC}"
 else
   echo ""
@@ -196,7 +207,7 @@ else
   echo "  - MinIO:           localhost:9000"
   echo ""
   echo "To stop services later, run:"
-  echo "  docker-compose -f .github/docker-compose.test.yml down -v"
+  echo "  $DOCKER_COMPOSE -f .github/docker-compose.test.yml down -v"
 fi
 
 echo ""
