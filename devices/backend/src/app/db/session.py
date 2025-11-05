@@ -30,7 +30,8 @@ if not DATABASE_URL:
     logger.error(error_msg)
     raise ValueError(error_msg)
 
-logger.info(f"Connecting to database: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'configured'}")
+# Don't log DATABASE_URL as it contains credentials
+logger.info("Initializing database connection pool")
 
 engine = create_async_engine(
     DATABASE_URL, 
