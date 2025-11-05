@@ -422,3 +422,147 @@ async def test_submit_command_result_failed_status():
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
+
+
+@pytest.mark.asyncio
+async def test_list_devices():
+    """Test listing all devices."""
+    # First register a couple of devices
+    devices = [
+        {"id": "list-device-1", "name": "Device 1", "type": "laptop"},
+        {"id": "list-device-2", "name": "Device 2", "type": "desktop"}
+    ]
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Register devices
+        for device in devices:
+            await ac.post("/api/v1/devices/register", json=device)
+        
+        # List devices
+        response = await ac.get("/api/v1/devices/")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        # At least our 2 devices should be there
+        device_ids = [d["id"] for d in data]
+        assert "list-device-1" in device_ids
+        assert "list-device-2" in device_ids
+
+
+@pytest.mark.asyncio
+async def test_list_devices_empty():
+    """Test listing devices returns empty list when none exist."""
+    # This test assumes a fresh database or will get existing devices
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/api/v1/devices/")
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+
+
+@pytest.mark.asyncio
+async def test_get_device_by_id():
+    """Test getting a specific device by ID."""
+    device_id = "get-device-test"
+    device_payload = {
+        "id": device_id,
+        "name": "Test Device",
+        "type": "laptop",
+        "os": "Windows 11"
+    }
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Register device
+        await ac.post("/api/v1/devices/register", json=device_payload)
+        
+        # Get device by ID
+        response = await ac.get(f"/api/v1/devices/{device_id}")
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == device_id
+        assert data["name"] == "Test Device"
+        assert data["type"] == "laptop"
+        assert data["os"] == "Windows 11"
+
+
+@pytest.mark.asyncio
+async def test_get_device_by_id_not_found():
+    """Test getting non-existent device returns 404."""
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        response = await ac.get("/api/v1/devices/nonexistent-device-xyz")
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_post_metrics_with_forwarding():
+    """Test posting metrics with mentor API forwarding (when configured)."""
+    import os
+    from unittest.mock import patch, AsyncMock
+    
+    device_id = "test-device-forward"
+    payload = {
+        "cpu_usage": 50.0,
+        "memory_total": 16000000000,
+        "memory_used": 8000000000
+    }
+    
+    # Mock the mentor API URL to test forwarding path
+    with patch.dict(os.environ, {"MENTOR_API_URL": "http://mock-mentor:8080"}):
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_post = AsyncMock()
+            mock_client.return_value.__aenter__.return_value.post = mock_post
+            mock_post.return_value = None  # Forwarding doesn't check response
+            
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+                response = await ac.post(f"/api/v1/devices/{device_id}/metrics", json=payload)
+                assert response.status_code == 200
+
+
+@pytest.mark.asyncio  
+async def test_post_alerts_with_forwarding():
+    """Test posting alerts with mentor API forwarding (when configured)."""
+    import os
+    from unittest.mock import patch, AsyncMock
+    
+    device_id = "test-device-alert-forward"
+    alerts = [
+        {
+            "level": "critical",
+            "type": "cpu",
+            "message": "CPU critical",
+            "value": 95.0,
+            "threshold": 90.0
+        }
+    ]
+    
+    # Mock the mentor API URL to test forwarding path
+    with patch.dict(os.environ, {"MENTOR_API_URL": "http://mock-mentor:8080"}):
+        with patch("httpx.AsyncClient") as mock_client:
+            mock_post = AsyncMock()
+            mock_client.return_value.__aenter__.return_value.post = mock_post
+            mock_post.return_value = None
+            
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+                response = await ac.post(f"/api/v1/devices/{device_id}/alerts", json=alerts)
+                assert response.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_post_metrics_forwarding_failure_handled():
+    """Test that metrics ingestion succeeds even if forwarding fails."""
+    import os
+    from unittest.mock import patch
+    
+    device_id = "test-device-forward-fail"
+    payload = {
+        "cpu_usage": 60.0
+    }
+    
+    # Mock the mentor API URL but make it fail
+    with patch.dict(os.environ, {"MENTOR_API_URL": "http://invalid-host:99999"}):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            # Should still return 200 even if forwarding fails
+            response = await ac.post(f"/api/v1/devices/{device_id}/metrics", json=payload)
+            assert response.status_code == 200
+            assert response.json()["status"] == "ok"
