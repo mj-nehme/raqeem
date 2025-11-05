@@ -37,7 +37,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         existing.current_user = payload.get("current_user") or existing.current_user
         db.add(existing)
         await db.commit()
-        return {"device_id": device_id, "updated": True}
+        result = {"device_id": device_id, "updated": True}
     else:
         obj = dev_models.Device(
             id=device_id,
@@ -53,7 +53,18 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         )
         db.add(obj)
         await db.commit()
-        return {"device_id": device_id, "created": True}
+        result = {"device_id": device_id, "created": True}
+    
+    # Forward device registration to mentor backend if configured
+    if settings.mentor_api_url:
+        try:
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                await client.post(f"{settings.mentor_api_url}/devices/register", json=payload)
+        except Exception:
+            # Do not fail registration if forwarding fails
+            pass
+    
+    return result
 
 
 @router.post("/{device_id}/metrics")
