@@ -24,6 +24,9 @@ export default ({ mode }) => {
       environment: 'jsdom',
       setupFiles: './src/setupTests.js',
       testTimeout: 10000,
+      env: {
+        VITE_MENTOR_API_URL: 'http://localhost:8080'
+      },
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html', 'lcov'],
