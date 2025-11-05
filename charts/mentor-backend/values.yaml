@@ -35,8 +35,8 @@ minio:
 
 # CORS configuration - frontend origin(s)
 # Can be a single origin or comma-separated list
-# This default is overridden by start.sh using the MENTOR_FRONTEND_PORT from .env
-frontendOrigin: "http://localhost:15000"
+# Default development ports that start-smart.sh typically detects
+frontendOrigin: "http://localhost:5000,http://localhost:5001,http://localhost:5002"
 
 nodeSelector: {}
 

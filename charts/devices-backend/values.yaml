@@ -38,9 +38,8 @@ minio:
 
 # CORS configuration - frontend origin(s)
 # Can be a single origin or comma-separated list (e.g., "http://localhost:4002,http://localhost:5002")
-# If not set or empty, defaults to common development ports (4000-4002, 5000-5002)
-# This value is automatically set by start-smart.sh with detected frontend ports
-frontendOrigins: ""
+# Default development ports that start-smart.sh typically detects
+frontendOrigins: "http://localhost:4000,http://localhost:4001,http://localhost:4002,http://localhost:5000,http://localhost:5001,http://localhost:5002"
 
 nodeSelector: {}
 

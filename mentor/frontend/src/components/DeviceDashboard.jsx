@@ -52,7 +52,8 @@ import {
     Cell,
 } from 'recharts';
 
-const BACKEND_URL = 'http://localhost:30081'; // Direct to mentor backend
+// Use proxy path for API calls - Vite will proxy /api/* to the backend
+const BACKEND_URL = '/api';
 const COLORS = ['#1976d2', '#4caf50', '#ff9800', '#f44336', '#9c27b0'];
 
 function getDeviceIcon(type) {
@@ -441,18 +442,18 @@ export default function DeviceDashboard() {
                                                 <Box>
                                                     <Typography variant="h6" gutterBottom>Commands</Typography>
                                                     <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 3 }}>
-                                                        <TextField 
-                                                            fullWidth 
-                                                            placeholder="Enter command (e.g., get_info, status, restart)..." 
-                                                            value={command} 
-                                                            onChange={(e) => setCommand(e.target.value)} 
-                                                            onKeyPress={(e) => { if (e.key === 'Enter') sendCommand(); }} 
+                                                        <TextField
+                                                            fullWidth
+                                                            placeholder="Enter command (e.g., get_info, status, restart)..."
+                                                            value={command}
+                                                            onChange={(e) => setCommand(e.target.value)}
+                                                            onKeyPress={(e) => { if (e.key === 'Enter') sendCommand(); }}
                                                         />
                                                         <Button variant="contained" startIcon={<Send />} onClick={sendCommand} disabled={!command.trim()}>
                                                             Send
                                                         </Button>
                                                     </Box>
-                                                    
+
                                                     <Typography variant="subtitle2" gutterBottom sx={{ mt: 2 }}>
                                                         Command History
                                                     </Typography>
@@ -500,9 +501,9 @@ export default function DeviceDashboard() {
                                                                         label={cmd.status}
                                                                         size="small"
                                                                         color={
-                                                                            cmd.status === 'completed' ? 'success' : 
-                                                                            cmd.status === 'failed' ? 'error' : 
-                                                                            cmd.status === 'pending' ? 'warning' : 'default'
+                                                                            cmd.status === 'completed' ? 'success' :
+                                                                                cmd.status === 'failed' ? 'error' :
+                                                                                    cmd.status === 'pending' ? 'warning' : 'default'
                                                                         }
                                                                     />
                                                                 </ListItem>

@@ -68,20 +68,6 @@ MENTOR_FRONTEND_PORT=$(find_available_port $MENTOR_FRONTEND_START_PORT)
 
 echo "  - Detected available ports: Devices=$DEVICES_FRONTEND_PORT, Mentor=$MENTOR_FRONTEND_PORT"
 
-# Update CORS settings for backends with actual frontend ports
-FRONTEND_ORIGINS="http://localhost:$DEVICES_FRONTEND_PORT,http://localhost:$MENTOR_FRONTEND_PORT"
-FRONTEND_ORIGIN="http://localhost:$MENTOR_FRONTEND_PORT"
-
-# Redeploy backends with correct CORS settings
-helm upgrade devices-backend ./charts/devices-backend --namespace "$NAMESPACE" \
-  --set "frontendOrigins=$FRONTEND_ORIGINS" \
-  --set "mentorApiUrl=http://mentor-backend.${NAMESPACE}.svc.cluster.local:80" \
-  --reuse-values
-
-helm upgrade mentor-backend ./charts/mentor-backend --namespace "$NAMESPACE" \
-  --set "frontendOrigin=$FRONTEND_ORIGIN" \
-  --reuse-values
-
 # Start mentor frontend
 echo "  - Starting Mentor Frontend on port $MENTOR_FRONTEND_PORT..."
 cd mentor/frontend
