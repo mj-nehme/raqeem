@@ -28,7 +28,7 @@ This guide covers local development workflows, coding standards, testing practic
 
 **Optional (for backend development)**:
 - Python 3.11+ with `pip`
-- Go 1.23+ 
+- Go 1.25+ 
 - `pytest` - Python testing framework
 - `pre-commit` - Git hooks (recommended)
 

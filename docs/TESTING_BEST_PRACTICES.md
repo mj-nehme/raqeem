@@ -283,7 +283,7 @@ pytest tests/schemas/ tests/models/  # Skip DB tests
 ### Prerequisites
 ```bash
 # Go
-go version  # 1.23+
+go version  # 1.25+
 
 # Python
 python3 --version  # 3.11+
