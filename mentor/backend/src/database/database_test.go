@@ -87,17 +87,20 @@ func TestCreateTestDatabase(t *testing.T) {
 
 func TestGetEnvOrDefault(t *testing.T) {
 	// Test with existing environment variable
-	os.Setenv("TEST_ENV_VAR", "test_value")
+	err := os.Setenv("TEST_ENV_VAR", "test_value")
+	require.NoError(t, err)
 	result := getEnvOrDefault("TEST_ENV_VAR", "default")
 	assert.Equal(t, "test_value", result)
 
 	// Test with non-existing environment variable
-	os.Unsetenv("NON_EXISTING_VAR")
+	err = os.Unsetenv("NON_EXISTING_VAR")
+	require.NoError(t, err)
 	result = getEnvOrDefault("NON_EXISTING_VAR", "default_value")
 	assert.Equal(t, "default_value", result)
 
 	// Test with empty environment variable
-	os.Setenv("EMPTY_VAR", "")
+	err = os.Setenv("EMPTY_VAR", "")
+	require.NoError(t, err)
 	result = getEnvOrDefault("EMPTY_VAR", "default")
 	assert.Equal(t, "default", result)
 }
@@ -323,24 +326,29 @@ func TestConcurrentDatabaseAccess(t *testing.T) {
 
 func TestSetupTestDBWithPostgres(t *testing.T) {
 	// Test that when USE_POSTGRES_FOR_TESTS is not set, we use SQLite
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	err := os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	require.NoError(t, err)
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
 	// Verify it's SQLite by checking for SQLite-specific behavior
 	var result int
-	err := db.Raw("SELECT 1").Scan(&result).Error
+	err = db.Raw("SELECT 1").Scan(&result).Error
 	assert.NoError(t, err)
 	assert.Equal(t, 1, result)
 }
 
 func TestCreateTestDatabaseForCI(t *testing.T) {
 	// Test with CI environment simulation (user = "monitor")
-	os.Setenv("POSTGRES_USER", "monitor")
-	defer os.Unsetenv("POSTGRES_USER")
+	err := os.Setenv("POSTGRES_USER", "monitor")
+	require.NoError(t, err)
+	defer func() {
+		err := os.Unsetenv("POSTGRES_USER")
+		require.NoError(t, err)
+	}()
 
-	err := CreateTestDatabase()
+	err = CreateTestDatabase()
 	assert.NoError(t, err, "Should handle CI environment without errors")
 }
 

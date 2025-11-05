@@ -17,11 +17,11 @@ import (
 )
 
 func setupTestDB(t *testing.T) {
-	os.Setenv("POSTGRES_USER", os.Getenv("POSTGRES_USER"))
-	os.Setenv("POSTGRES_PASSWORD", os.Getenv("POSTGRES_PASSWORD"))
-	os.Setenv("POSTGRES_DB", os.Getenv("POSTGRES_DB"))
-	os.Setenv("POSTGRES_HOST", os.Getenv("POSTGRES_HOST"))
-	os.Setenv("POSTGRES_PORT", os.Getenv("POSTGRES_PORT"))
+	_ = os.Setenv("POSTGRES_USER", os.Getenv("POSTGRES_USER"))
+	_ = os.Setenv("POSTGRES_PASSWORD", os.Getenv("POSTGRES_PASSWORD"))
+	_ = os.Setenv("POSTGRES_DB", os.Getenv("POSTGRES_DB"))
+	_ = os.Setenv("POSTGRES_HOST", os.Getenv("POSTGRES_HOST"))
+	_ = os.Setenv("POSTGRES_PORT", os.Getenv("POSTGRES_PORT"))
 	database.Connect()
 	// Auto-migrate tables
 	if err := database.DB.AutoMigrate(&models.Alert{}); err != nil {
