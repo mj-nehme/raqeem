@@ -58,6 +58,7 @@ def register_device(device_id, name, device_type, os_name):
     log(f"Registering {name}...")
     
     # Use abs(hash()) to ensure positive values for IP and MAC generation
+    # Generate IP in range 1-254 to avoid network/broadcast addresses
     hash_val = abs(hash(device_id))
     
     payload = {
@@ -67,7 +68,7 @@ def register_device(device_id, name, device_type, os_name):
         "os": os_name,
         "current_user": "test-user",
         "location": "E2E Test Lab",
-        "ip_address": f"192.168.1.{hash_val % 255}",
+        "ip_address": f"192.168.1.{(hash_val % 254) + 1}",
         "mac_address": f"{hash_val % 256:02X}:BB:CC:DD:EE:FF"
     }
     

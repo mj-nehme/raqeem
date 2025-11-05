@@ -70,11 +70,12 @@ all_healthy=false
 
 echo "Checking service health (timeout: ${max_wait}s)..."
 while [ $waited -lt $max_wait ]; do
-  # Check if services are healthy
+  # Try to get health status from JSON output (preferred method)
+  # Format: {"Service":"name","Health":"healthy",...}
   devices_status=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps --format json devices-backend 2>/dev/null | grep -o '"Health":"[^"]*"' | cut -d'"' -f4 || echo "")
   mentor_status=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps --format json mentor-backend 2>/dev/null | grep -o '"Health":"[^"]*"' | cut -d'"' -f4 || echo "")
   
-  # Fallback to grep method if JSON parsing fails
+  # Fallback to text-based grep if JSON parsing fails (for compatibility)
   if [ -z "$devices_status" ]; then
     devices_health=$($DOCKER_COMPOSE -f .github/docker-compose.test.yml ps devices-backend 2>/dev/null | grep -c "healthy" || echo "0")
     [ "$devices_health" = "1" ] && devices_status="healthy"

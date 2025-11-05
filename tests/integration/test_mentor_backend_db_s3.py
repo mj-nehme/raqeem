@@ -171,7 +171,8 @@ def test_device_metrics_retrieval():
         if response.status_code in [200, 404]:
             if response.status_code == 200:
                 metrics = response.json()
-                log(f"✓ Metrics retrieval successful: found {len(metrics) if isinstance(metrics, list) else 'N/A'} metric(s)", "SUCCESS")
+                count = len(metrics) if isinstance(metrics, list) else 'N/A'
+                log(f"✓ Metrics retrieval successful: found {count} metric(s)", "SUCCESS")
             else:
                 log(f"✓ Metrics endpoint accessible (no data yet, expected)", "SUCCESS")
             return True
@@ -198,7 +199,8 @@ def test_screenshots_retrieval():
         if response.status_code in [200, 404]:
             if response.status_code == 200:
                 screenshots = response.json()
-                log(f"✓ Screenshots retrieval successful: found {len(screenshots) if isinstance(screenshots, list) else 'N/A'} screenshot(s)", "SUCCESS")
+                count = len(screenshots) if isinstance(screenshots, list) else 'N/A'
+                log(f"✓ Screenshots retrieval successful: found {count} screenshot(s)", "SUCCESS")
             else:
                 log(f"✓ Screenshots endpoint accessible (no data yet, expected)", "SUCCESS")
             return True

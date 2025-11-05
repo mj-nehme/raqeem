@@ -208,7 +208,6 @@ def test_screenshot_upload_to_s3():
     
     # Create a fake image file
     fake_image = io.BytesIO(b"fake image content for integration test")
-    fake_image.name = "test-screenshot.png"
     
     try:
         response = requests.post(
