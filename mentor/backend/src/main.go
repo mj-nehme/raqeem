@@ -59,6 +59,7 @@ func main() {
 	r.POST("/devices/processes", controllers.UpdateProcessList)
 	r.POST("/devices/activity", controllers.LogActivity)
 	r.POST("/devices/commands", controllers.CreateRemoteCommand)
+	r.POST("/devices/screenshots", controllers.StoreScreenshot)
 	r.GET("/devices", controllers.ListDevices)
 	r.GET("/devices/:id/metrics", controllers.GetDeviceMetrics)
 	r.GET("/devices/:id/processes", controllers.GetDeviceProcesses)
