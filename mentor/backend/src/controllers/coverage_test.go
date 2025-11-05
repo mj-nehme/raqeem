@@ -196,7 +196,8 @@ func TestGetDeviceMetricsInvalidLimit(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code)
+	// The handler should return BadRequest for invalid limit parameter
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 func TestGetDeviceProcessesWithLimit(t *testing.T) {
