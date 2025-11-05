@@ -32,14 +32,14 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 	// Create a mock devices backend server
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+		_ = json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
 	}))
 	defer mockServer.Close()
 
 	// Set DEVICES_API_URL to mock server
 	originalURL := os.Getenv("DEVICES_API_URL")
-	os.Setenv("DEVICES_API_URL", mockServer.URL)
-	defer os.Setenv("DEVICES_API_URL", originalURL)
+	_ = os.Setenv("DEVICES_API_URL", mockServer.URL)
+	defer func() { _ = os.Setenv("DEVICES_API_URL", originalURL) }()
 
 	t.Run("CreateCommand with forwarding to devices backend", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -83,7 +83,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 
 	t.Run("CreateCommand forwarding with failed backend", func(t *testing.T) {
 		// Set DEVICES_API_URL to non-existent server
-		os.Setenv("DEVICES_API_URL", "http://localhost:99999")
+		_ = os.Setenv("DEVICES_API_URL", "http://localhost:99999")
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
@@ -106,7 +106,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		// No synchronization needed as test verifies successful command creation
 
 		// Restore
-		os.Setenv("DEVICES_API_URL", mockServer.URL)
+		_ = os.Setenv("DEVICES_API_URL", mockServer.URL)
 	})
 }
 
