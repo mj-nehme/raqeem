@@ -87,20 +87,20 @@ func TestSetupTestDBFailsGracefully(t *testing.T) {
 
 	defer func() {
 		if originalUsePostgres != "" {
-			os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
+			_ = os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
 		} else {
-			os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+			_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 		}
 		if originalHost != "" {
-			os.Setenv("POSTGRES_HOST", originalHost)
+			_ = os.Setenv("POSTGRES_HOST", originalHost)
 		} else {
-			os.Unsetenv("POSTGRES_HOST")
+			_ = os.Unsetenv("POSTGRES_HOST")
 		}
 	}()
 
 	// Set invalid PostgreSQL config
-	os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
-	os.Setenv("POSTGRES_HOST", "invalid-host-that-does-not-exist")
+	_ = os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
+	_ = os.Setenv("POSTGRES_HOST", "invalid-host-that-does-not-exist")
 
 	// This should skip the test, not fail
 	db := SetupTestDB(t)
@@ -117,27 +117,27 @@ func TestCreateTestDatabaseWithPostgres(t *testing.T) {
 
 	defer func() {
 		if originalUsePostgres != "" {
-			os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
+			_ = os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
 		} else {
-			os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+			_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 		}
 		if originalUser != "" {
-			os.Setenv("POSTGRES_USER", originalUser)
+			_ = os.Setenv("POSTGRES_USER", originalUser)
 		} else {
-			os.Unsetenv("POSTGRES_USER")
+			_ = os.Unsetenv("POSTGRES_USER")
 		}
 	}()
 
 	t.Run("SQLite mode returns no error", func(t *testing.T) {
 		// CreateTestDatabase should work with SQLite (no-op)
-		os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+		_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 		err := CreateTestDatabase()
 		assert.NoError(t, err)
 	})
 
 	t.Run("CI environment returns early", func(t *testing.T) {
-		os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
-		os.Setenv("POSTGRES_USER", "monitor")
+		_ = os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
+		_ = os.Setenv("POSTGRES_USER", "monitor")
 
 		err := CreateTestDatabase()
 		// Should return nil early for CI environment
@@ -145,9 +145,9 @@ func TestCreateTestDatabaseWithPostgres(t *testing.T) {
 	})
 
 	t.Run("Local environment attempts creation", func(t *testing.T) {
-		os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
-		os.Setenv("POSTGRES_USER", "testuser")
-		os.Setenv("POSTGRES_HOST", "invalid-host")
+		_ = os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
+		_ = os.Setenv("POSTGRES_USER", "testuser")
+		_ = os.Setenv("POSTGRES_HOST", "invalid-host")
 
 		err := CreateTestDatabase()
 		// Should return an error because host is invalid
@@ -164,14 +164,14 @@ func TestSetupTestDBWithSQLite(t *testing.T) {
 	originalUsePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS")
 	defer func() {
 		if originalUsePostgres != "" {
-			os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
+			_ = os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
 		} else {
-			os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+			_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 		}
 	}()
 
 	// Ensure we use SQLite
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
@@ -295,7 +295,7 @@ func TestSetupTestDBAutoMigrationFailure(t *testing.T) {
 	// Close the database to cause migration to fail
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
-	sqlDB.Close()
+	_ = sqlDB.Close()
 
 	// Now try to migrate - this should fail but we can't easily test this
 	// without modifying the function. Document the behavior.
@@ -321,7 +321,7 @@ func TestGetEnvOrDefaultReturnsDefault(t *testing.T) {
 	defaultValue := "default_value_456"
 
 	// Ensure the variable is not set
-	os.Unsetenv(testKey)
+	_ = os.Unsetenv(testKey)
 
 	result := getEnvOrDefault(testKey, defaultValue)
 	assert.Equal(t, defaultValue, result)
@@ -338,13 +338,13 @@ func TestSetupTestDBWithCIEnvironment(t *testing.T) {
 	originalUsePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS")
 	defer func() {
 		if originalUsePostgres != "" {
-			os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
+			_ = os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
 		} else {
-			os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+			_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 		}
 	}()
 
-	os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
+	_ = os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
 
 	db := SetupTestDB(t)
 	if db != nil {
@@ -359,7 +359,7 @@ func TestSetupTestDBWithCIEnvironment(t *testing.T) {
 // TestSetupTestDBWALMode tests SQLite journal mode configuration
 func TestSetupTestDBWALMode(t *testing.T) {
 	// Ensure we use SQLite
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
