@@ -61,7 +61,7 @@ func TestSetupTestDBAutoMigrationSuccess(t *testing.T) {
 
 // TestSetupTestDBSQLitePragmas tests SQLite pragma settings
 func TestSetupTestDBSQLitePragmas(t *testing.T) {
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
@@ -77,7 +77,7 @@ func TestSetupTestDBSQLitePragmas(t *testing.T) {
 
 // TestSetupTestDBCacheSharing tests cache sharing mode
 func TestSetupTestDBCacheSharing(t *testing.T) {
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
@@ -95,7 +95,7 @@ func TestSetupTestDBCacheSharing(t *testing.T) {
 
 // TestSetupTestDBConcurrentAccess tests concurrent access to test database
 func TestSetupTestDBConcurrentAccess(t *testing.T) {
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)

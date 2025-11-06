@@ -75,13 +75,13 @@ func TestInitClientEnvironmentVariables(t *testing.T) {
 
 	defer func() {
 		if originalEndpoint != "" {
-			os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
 		}
 		if originalAccessKey != "" {
-			os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+			_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
 		}
 		if originalSecretKey != "" {
-			os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+			_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
 		}
 	}()
 
