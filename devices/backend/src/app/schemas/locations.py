@@ -9,7 +9,7 @@ class LocationCreate(BaseModel):
 
 class LocationOut(LocationCreate):
     id: UUID
-    created_at: datetime
+    timestamp: datetime
 
     class Config:
         orm_mode = True
