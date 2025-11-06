@@ -11,5 +11,5 @@ class AppActivity(Base):
     # Store user_id as plain text to allow external identifiers in tests without strict FK/UUID constraints
     user_id = Column(Text, nullable=False)
     app_name = Column(Text, nullable=False)
-    activity = Column(Text, nullable=False)
-    created_at = Column(TIMESTAMP, server_default=sa.func.now())
+    action = Column(Text, nullable=False)
+    activity_time = Column(TIMESTAMP, server_default=sa.func.now())
