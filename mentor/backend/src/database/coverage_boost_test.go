@@ -309,7 +309,9 @@ func TestGetEnvOrDefaultReturnsEnvValue(t *testing.T) {
 	testValue := "test_value_123"
 	err := os.Setenv(testKey, testValue)
 	require.NoError(t, err)
-	defer os.Unsetenv(testKey)
+	defer func() {
+		_ = os.Unsetenv(testKey)
+	}()
 
 	result := getEnvOrDefault(testKey, "default_value")
 	assert.Equal(t, testValue, result)

@@ -11,7 +11,7 @@ import (
 // TestSetupTestDBMultipleCalls tests calling SetupTestDB multiple times
 func TestSetupTestDBMultipleCalls(t *testing.T) {
 	// Ensure we use SQLite
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db1 := SetupTestDB(t)
 	require.NotNil(t, db1)
@@ -33,7 +33,7 @@ func TestSetupTestDBMultipleCalls(t *testing.T) {
 
 // TestSetupTestDBAutoMigrationSuccess tests successful auto-migration
 func TestSetupTestDBAutoMigrationSuccess(t *testing.T) {
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
@@ -143,7 +143,7 @@ func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			}
 		}
 	}()
@@ -197,8 +197,10 @@ func TestGetEnvOrDefaultWithEmptyString(t *testing.T) {
 	testKey := "TEST_EMPTY_ENV_VAR"
 
 	// Set to empty string
-	os.Setenv(testKey, "")
-	defer os.Unsetenv(testKey)
+	_ = os.Setenv(testKey, "")
+	defer func() {
+		_ = os.Unsetenv(testKey)
+	}()
 
 	result := getEnvOrDefault(testKey, "default")
 	// Empty string should return default
@@ -210,8 +212,10 @@ func TestGetEnvOrDefaultWithWhitespace(t *testing.T) {
 	testKey := "TEST_WHITESPACE_ENV_VAR"
 
 	// Set to whitespace
-	os.Setenv(testKey, "   ")
-	defer os.Unsetenv(testKey)
+	_ = os.Setenv(testKey, "   ")
+	defer func() {
+		_ = os.Unsetenv(testKey)
+	}()
 
 	result := getEnvOrDefault(testKey, "default")
 	// Whitespace is considered a value
