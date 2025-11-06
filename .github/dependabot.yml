@@ -7,7 +7,7 @@ updates:
       interval: "daily"
       time: "03:00"
       timezone: "Etc/UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0 # Only suggest, don't create PRs
 
   # Python (Pip) for devices backend
   - package-ecosystem: "pip"
@@ -18,7 +18,7 @@ updates:
       timezone: "Etc/UTC"
     allow:
       - dependency-type: "direct"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0 # Only suggest, don't create PRs
 
   # Go modules for mentor backend
   - package-ecosystem: "gomod"
@@ -27,7 +27,7 @@ updates:
       interval: "daily"
       time: "03:20"
       timezone: "Etc/UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0 # Only suggest, don't create PRs
 
   # npm for devices frontend
   - package-ecosystem: "npm"
@@ -36,7 +36,7 @@ updates:
       interval: "daily"
       time: "03:30"
       timezone: "Etc/UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0 # Only suggest, don't create PRs
 
   # npm for mentor frontend
   - package-ecosystem: "npm"
@@ -45,7 +45,7 @@ updates:
       interval: "daily"
       time: "03:40"
       timezone: "Etc/UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0 # Only suggest, don't create PRs
 
   # Dockerfiles for both backends
   - package-ecosystem: "docker"
@@ -54,7 +54,7 @@ updates:
       interval: "daily"
       time: "03:50"
       timezone: "Etc/UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0 # Only suggest, don't create PRs
 
   - package-ecosystem: "docker"
     directory: "/mentor/backend"
@@ -62,4 +62,4 @@ updates:
       interval: "daily"
       time: "04:00"
       timezone: "Etc/UTC"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 0 # Only suggest, don't create PRs
