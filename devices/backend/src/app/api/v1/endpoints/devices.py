@@ -244,7 +244,10 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
 
 @router.get("/processes")
 async def list_all_processes(db: AsyncSession = Depends(get_db)):
-    """Get all processes across all devices"""
+    """Get all processes across all devices.
+    
+    Returns up to 1000 most recent processes ordered by timestamp descending.
+    """
     res = await db.execute(
         select(dev_models.Process)
         .order_by(dev_models.Process.timestamp.desc())
@@ -268,7 +271,10 @@ async def list_all_processes(db: AsyncSession = Depends(get_db)):
 
 @router.get("/activities")
 async def list_all_activities(db: AsyncSession = Depends(get_db)):
-    """Get all activities across all devices"""
+    """Get all activities across all devices.
+    
+    Returns up to 1000 most recent activities ordered by timestamp descending.
+    """
     res = await db.execute(
         select(dev_models.ActivityLog)
         .order_by(dev_models.ActivityLog.timestamp.desc())
@@ -291,7 +297,10 @@ async def list_all_activities(db: AsyncSession = Depends(get_db)):
 
 @router.get("/alerts")
 async def list_all_alerts(db: AsyncSession = Depends(get_db)):
-    """Get all alerts across all devices"""
+    """Get all alerts across all devices.
+    
+    Returns up to 1000 most recent alerts ordered by timestamp descending.
+    """
     res = await db.execute(
         select(dev_models.Alert)
         .order_by(dev_models.Alert.timestamp.desc())
