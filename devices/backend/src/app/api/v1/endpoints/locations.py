@@ -46,7 +46,7 @@ async def get_locations(db: AsyncSession = Depends(get_db)):
             "user_id": str(x.user_id),
             "latitude": x.latitude,
             "longitude": x.longitude,
-            "timestamp": None,
+            "timestamp": x.timestamp,
         }
         for x in items
     ]
