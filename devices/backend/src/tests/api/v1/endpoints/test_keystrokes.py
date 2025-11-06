@@ -7,14 +7,14 @@ from app.main import app
 async def test_create_keystroke():
     payload = {
         "user_id": "some-valid-uuid",
-        "key": "a",
+        "keylog": "a",
         "timestamp": "2025-06-25T10:00:00Z"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/keystrokes/", json=payload)
     assert response.status_code == 201
     data = response.json()
-    assert data["key"] == payload["key"]
+    assert data["keylog"] == payload["keylog"]
     assert "id" in data
 
 
