@@ -4,11 +4,11 @@ from datetime import datetime
 
 class KeystrokeCreate(BaseModel):
     user_id: UUID
-    key: str
+    keylog: str
 
 class KeystrokeOut(KeystrokeCreate):
     id: UUID
-    created_at: datetime
+    logged_at: datetime
 
     class Config:
         orm_mode = True

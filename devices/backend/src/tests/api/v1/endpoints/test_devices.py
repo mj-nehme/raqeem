@@ -566,3 +566,118 @@ async def test_post_metrics_forwarding_failure_handled():
             response = await ac.post(f"/api/v1/devices/{device_id}/metrics", json=payload)
             assert response.status_code == 200
             assert response.json()["status"] == "ok"
+
+
+@pytest.mark.asyncio
+async def test_list_all_processes():
+    """Test listing all processes across all devices."""
+    device_id = "test-device-processes-list"
+    
+    # First post some processes
+    processes = [
+        {
+            "pid": 1111,
+            "name": "test-process-1",
+            "cpu": 10.5,
+            "memory": 100000000,
+            "command": "/usr/bin/test1"
+        },
+        {
+            "pid": 2222,
+            "name": "test-process-2",
+            "cpu": 20.5,
+            "memory": 200000000,
+            "command": "/usr/bin/test2"
+        }
+    ]
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Post processes
+        await ac.post(f"/api/v1/devices/{device_id}/processes", json=processes)
+        
+        # Now get all processes
+        response = await ac.get("/api/v1/devices/processes")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    # Check that our processes are in the list
+    process_names = [p["name"] for p in data]
+    assert "test-process-1" in process_names
+    assert "test-process-2" in process_names
+
+
+@pytest.mark.asyncio
+async def test_list_all_activities():
+    """Test listing all activities across all devices."""
+    device_id = "test-device-activities-list"
+    
+    # First post some activities
+    activities = [
+        {
+            "type": "test_activity",
+            "description": "Test activity 1",
+            "app": "test-app-1",
+            "duration": 100
+        },
+        {
+            "type": "test_activity",
+            "description": "Test activity 2",
+            "app": "test-app-2",
+            "duration": 200
+        }
+    ]
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Post activities
+        await ac.post(f"/api/v1/devices/{device_id}/activities", json=activities)
+        
+        # Now get all activities
+        response = await ac.get("/api/v1/devices/activities")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    # Check that our activities are in the list
+    activity_apps = [a["app"] for a in data]
+    assert "test-app-1" in activity_apps
+    assert "test-app-2" in activity_apps
+
+
+@pytest.mark.asyncio
+async def test_list_all_alerts():
+    """Test listing all alerts across all devices."""
+    device_id = "test-device-alerts-list"
+    
+    # First post some alerts
+    alerts = [
+        {
+            "level": "warning",
+            "type": "test_alert",
+            "message": "Test alert 1",
+            "value": 75.0,
+            "threshold": 70.0
+        },
+        {
+            "level": "critical",
+            "type": "test_alert",
+            "message": "Test alert 2",
+            "value": 95.0,
+            "threshold": 90.0
+        }
+    ]
+    
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+        # Post alerts
+        await ac.post(f"/api/v1/devices/{device_id}/alerts", json=alerts)
+        
+        # Now get all alerts
+        response = await ac.get("/api/v1/devices/alerts")
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    # Check that our alerts are in the list
+    alert_messages = [a["message"] for a in data]
+    assert "Test alert 1" in alert_messages
+    assert "Test alert 2" in alert_messages

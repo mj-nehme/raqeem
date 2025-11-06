@@ -12,4 +12,4 @@ class Location(Base):
     user_id = Column(Text, nullable=False)
     latitude = Column(Float, nullable=False)
     longitude = Column(Float, nullable=False)
-    created_at = Column(TIMESTAMP, server_default=sa.func.now())
+    timestamp = Column(TIMESTAMP, server_default=sa.func.now())

@@ -16,11 +16,11 @@ class TestAppActivitySchemas:
         data = AppActivityCreate(
             user_id=user_id,
             app_name="Chrome",
-            activity="opened"
+            action="opened"
         )
         assert data.user_id == user_id
         assert data.app_name == "Chrome"
-        assert data.activity == "opened"
+        assert data.action == "opened"
     
     def test_app_activity_out(self):
         """Test creating AppActivityOut schema."""
@@ -31,12 +31,12 @@ class TestAppActivitySchemas:
             id=activity_id,
             user_id=user_id,
             app_name="Firefox",
-            activity="closed",
-            created_at=now
+            action="closed",
+            activity_time=now
         )
         assert data.id == activity_id
         assert data.app_name == "Firefox"
-        assert data.created_at == now
+        assert data.activity_time == now
 
 
 class TestKeystrokeSchemas:
@@ -47,10 +47,10 @@ class TestKeystrokeSchemas:
         user_id = uuid4()
         data = KeystrokeCreate(
             user_id=user_id,
-            key="a"
+            keylog="a"
         )
         assert data.user_id == user_id
-        assert data.key == "a"
+        assert data.keylog == "a"
     
     def test_keystroke_out(self):
         """Test creating KeystrokeOut schema."""
@@ -60,12 +60,12 @@ class TestKeystrokeSchemas:
         data = KeystrokeOut(
             id=keystroke_id,
             user_id=user_id,
-            key="Enter",
-            created_at=now
+            keylog="Enter",
+            logged_at=now
         )
         assert data.id == keystroke_id
-        assert data.key == "Enter"
-        assert data.created_at == now
+        assert data.keylog == "Enter"
+        assert data.logged_at == now
 
 
 class TestLocationSchemas:
@@ -93,11 +93,11 @@ class TestLocationSchemas:
             user_id=user_id,
             latitude=40.7128,
             longitude=-74.0060,
-            created_at=now
+            timestamp=now
         )
         assert data.id == location_id
         assert data.latitude == 40.7128
-        assert data.created_at == now
+        assert data.timestamp == now
 
 
 class TestScreenshotSchemas:

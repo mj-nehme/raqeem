@@ -5,11 +5,11 @@ from datetime import datetime
 class AppActivityCreate(BaseModel):
     user_id: UUID
     app_name: str
-    activity: str
+    action: str
 
 class AppActivityOut(AppActivityCreate):
     id: UUID
-    created_at: datetime
+    activity_time: datetime
 
     class Config:
         orm_mode = True

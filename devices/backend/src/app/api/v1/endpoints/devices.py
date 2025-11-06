@@ -34,7 +34,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         existing.location = payload.get("location") or existing.location
         existing.ip_address = payload.get("ip_address") or existing.ip_address
         existing.mac_address = payload.get("mac_address") or existing.mac_address
-        existing.current_user = payload.get("current_user") or existing.current_user
+        existing.current_user_text = payload.get("current_user") or existing.current_user_text
         db.add(existing)
         await db.commit()
         result = {"device_id": device_id, "updated": True}
@@ -49,7 +49,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
             location=payload.get("location"),
             ip_address=payload.get("ip_address"),
             mac_address=payload.get("mac_address"),
-            current_user=payload.get("current_user"),
+            current_user_text=payload.get("current_user"),
         )
         db.add(obj)
         await db.commit()
@@ -237,9 +237,89 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
             "location": device.location,
             "ip_address": device.ip_address,
             "mac_address": device.mac_address,
-            "current_user": device.current_user,
+            "current_user": device.current_user_text,
         })
     return devices
+
+
+@router.get("/processes")
+async def list_all_processes(db: AsyncSession = Depends(get_db)):
+    """Get all processes across all devices.
+    
+    Returns up to 1000 most recent processes ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.Process)
+        .order_by(dev_models.Process.timestamp.desc())
+        .limit(1000)  # Limit to prevent overwhelming the API
+    )
+    processes_list = res.scalars().all()
+    processes = []
+    for process in processes_list:
+        processes.append({
+            "id": str(process.id),
+            "device_id": process.device_id,
+            "timestamp": process.timestamp.isoformat() if process.timestamp else None,
+            "pid": process.pid,
+            "name": process.name,
+            "cpu": float(process.cpu) if process.cpu is not None else None,
+            "memory": process.memory,
+            "command": process.command,
+        })
+    return processes
+
+
+@router.get("/activities")
+async def list_all_activities(db: AsyncSession = Depends(get_db)):
+    """Get all activities across all devices.
+    
+    Returns up to 1000 most recent activities ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.ActivityLog)
+        .order_by(dev_models.ActivityLog.timestamp.desc())
+        .limit(1000)  # Limit to prevent overwhelming the API
+    )
+    activities_list = res.scalars().all()
+    activities = []
+    for activity in activities_list:
+        activities.append({
+            "id": str(activity.id),
+            "device_id": activity.device_id,
+            "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
+            "type": activity.type,
+            "description": activity.description,
+            "app": activity.app,
+            "duration": activity.duration,
+        })
+    return activities
+
+
+@router.get("/alerts")
+async def list_all_alerts(db: AsyncSession = Depends(get_db)):
+    """Get all alerts across all devices.
+    
+    Returns up to 1000 most recent alerts ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.Alert)
+        .order_by(dev_models.Alert.timestamp.desc())
+        .limit(1000)  # Limit to prevent overwhelming the API
+    )
+    alerts_list = res.scalars().all()
+    alerts = []
+    for alert in alerts_list:
+        alerts.append({
+            "id": str(alert.id),
+            "device_id": alert.device_id,
+            "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
+            "level": alert.level,
+            "type": alert.type,
+            "message": alert.message,
+            "value": float(alert.value) if alert.value is not None else None,
+            "threshold": float(alert.threshold) if alert.threshold is not None else None,
+        })
+    return alerts
 
 
 @router.get("/{device_id}/commands/pending", response_model=List[CommandOut])
