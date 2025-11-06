@@ -42,6 +42,7 @@ describe('App Component', () => {
     test('contains DeviceDashboard component', () => {
         render(<App />)
         // Check for key elements from DeviceDashboard
-        expect(screen.getByText('Devices')).toBeInTheDocument()
+        const devicesHeadings = screen.getAllByText('Devices')
+        expect(devicesHeadings.length).toBeGreaterThan(0)
     })
 })

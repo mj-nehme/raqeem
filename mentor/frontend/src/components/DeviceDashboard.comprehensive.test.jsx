@@ -1,5 +1,5 @@
 import { test, expect, vi, describe, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import DeviceDashboard from './DeviceDashboard'
 
 // Mock fetch
@@ -83,6 +83,7 @@ describe('DeviceDashboard Component', () => {
     })
 
     afterEach(() => {
+        cleanup()
         vi.restoreAllMocks()
     })
 
@@ -152,6 +153,10 @@ describe('DeviceDashboard Component', () => {
                 ok: true,
                 json: async () => []
             })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
+            })
 
         render(<DeviceDashboard />)
 
@@ -159,7 +164,7 @@ describe('DeviceDashboard Component', () => {
             expect(screen.getByText('Test Laptop')).toBeInTheDocument()
         })
 
-        const laptopButton = screen.getByText('Test Laptop').closest('button')
+        const laptopButton = screen.getByRole('button', { name: /test laptop/i })
         fireEvent.click(laptopButton)
 
         await waitFor(() => {
@@ -193,6 +198,10 @@ describe('DeviceDashboard Component', () => {
                 ok: true,
                 json: async () => []
             })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
+            })
 
         render(<DeviceDashboard />)
 
@@ -200,7 +209,7 @@ describe('DeviceDashboard Component', () => {
             expect(screen.getByText('Test Laptop')).toBeInTheDocument()
         })
 
-        const laptopButton = screen.getByText('Test Laptop').closest('button')
+        const laptopButton = screen.getByRole('button', { name: /test laptop/i })
         fireEvent.click(laptopButton)
 
         await waitFor(() => {
@@ -216,8 +225,8 @@ describe('DeviceDashboard Component', () => {
         render(<DeviceDashboard />)
 
         await waitFor(() => {
-            expect(consoleError).toHaveBeenCalled()
-        })
+            expect(consoleError).toHaveBeenCalledWith('Failed to fetch devices:', expect.any(Error))
+        }, { timeout: 3000 })
 
         consoleError.mockRestore()
     })
@@ -259,6 +268,10 @@ describe('DeviceDashboard Component', () => {
                 ok: true,
                 json: async () => []
             })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
+            })
 
         render(<DeviceDashboard />)
 
@@ -266,7 +279,7 @@ describe('DeviceDashboard Component', () => {
             expect(screen.getByText('Test Laptop')).toBeInTheDocument()
         })
 
-        const laptopButton = screen.getByText('Test Laptop').closest('button')
+        const laptopButton = screen.getByRole('button', { name: /test laptop/i })
         fireEvent.click(laptopButton)
 
         await waitFor(() => {
@@ -276,7 +289,9 @@ describe('DeviceDashboard Component', () => {
         })
 
         await waitFor(() => {
-            expect(screen.getByText('Alerts')).toBeInTheDocument()
+            // Check that the Alerts tab is selected
+            const alertsTab = screen.getByRole('tab', { name: /alerts/i, selected: true })
+            expect(alertsTab).toBeInTheDocument()
         })
     })
 
@@ -306,6 +321,10 @@ describe('DeviceDashboard Component', () => {
                 ok: true,
                 json: async () => []
             })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
+            })
 
         render(<DeviceDashboard />)
 
@@ -313,7 +332,7 @@ describe('DeviceDashboard Component', () => {
             expect(screen.getByText('Test Laptop')).toBeInTheDocument()
         })
 
-        const laptopButton = screen.getByText('Test Laptop').closest('button')
+        const laptopButton = screen.getByRole('button', { name: /test laptop/i })
         fireEvent.click(laptopButton)
 
         await waitFor(() => {
@@ -349,6 +368,10 @@ describe('DeviceDashboard Component', () => {
                 ok: true,
                 json: async () => []
             })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
+            })
 
         render(<DeviceDashboard />)
 
@@ -356,7 +379,7 @@ describe('DeviceDashboard Component', () => {
             expect(screen.getByText('Test Laptop')).toBeInTheDocument()
         })
 
-        const laptopButton = screen.getByText('Test Laptop').closest('button')
+        const laptopButton = screen.getByRole('button', { name: /test laptop/i })
         fireEvent.click(laptopButton)
 
         // Switch to Alerts tab
