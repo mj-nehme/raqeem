@@ -1117,7 +1117,7 @@ describe('DeviceSimulator Component', () => {
         const { rerender } = render(<DeviceSimulator />)
         const initialId = screen.getByDisplayValue(/device-/).value
         rerender(<DeviceSimulator />)
-        const sameId = screen.getByDisplayValue(/device-/).value
+        // Just verify the format is correct
         expect(initialId).toMatch(/^device-[a-z0-9]{9}$/)
     })
 

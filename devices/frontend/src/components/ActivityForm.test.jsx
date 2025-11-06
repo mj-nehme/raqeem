@@ -86,7 +86,6 @@ describe('ActivityForm Component', () => {
         const locationInput = screen.getByPlaceholderText('Location')
         const passwordInput = screen.getByPlaceholderText('Password')
         const fileInput = document.querySelector('input[type="file"]')
-        const submitButton = screen.getByRole('button', { name: 'Add Activity' })
 
         const testFile = new File(['test image'], 'test.png', { type: 'image/png' })
 
@@ -122,7 +121,6 @@ describe('ActivityForm Component', () => {
         const locationInput = screen.getByPlaceholderText('Location')
         const passwordInput = screen.getByPlaceholderText('Password')
         const fileInput = document.querySelector('input[type="file"]')
-        const submitButton = screen.getByRole('button', { name: 'Add Activity' })
 
         const testFile = new File(['test image'], 'test.png', { type: 'image/png' })
 
@@ -147,7 +145,6 @@ describe('ActivityForm Component', () => {
         const locationInput = screen.getByPlaceholderText('Location')
         const passwordInput = screen.getByPlaceholderText('Password')
         const fileInput = document.querySelector('input[type="file"]')
-        const submitButton = screen.getByRole('button', { name: 'Add Activity' })
 
         const testFile = new File(['test image'], 'test.png', { type: 'image/png' })
 
@@ -176,7 +173,6 @@ describe('ActivityForm Component', () => {
         const locationInput = screen.getByPlaceholderText('Location')
         const passwordInput = screen.getByPlaceholderText('Password')
         const fileInput = document.querySelector('input[type="file"]')
-        const submitButton = screen.getByRole('button', { name: 'Add Activity' })
 
         const testFile = new File(['test image'], 'test.png', { type: 'image/png' })
 
@@ -205,7 +201,6 @@ describe('ActivityForm Component', () => {
         const locationInput = screen.getByPlaceholderText('Location')
         const passwordInput = screen.getByPlaceholderText('Password')
         const fileInput = document.querySelector('input[type="file"]')
-        const submitButton = screen.getByRole('button', { name: 'Add Activity' })
 
         const testFile = new File(['test image'], 'test.png', { type: 'image/png' })
 
