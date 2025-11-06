@@ -198,7 +198,7 @@ export default function DeviceDashboard() {
                                         </ListItemIcon>
                                         <ListItemText
                                             primary={device.name}
-                                            secondary={<Chip size="small" label={isOnline ? 'Online' : 'Offline'} color={isOnline ? 'success' : 'error'} sx={{ height: 20, fontSize: '0.7rem' }} />}
+                                            secondary={isOnline ? 'Online' : 'Offline'}
                                         />
                                     </ListItemButton>
                                 </ListItem>
