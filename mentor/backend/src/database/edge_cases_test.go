@@ -137,7 +137,7 @@ func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
 	originalVars := make(map[string]string)
 	for _, v := range vars {
 		originalVars[v] = os.Getenv(v)
-		os.Unsetenv(v)
+		_ = os.Unsetenv(v)
 	}
 
 	defer func() {
@@ -163,7 +163,7 @@ func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
 
 // TestCleanupTestDBIdempotent tests calling CleanupTestDB multiple times
 func TestCleanupTestDBIdempotent(t *testing.T) {
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
@@ -176,7 +176,7 @@ func TestCleanupTestDBIdempotent(t *testing.T) {
 
 // TestCleanupTestDBWithEmptyTables tests cleanup when tables are already empty
 func TestCleanupTestDBWithEmptyTables(t *testing.T) {
-	os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
 
 	db := SetupTestDB(t)
 	require.NotNil(t, db)
