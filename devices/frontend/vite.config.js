@@ -32,7 +32,8 @@ export default ({ mode }) => {
           'node_modules/',
           'src/setupTests.js',
           '**/*.{test,spec}.{js,jsx,ts,tsx}',
-          '**/coverage/**'
+          '**/coverage/**',
+          '**/*.css'
         ]
       }
     }

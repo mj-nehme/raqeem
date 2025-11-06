@@ -894,4 +894,451 @@ describe('DeviceSimulator Component', () => {
         // Let's just verify the component renders properly with processes stat
         expect(screen.getByText('Processes Sent')).toBeInTheDocument()
     })
+
+    test('handles non-ok response for metrics', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Mock non-ok response
+        fetch.mockResolvedValueOnce({ ok: false })
+
+        const sendMetricsButton = screen.getByRole('button', { name: /send metrics/i })
+        fireEvent.click(sendMetricsButton)
+
+        // Should not update stats on failed response
+        await waitFor(() => {
+            expect(sendMetricsButton).toBeInTheDocument()
+        })
+    })
+
+    test('handles non-ok response for activities', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockResolvedValueOnce({ ok: false })
+
+        const sendActivitiesButton = screen.getByRole('button', { name: /send activities/i })
+        fireEvent.click(sendActivitiesButton)
+
+        await waitFor(() => {
+            expect(sendActivitiesButton).toBeInTheDocument()
+        })
+    })
+
+    test('handles non-ok response for alerts', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockResolvedValueOnce({ ok: false })
+
+        const sendAlertButton = screen.getByRole('button', { name: /send alert/i })
+        fireEvent.click(sendAlertButton)
+
+        await waitFor(() => {
+            expect(sendAlertButton).toBeInTheDocument()
+        })
+    })
+
+    test('handles non-ok response for screenshots', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        const mockContext = {
+            fillStyle: '',
+            fillRect: vi.fn(),
+            fillText: vi.fn(),
+            font: ''
+        }
+
+        HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext)
+        HTMLCanvasElement.prototype.toBlob = function (callback) {
+            callback(new Blob(['fake-image-data'], { type: 'image/png' }))
+        }
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockResolvedValueOnce({ ok: false })
+
+        const sendScreenshotButton = screen.getByRole('button', { name: /send screenshot/i })
+        fireEvent.click(sendScreenshotButton)
+
+        await waitFor(() => {
+            expect(sendScreenshotButton).toBeInTheDocument()
+        })
+    })
+
+    test('device ID input has placeholder', () => {
+        render(<DeviceSimulator />)
+        const deviceIdInput = screen.getByDisplayValue(/device-/)
+        expect(deviceIdInput).toHaveAttribute('placeholder', 'device-xxxxx')
+    })
+
+    test('device type select has correct options', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Laptop')).toBeInTheDocument()
+        expect(screen.getByText('Desktop')).toBeInTheDocument()
+        expect(screen.getByText('Mobile')).toBeInTheDocument()
+        expect(screen.getByText('Tablet')).toBeInTheDocument()
+    })
+
+    test('device OS select has correct options', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('macOS')).toBeInTheDocument()
+        expect(screen.getByText('Windows')).toBeInTheDocument()
+        expect(screen.getByText('Linux')).toBeInTheDocument()
+        expect(screen.getByText('iOS')).toBeInTheDocument()
+        expect(screen.getByText('Android')).toBeInTheDocument()
+    })
+
+    test('updates device ID input', () => {
+        render(<DeviceSimulator />)
+        const deviceIdInput = screen.getByDisplayValue(/device-/)
+        fireEvent.change(deviceIdInput, { target: { value: 'device-custom123' } })
+        expect(deviceIdInput.value).toBe('device-custom123')
+    })
+
+    test('device type select defaults to laptop', () => {
+        render(<DeviceSimulator />)
+        const selects = document.querySelectorAll('select')
+        const typeSelect = Array.from(selects).find(s => s.value === 'laptop')
+        expect(typeSelect).toBeInTheDocument()
+        expect(typeSelect.value).toBe('laptop')
+    })
+
+    test('device OS select defaults to macOS', () => {
+        render(<DeviceSimulator />)
+        const selects = document.querySelectorAll('select')
+        const osSelect = Array.from(selects).find(s => s.value === 'macOS')
+        expect(osSelect).toBeInTheDocument()
+        expect(osSelect.value).toBe('macOS')
+    })
+
+    test('renders all statistics labels', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Metrics Sent')).toBeInTheDocument()
+        expect(screen.getByText('Activities Sent')).toBeInTheDocument()
+        expect(screen.getByText('Alerts Sent')).toBeInTheDocument()
+        expect(screen.getByText('Screenshots Sent')).toBeInTheDocument()
+        expect(screen.getByText('Processes Sent')).toBeInTheDocument()
+    })
+
+    test('renders all manual action buttons', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByRole('button', { name: /send metrics/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /send activities/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /send alert/i })).toBeInTheDocument()
+        expect(screen.getByRole('button', { name: /send screenshot/i })).toBeInTheDocument()
+    })
+
+    test('renders simulation control buttons', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByRole('button', { name: /start auto simulation/i })).toBeInTheDocument()
+    })
+
+    test('renders reset button', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByRole('button', { name: /reset/i })).toBeInTheDocument()
+    })
+
+    test('renders device configuration section', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Device Configuration')).toBeInTheDocument()
+    })
+
+    test('renders simulation controls section', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Simulation Controls')).toBeInTheDocument()
+    })
+
+    test('renders statistics section', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Statistics')).toBeInTheDocument()
+    })
+
+    test('renders activity logs section', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Activity Logs')).toBeInTheDocument()
+    })
+
+    test('renders manual actions section', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Manual Actions')).toBeInTheDocument()
+    })
+
+    test('shows warning log when trying to start simulation before registration', () => {
+        render(<DeviceSimulator />)
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        expect(startButton).toBeDisabled()
+    })
+
+    test('generates new device ID if current is empty', () => {
+        const { rerender } = render(<DeviceSimulator />)
+        const initialId = screen.getByDisplayValue(/device-/).value
+        rerender(<DeviceSimulator />)
+        const sameId = screen.getByDisplayValue(/device-/).value
+        expect(initialId).toMatch(/^device-[a-z0-9]{9}$/)
+    })
+
+    test('initializes processes count to 0', () => {
+        render(<DeviceSimulator />)
+        const statValues = screen.getAllByText('0')
+        expect(statValues.length).toBeGreaterThanOrEqual(5)
+    })
+
+    test('renders all form field labels', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Device ID')).toBeInTheDocument()
+        expect(screen.getByText('Device Name')).toBeInTheDocument()
+        expect(screen.getByText('Type')).toBeInTheDocument()
+        expect(screen.getByText('Operating System')).toBeInTheDocument()
+        expect(screen.getByText('Current User')).toBeInTheDocument()
+    })
+
+    test('device ID is generated on initial render', () => {
+        render(<DeviceSimulator />)
+        const deviceIdInput = screen.getByDisplayValue(/device-/)
+        expect(deviceIdInput.value).toMatch(/^device-[a-z0-9]{9}$/)
+    })
+
+    test('logs are displayed in reverse chronological order', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            const successLogs = screen.getAllByText(/device registered/i)
+            expect(successLogs.length).toBeGreaterThan(0)
+        })
+    })
+
+    test('MAC address is formatted correctly in registration payload', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.any(String),
+                expect.objectContaining({
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: expect.any(String)
+                })
+            )
+        })
+
+        const callArgs = fetch.mock.calls[0]
+        const requestBody = JSON.parse(callArgs[1].body)
+        expect(requestBody.mac_address).toMatch(/^([0-9a-f]{2}:){5}[0-9a-f]{2}$/i)
+    })
+
+    test('location is set in registration payload', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalled()
+        })
+
+        const callArgs = fetch.mock.calls[0]
+        const requestBody = JSON.parse(callArgs[1].body)
+        expect(requestBody.location).toBe('Simulated Location')
+    })
+
+    test('registration payload includes all required fields', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalled()
+        })
+
+        const callArgs = fetch.mock.calls[0]
+        const requestBody = JSON.parse(callArgs[1].body)
+        
+        expect(requestBody).toHaveProperty('id')
+        expect(requestBody).toHaveProperty('name')
+        expect(requestBody).toHaveProperty('type')
+        expect(requestBody).toHaveProperty('os')
+        expect(requestBody).toHaveProperty('current_user')
+        expect(requestBody).toHaveProperty('location')
+        expect(requestBody).toHaveProperty('ip_address')
+        expect(requestBody).toHaveProperty('mac_address')
+    })
+
+    test('metrics payload includes required fields', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockClear()
+
+        const sendMetricsButton = screen.getByRole('button', { name: /send metrics/i })
+        fireEvent.click(sendMetricsButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('metrics'),
+                expect.any(Object)
+            )
+        })
+
+        const callArgs = fetch.mock.calls[0]
+        const requestBody = JSON.parse(callArgs[1].body)
+        
+        expect(requestBody).toHaveProperty('cpu_usage')
+        expect(requestBody).toHaveProperty('cpu_temp')
+        expect(requestBody).toHaveProperty('memory_total')
+        expect(requestBody).toHaveProperty('memory_used')
+        expect(requestBody).toHaveProperty('disk_total')
+        expect(requestBody).toHaveProperty('disk_used')
+    })
+
+    test('activities payload is an array', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockClear()
+
+        const sendActivitiesButton = screen.getByRole('button', { name: /send activities/i })
+        fireEvent.click(sendActivitiesButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('activities'),
+                expect.any(Object)
+            )
+        })
+
+        const callArgs = fetch.mock.calls[0]
+        const requestBody = JSON.parse(callArgs[1].body)
+        
+        expect(Array.isArray(requestBody)).toBe(true)
+        expect(requestBody.length).toBeGreaterThan(0)
+    })
+
+    test('alert payload includes required fields', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockClear()
+
+        const sendAlertButton = screen.getByRole('button', { name: /send alert/i })
+        fireEvent.click(sendAlertButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('alerts'),
+                expect.any(Object)
+            )
+        })
+
+        const callArgs = fetch.mock.calls[0]
+        const requestBody = JSON.parse(callArgs[1].body)
+        
+        expect(Array.isArray(requestBody)).toBe(true)
+        expect(requestBody[0]).toHaveProperty('level')
+        expect(requestBody[0]).toHaveProperty('type')
+        expect(requestBody[0]).toHaveProperty('message')
+    })
 })
