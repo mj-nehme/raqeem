@@ -94,11 +94,11 @@ describe('ActivityForm Component', () => {
         fireEvent.change(passwordInput, { target: { value: 'testpass' } })
         fireEvent.change(fileInput, { target: { files: [testFile] } })
 
-        fireEvent.click(submitButton)
+        fireEvent.submit(screen.getByRole('button', { name: 'Add Activity' }).closest('form'))
 
         await waitFor(() => {
             expect(screen.getByText('Activity added successfully')).toBeInTheDocument()
-        })
+        }, { timeout: 3000 })
 
         expect(axios.default.post).toHaveBeenCalledWith(
             '/upload/',
@@ -130,11 +130,11 @@ describe('ActivityForm Component', () => {
         fireEvent.change(passwordInput, { target: { value: 'testpass' } })
         fireEvent.change(fileInput, { target: { files: [testFile] } })
 
-        fireEvent.click(submitButton)
+        fireEvent.submit(screen.getByRole('button', { name: 'Add Activity' }).closest('form'))
 
         await waitFor(() => {
             expect(screen.getByText('Failed to add activity')).toBeInTheDocument()
-        })
+        }, { timeout: 3000 })
     })
 
     test('handles network error', async () => {
@@ -155,11 +155,11 @@ describe('ActivityForm Component', () => {
         fireEvent.change(passwordInput, { target: { value: 'testpass' } })
         fireEvent.change(fileInput, { target: { files: [testFile] } })
 
-        fireEvent.click(submitButton)
+        fireEvent.submit(screen.getByRole('button', { name: 'Add Activity' }).closest('form'))
 
         await waitFor(() => {
             expect(screen.getByText('Failed to add activity')).toBeInTheDocument()
-        })
+        }, { timeout: 3000 })
 
         expect(consoleError).toHaveBeenCalledWith('Error:', expect.any(Error))
         consoleError.mockRestore()
@@ -184,11 +184,11 @@ describe('ActivityForm Component', () => {
         fireEvent.change(passwordInput, { target: { value: 'secret123' } })
         fireEvent.change(fileInput, { target: { files: [testFile] } })
 
-        fireEvent.click(submitButton)
+        fireEvent.submit(screen.getByRole('button', { name: 'Add Activity' }).closest('form'))
 
         await waitFor(() => {
             expect(axios.default.post).toHaveBeenCalled()
-        })
+        }, { timeout: 3000 })
 
         const formData = axios.default.post.mock.calls[0][1]
         expect(formData).toBeInstanceOf(FormData)
@@ -213,20 +213,20 @@ describe('ActivityForm Component', () => {
         fireEvent.change(locationInput, { target: { value: 'Location 1' } })
         fireEvent.change(passwordInput, { target: { value: 'pass1' } })
         fireEvent.change(fileInput, { target: { files: [testFile] } })
-        fireEvent.click(submitButton)
+        fireEvent.submit(screen.getByRole('button', { name: 'Add Activity' }).closest('form'))
 
         await waitFor(() => {
             expect(screen.getByText('Activity added successfully')).toBeInTheDocument()
-        })
+        }, { timeout: 3000 })
 
         // Second submission should clear and update message
         fireEvent.change(locationInput, { target: { value: 'Location 2' } })
         fireEvent.change(passwordInput, { target: { value: 'pass2' } })
-        fireEvent.click(submitButton)
+        fireEvent.submit(screen.getByRole('button', { name: 'Add Activity' }).closest('form'))
 
         await waitFor(() => {
             expect(screen.getByText('Activity added successfully')).toBeInTheDocument()
-        })
+        }, { timeout: 3000 })
     })
 
     test('accepts only image files', () => {

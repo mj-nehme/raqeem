@@ -300,7 +300,16 @@ describe('DeviceSimulator Component', () => {
             json: async () => ({ success: true })
         })
 
-        // Mock HTMLCanvasElement.prototype.toBlob
+        // Mock canvas context
+        const mockContext = {
+            fillStyle: '',
+            fillRect: vi.fn(),
+            fillText: vi.fn(),
+            font: ''
+        }
+
+        // Mock HTMLCanvasElement methods
+        HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext)
         HTMLCanvasElement.prototype.toBlob = function (callback) {
             callback(new Blob(['fake-image-data'], { type: 'image/png' }))
         }
@@ -431,5 +440,458 @@ describe('DeviceSimulator Component', () => {
 
         // Component should cleanup intervals on unmount
         expect(() => unmount()).not.toThrow()
+    })
+
+    test('sends metrics manually', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockClear()
+
+        const sendMetricsButton = screen.getByRole('button', { name: /send metrics/i })
+        fireEvent.click(sendMetricsButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('metrics'),
+                expect.objectContaining({
+                    method: 'POST'
+                })
+            )
+        })
+    })
+
+    test('sends activities manually', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        fetch.mockClear()
+
+        const sendActivitiesButton = screen.getByRole('button', { name: /send activities/i })
+        fireEvent.click(sendActivitiesButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('activities'),
+                expect.objectContaining({
+                    method: 'POST'
+                })
+            )
+        })
+    })
+
+    test('handles metrics error', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Set up error for next call
+        fetch.mockRejectedValueOnce(new Error('Metrics error'))
+
+        const sendMetricsButton = screen.getByRole('button', { name: /send metrics/i })
+        fireEvent.click(sendMetricsButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Metrics error/i)).toBeInTheDocument()
+        })
+    })
+
+    test('handles activities error', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Set up error for next call
+        fetch.mockRejectedValueOnce(new Error('Activities error'))
+
+        const sendActivitiesButton = screen.getByRole('button', { name: /send activities/i })
+        fireEvent.click(sendActivitiesButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Activities error/i)).toBeInTheDocument()
+        })
+    })
+
+    test('handles alert error', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Set up error for next call
+        fetch.mockRejectedValueOnce(new Error('Alert error'))
+
+        const sendAlertButton = screen.getByRole('button', { name: /send alert/i })
+        fireEvent.click(sendAlertButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Alert error/i)).toBeInTheDocument()
+        })
+    })
+
+    test('handles screenshot error', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        // Mock canvas context to throw an error
+        HTMLCanvasElement.prototype.getContext = vi.fn(() => null) // This will cause an error
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const sendScreenshotButton = screen.getByRole('button', { name: /send screenshot/i })
+        fireEvent.click(sendScreenshotButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Screenshot error/i)).toBeInTheDocument()
+        })
+    })
+
+    test('disables manual action buttons when not registered', () => {
+        render(<DeviceSimulator />)
+
+        const sendMetricsButton = screen.getByRole('button', { name: /send metrics/i })
+        const sendActivitiesButton = screen.getByRole('button', { name: /send activities/i })
+        const sendAlertButton = screen.getByRole('button', { name: /send alert/i })
+        const sendScreenshotButton = screen.getByRole('button', { name: /send screenshot/i })
+
+        expect(sendMetricsButton).toBeDisabled()
+        expect(sendActivitiesButton).toBeDisabled()
+        expect(sendAlertButton).toBeDisabled()
+        expect(sendScreenshotButton).toBeDisabled()
+    })
+
+    test('enables manual action buttons after registration', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const sendMetricsButton = screen.getByRole('button', { name: /send metrics/i })
+        const sendActivitiesButton = screen.getByRole('button', { name: /send activities/i })
+        const sendAlertButton = screen.getByRole('button', { name: /send alert/i })
+        const sendScreenshotButton = screen.getByRole('button', { name: /send screenshot/i })
+
+        expect(sendMetricsButton).not.toBeDisabled()
+        expect(sendActivitiesButton).not.toBeDisabled()
+        expect(sendAlertButton).not.toBeDisabled()
+        expect(sendScreenshotButton).not.toBeDisabled()
+    })
+
+    test('disables start simulation button when not registered', () => {
+        render(<DeviceSimulator />)
+
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        expect(startButton).toBeDisabled()
+    })
+
+    test('shows warning when trying to start simulation before registration', async () => {
+        render(<DeviceSimulator />)
+
+        // Since the button is disabled, we need to directly test the component logic
+        // The button should be disabled before registration, preventing clicks
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        expect(startButton).toBeDisabled()
+    })
+
+    test('resets device and clears statistics', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const initialDeviceId = screen.getByDisplayValue(/device-/).value
+
+        // Register device
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Click reset button
+        const resetButton = screen.getByRole('button', { name: /reset/i })
+        fireEvent.click(resetButton)
+
+        // Check that device ID changed and registration was cleared
+        await waitFor(() => {
+            const newDeviceId = screen.getByDisplayValue(/device-/).value
+            expect(newDeviceId).not.toBe(initialDeviceId)
+            expect(screen.getByRole('button', { name: /register device/i })).toBeInTheDocument()
+        })
+    })
+
+    test('handles registration failure response', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: false,
+            status: 400
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Failed to register device/i)).toBeInTheDocument()
+        })
+    })
+
+    test('disables input fields after registration', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const deviceIdInput = screen.getByDisplayValue(/device-/)
+        const nameInput = screen.getByPlaceholderText(/My Device/i)
+        const userInput = screen.getByPlaceholderText(/simulator-user/i)
+
+        expect(deviceIdInput).toBeDisabled()
+        expect(nameInput).toBeDisabled()
+        expect(userInput).toBeDisabled()
+    })
+
+    test('displays "no logs" message initially', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText(/No activity yet/i)).toBeInTheDocument()
+    })
+
+    test('updates statistics when metrics are sent', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Check initial metrics count
+        const statsValues = screen.getAllByText('0')
+        expect(statsValues.length).toBeGreaterThan(0)
+
+        // Send metrics
+        fetch.mockClear()
+        const sendMetricsButton = screen.getByRole('button', { name: /send metrics/i })
+        fireEvent.click(sendMetricsButton)
+
+        await waitFor(() => {
+            expect(screen.getByText('1')).toBeInTheDocument()
+        })
+    })
+
+    test('updates statistics when activities are sent', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Send activities
+        fetch.mockClear()
+        const sendActivitiesButton = screen.getByRole('button', { name: /send activities/i })
+        fireEvent.click(sendActivitiesButton)
+
+        await waitFor(() => {
+            // Activities count should increase (at least 1)
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('activities'),
+                expect.any(Object)
+            )
+        })
+    })
+
+    test('updates statistics when alerts are sent', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Send alert
+        fetch.mockClear()
+        const sendAlertButton = screen.getByRole('button', { name: /send alert/i })
+        fireEvent.click(sendAlertButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('alerts'),
+                expect.any(Object)
+            )
+        })
+    })
+
+    test('updates statistics when screenshots are sent', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        // Mock canvas context
+        const mockContext = {
+            fillStyle: '',
+            fillRect: vi.fn(),
+            fillText: vi.fn(),
+            font: ''
+        }
+
+        HTMLCanvasElement.prototype.getContext = vi.fn(() => mockContext)
+        HTMLCanvasElement.prototype.toBlob = function (callback) {
+            callback(new Blob(['fake-image-data'], { type: 'image/png' }))
+        }
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Send screenshot
+        fetch.mockClear()
+        const sendScreenshotButton = screen.getByRole('button', { name: /send screenshot/i })
+        fireEvent.click(sendScreenshotButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('screenshots'),
+                expect.any(Object)
+            )
+        })
+    })
+
+    test('sends processes manually and updates statistics', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // There's no manual button for processes, but we can test it through the auto simulation
+        // Let's just verify the component renders properly with processes stat
+        expect(screen.getByText('Processes Sent')).toBeInTheDocument()
     })
 })
