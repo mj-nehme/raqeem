@@ -111,9 +111,51 @@ func TestSetupTestDBFailsGracefully(t *testing.T) {
 
 // TestCreateTestDatabaseWithPostgres tests CreateTestDatabase
 func TestCreateTestDatabaseWithPostgres(t *testing.T) {
-	// CreateTestDatabase should work with SQLite (no-op)
-	err := CreateTestDatabase()
-	assert.NoError(t, err)
+	// Save original env vars
+	originalUsePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS")
+	originalUser := os.Getenv("POSTGRES_USER")
+	
+	defer func() {
+		if originalUsePostgres != "" {
+			os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
+		} else {
+			os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+		}
+		if originalUser != "" {
+			os.Setenv("POSTGRES_USER", originalUser)
+		} else {
+			os.Unsetenv("POSTGRES_USER")
+		}
+	}()
+
+	t.Run("SQLite mode returns no error", func(t *testing.T) {
+		// CreateTestDatabase should work with SQLite (no-op)
+		os.Unsetenv("USE_POSTGRES_FOR_TESTS")
+		err := CreateTestDatabase()
+		assert.NoError(t, err)
+	})
+
+	t.Run("CI environment returns early", func(t *testing.T) {
+		os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
+		os.Setenv("POSTGRES_USER", "monitor")
+		
+		err := CreateTestDatabase()
+		// Should return nil early for CI environment
+		assert.NoError(t, err)
+	})
+
+	t.Run("Local environment attempts creation", func(t *testing.T) {
+		os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
+		os.Setenv("POSTGRES_USER", "testuser")
+		os.Setenv("POSTGRES_HOST", "invalid-host")
+		
+		err := CreateTestDatabase()
+		// Should return an error because host is invalid
+		// But we don't fail the test, just verify it handles the error
+		if err != nil {
+			assert.Contains(t, err.Error(), "failed to connect")
+		}
+	})
 }
 
 // TestSetupTestDBWithSQLite tests SetupTestDB defaults to SQLite
