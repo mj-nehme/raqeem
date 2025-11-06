@@ -34,7 +34,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         existing.location = payload.get("location") or existing.location
         existing.ip_address = payload.get("ip_address") or existing.ip_address
         existing.mac_address = payload.get("mac_address") or existing.mac_address
-        existing.current_user = payload.get("current_user") or existing.current_user
+        existing.current_user_text = payload.get("current_user") or existing.current_user_text
         db.add(existing)
         await db.commit()
         result = {"device_id": device_id, "updated": True}
@@ -49,7 +49,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
             location=payload.get("location"),
             ip_address=payload.get("ip_address"),
             mac_address=payload.get("mac_address"),
-            current_user=payload.get("current_user"),
+            current_user_text=payload.get("current_user"),
         )
         db.add(obj)
         await db.commit()
@@ -237,7 +237,7 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
             "location": device.location,
             "ip_address": device.ip_address,
             "mac_address": device.mac_address,
-            "current_user": device.current_user,
+            "current_user": device.current_user_text,
         })
     return devices
 
