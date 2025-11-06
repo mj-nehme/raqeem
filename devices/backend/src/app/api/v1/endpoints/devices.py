@@ -319,3 +319,62 @@ async def create_command(
     await db.refresh(command)
     
     return command
+
+
+@router.get("/processes")
+async def get_all_processes(db: AsyncSession = Depends(get_db)):
+    """Get all processes from all devices"""
+    res = await db.execute(select(dev_models.Process).order_by(dev_models.Process.timestamp.desc()).limit(100))
+    processes = res.scalars().all()
+    return [
+        {
+            "id": str(process.id),
+            "device_id": process.device_id,
+            "pid": process.pid,
+            "name": process.name,
+            "cpu": process.cpu,
+            "memory": process.memory,
+            "command": process.command,
+            "timestamp": process.timestamp.isoformat() if process.timestamp else None,
+        }
+        for process in processes
+    ]
+
+
+@router.get("/activities")
+async def get_all_activities(db: AsyncSession = Depends(get_db)):
+    """Get all activities from all devices"""
+    res = await db.execute(select(dev_models.ActivityLog).order_by(dev_models.ActivityLog.timestamp.desc()).limit(100))
+    activities = res.scalars().all()
+    return [
+        {
+            "id": str(activity.id),
+            "device_id": activity.device_id,
+            "type": activity.type,
+            "description": activity.description,
+            "app": activity.app,
+            "duration": activity.duration,
+            "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
+        }
+        for activity in activities
+    ]
+
+
+@router.get("/alerts")
+async def get_all_alerts(db: AsyncSession = Depends(get_db)):
+    """Get all alerts from all devices"""
+    res = await db.execute(select(dev_models.Alert).order_by(dev_models.Alert.timestamp.desc()).limit(100))
+    alerts = res.scalars().all()
+    return [
+        {
+            "id": str(alert.id),
+            "device_id": alert.device_id,
+            "level": alert.level,
+            "type": alert.type,
+            "message": alert.message,
+            "value": alert.value,
+            "threshold": alert.threshold,
+            "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
+        }
+        for alert in alerts
+    ]

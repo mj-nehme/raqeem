@@ -5,8 +5,8 @@ replicaCount: 1
 
 image:
   repository: jaafarn/raqeem-devices-backend
-  tag: "0.0.5"
-  pullPolicy: Never
+  tag: "v0.0.5"
+  pullPolicy: IfNotPresent
 
 service:
   type: NodePort
