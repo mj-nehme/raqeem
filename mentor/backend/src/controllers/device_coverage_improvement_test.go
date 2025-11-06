@@ -19,7 +19,7 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 	if os.Getenv("POSTGRES_HOST") == "" {
 		t.Skip("POSTGRES_* env vars not set; skipping integration test")
 	}
-	
+
 	gin.SetMode(gin.TestMode)
 	database.Connect()
 	if err := database.DB.AutoMigrate(&models.RemoteCommand{}); err != nil {
@@ -30,7 +30,7 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-cmd"}}
-		
+
 		cmd := models.RemoteCommand{
 			Command: "get_info",
 		}
@@ -63,7 +63,7 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-cmd"}}
-		
+
 		c.Request, _ = http.NewRequest("POST", "/devices/test-device-cmd/commands", bytes.NewReader([]byte("invalid json")))
 		c.Request.Header.Set("Content-Type", "application/json")
 
@@ -90,7 +90,7 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 	t.Run("Update process list with valid processes", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		
+
 		processes := []models.Process{
 			{DeviceID: "test-device-proc", PID: 1234, Name: "test-process", CPU: 10.5, Memory: 1024},
 			{DeviceID: "test-device-proc", PID: 5678, Name: "another-process", CPU: 5.2, Memory: 2048},
@@ -109,7 +109,7 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 	t.Run("Update process list with empty array", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		
+
 		processes := []models.Process{}
 		b, _ := json.Marshal(processes)
 		c.Request, _ = http.NewRequest("POST", "/devices/processes", bytes.NewReader(b))
@@ -125,7 +125,7 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 	t.Run("Update process list with invalid JSON", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		
+
 		c.Request, _ = http.NewRequest("POST", "/devices/processes", bytes.NewReader([]byte("not json")))
 		c.Request.Header.Set("Content-Type", "application/json")
 
@@ -216,7 +216,7 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 	}
 
 	deviceID := "test-pending-device"
-	
+
 	// Clean up first
 	database.DB.Where("device_id = ?", deviceID).Delete(&models.RemoteCommand{})
 
@@ -293,7 +293,7 @@ func TestUpdateCommandStatusComprehensive(t *testing.T) {
 		// Update its status
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		
+
 		updateCmd := models.RemoteCommand{
 			ID:       cmd.ID,
 			Status:   "completed",
@@ -314,7 +314,7 @@ func TestUpdateCommandStatusComprehensive(t *testing.T) {
 	t.Run("Update command status with invalid JSON", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		
+
 		c.Request, _ = http.NewRequest("POST", "/commands/status", bytes.NewReader([]byte("{invalid")))
 		c.Request.Header.Set("Content-Type", "application/json")
 
@@ -339,7 +339,7 @@ func TestGetDeviceCommandsComprehensive(t *testing.T) {
 	}
 
 	deviceID := "test-cmd-history-device"
-	
+
 	// Clean up first
 	database.DB.Where("device_id = ?", deviceID).Delete(&models.RemoteCommand{})
 
