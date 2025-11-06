@@ -36,7 +36,7 @@ func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 	for i := 0; i < 5; i++ {
 		cmd := models.RemoteCommand{
 			DeviceID:  deviceID,
-			Command:   "test_cmd_" + string(rune(i)),
+			Command:   "test_cmd",
 			Status:    "completed",
 			CreatedAt: time.Now().Add(time.Duration(-i) * time.Hour),
 		}

@@ -114,7 +114,7 @@ func TestCreateTestDatabaseWithPostgres(t *testing.T) {
 	// Save original env vars
 	originalUsePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS")
 	originalUser := os.Getenv("POSTGRES_USER")
-	
+
 	defer func() {
 		if originalUsePostgres != "" {
 			os.Setenv("USE_POSTGRES_FOR_TESTS", originalUsePostgres)
@@ -138,7 +138,7 @@ func TestCreateTestDatabaseWithPostgres(t *testing.T) {
 	t.Run("CI environment returns early", func(t *testing.T) {
 		os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
 		os.Setenv("POSTGRES_USER", "monitor")
-		
+
 		err := CreateTestDatabase()
 		// Should return nil early for CI environment
 		assert.NoError(t, err)
@@ -148,7 +148,7 @@ func TestCreateTestDatabaseWithPostgres(t *testing.T) {
 		os.Setenv("USE_POSTGRES_FOR_TESTS", "true")
 		os.Setenv("POSTGRES_USER", "testuser")
 		os.Setenv("POSTGRES_HOST", "invalid-host")
-		
+
 		err := CreateTestDatabase()
 		// Should return an error because host is invalid
 		// But we don't fail the test, just verify it handles the error
@@ -218,9 +218,9 @@ func TestCleanupTestDBRemovesAllData(t *testing.T) {
 	db.Create(&process)
 
 	activity := models.Activity{
-		UserID:    "test-user",
-		Location:  "test-location",
-		Filename:  "test.txt",
+		UserID:   "test-user",
+		Location: "test-location",
+		Filename: "test.txt",
 	}
 	db.Create(&activity)
 

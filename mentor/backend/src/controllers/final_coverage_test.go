@@ -39,7 +39,7 @@ func TestRegisterDeviceEdgeCases(t *testing.T) {
 		RegisterDevice(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var result models.Device
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
@@ -208,7 +208,7 @@ func TestListDevicesAdditionalFilters(t *testing.T) {
 		ListDevices(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var result []models.Device
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
@@ -276,7 +276,7 @@ func TestGetDeviceMetricsEdgeCases(t *testing.T) {
 		GetDeviceMetrics(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var result []models.DeviceMetrics
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
@@ -312,7 +312,7 @@ func TestGetDeviceProcessesEdgeCases(t *testing.T) {
 		GetDeviceProcesses(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var result []models.Process
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
@@ -448,7 +448,7 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 		GetPendingCommands(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		
+
 		var result []models.RemoteCommand
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)

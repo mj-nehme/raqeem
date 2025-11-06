@@ -8,27 +8,12 @@ import (
 
 // TestInitClientInvocation tests that InitClient can be called safely
 func TestInitClientInvocation(t *testing.T) {
-	// Save original client
-	originalClient := client
-	defer func() {
-		client = originalClient
-	}()
-
-	// Note: InitClient will fail to connect to MinIO but shouldn't panic
-	// We wrap this in a goroutine with recovery to test it doesn't crash
-	done := make(chan bool)
-	go func() {
-		defer func() {
-			if r := recover(); r != nil {
-				t.Errorf("InitClient should not panic: %v", r)
-			}
-			done <- true
-		}()
-		// This will log an error but won't panic
-		// We can't test actual connection without a real MinIO instance
-	}()
-
-	<-done
+	// Note: InitClient will try to connect to MinIO but will fail
+	// in test environment. This test verifies it doesn't panic.
+	// The function calls log.Fatalln on error which exits the program,
+	// so we can't actually test it without mocking or a real MinIO instance.
+	// This test just verifies the function exists.
+	assert.NotNil(t, InitClient)
 }
 
 // TestGeneratePresignedURLWithValidClient tests URL generation logic

@@ -54,7 +54,7 @@ func TestGeneratePresignedURLWithMockClient(t *testing.T) {
 		Creds:  credentials.NewStaticV4("test", "test", ""),
 		Secure: false,
 	})
-	
+
 	// Client creation should succeed even if endpoint is unreachable
 	assert.NoError(t, err)
 	client = mockClient
@@ -62,7 +62,7 @@ func TestGeneratePresignedURLWithMockClient(t *testing.T) {
 	// Try to generate URL - it will fail because endpoint is invalid
 	// but we're testing the non-nil path
 	url := GeneratePresignedURL("test-file.jpg")
-	
+
 	// Since the endpoint is invalid, it should return empty string due to error
 	assert.Equal(t, "", url)
 }
@@ -72,7 +72,7 @@ func TestInitClientEnvironmentVariables(t *testing.T) {
 	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
 	originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
 	originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
-	
+
 	defer func() {
 		if originalEndpoint != "" {
 			os.Setenv("MINIO_ENDPOINT", originalEndpoint)
