@@ -64,8 +64,8 @@ func TestParseCORSOrigins(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Set environment variable
-			os.Setenv("FRONTEND_ORIGIN", tt.envValue)
-			defer os.Unsetenv("FRONTEND_ORIGIN")
+			_ = os.Setenv("FRONTEND_ORIGIN", tt.envValue)
+			defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 			app := NewApp()
 			origins := app.parseCORSOrigins()
@@ -152,7 +152,7 @@ func TestSetupDatabase(t *testing.T) {
 	app := NewApp()
 	// Inject test database before calling setupDatabase
 	app.DB = testDB
-	
+
 	err := app.setupDatabase()
 
 	assert.NoError(t, err)
@@ -173,8 +173,8 @@ func TestSetupRouterCORSConfiguration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// Set CORS origins
-	os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,http://localhost:5173")
-	defer os.Unsetenv("FRONTEND_ORIGIN")
+	_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,http://localhost:5173")
+	defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 	app := NewApp()
 	router := app.setupRouter()
@@ -194,10 +194,10 @@ func TestSetupRouterCORSConfiguration(t *testing.T) {
 func TestAppStartWithoutPort(t *testing.T) {
 	// Ensure PORT is not set
 	originalPort := os.Getenv("PORT")
-	os.Unsetenv("PORT")
+	_ = os.Unsetenv("PORT")
 	defer func() {
 		if originalPort != "" {
-			os.Setenv("PORT", originalPort)
+			_ = os.Setenv("PORT", originalPort)
 		}
 	}()
 
@@ -211,7 +211,7 @@ func TestAppStartWithoutPort(t *testing.T) {
 	app := NewApp()
 	// Inject test database
 	app.DB = testDB
-	
+
 	// We can't actually call Start() as it will call log.Fatal
 	// Instead we test the port validation logic
 	app.Port = os.Getenv("PORT")
@@ -220,8 +220,8 @@ func TestAppStartWithoutPort(t *testing.T) {
 
 func TestAppStartWithPort(t *testing.T) {
 	// Set required PORT environment variable
-	os.Setenv("PORT", "8080")
-	defer os.Unsetenv("PORT")
+	_ = os.Setenv("PORT", "8080")
+	defer func() { _ = os.Unsetenv("PORT") }()
 
 	// Use SQLite in-memory database for testing
 	testDB := database.SetupTestDB(t)
@@ -233,21 +233,21 @@ func TestAppStartWithPort(t *testing.T) {
 	app := NewApp()
 	// Inject test database
 	app.DB = testDB
-	
+
 	// Setup database
 	err := app.setupDatabase()
 	require.NoError(t, err)
-	
+
 	// Setup router
 	app.setupRouter()
-	
+
 	// Get port
 	app.Port = os.Getenv("PORT")
 	assert.Equal(t, "8080", app.Port)
-	
+
 	// Verify router is set up
 	assert.NotNil(t, app.Router)
-	
+
 	// We cannot test the actual Run() call as it blocks,
 	// but we can verify all prerequisites are met
 }
@@ -259,11 +259,11 @@ func TestAppRouterRegistersAllEndpoints(t *testing.T) {
 	router := app.setupRouter()
 
 	routes := router.Routes()
-	
+
 	// Count route types
 	getRoutes := 0
 	postRoutes := 0
-	
+
 	for _, route := range routes {
 		switch route.Method {
 		case "GET":
@@ -272,7 +272,7 @@ func TestAppRouterRegistersAllEndpoints(t *testing.T) {
 			postRoutes++
 		}
 	}
-	
+
 	// Verify we have a reasonable number of routes registered
 	assert.Greater(t, getRoutes, 5, "Should have multiple GET routes")
 	assert.Greater(t, postRoutes, 5, "Should have multiple POST routes")
@@ -280,11 +280,11 @@ func TestAppRouterRegistersAllEndpoints(t *testing.T) {
 
 func TestParseCORSOriginsReturnsNonNilSlice(t *testing.T) {
 	// Test that we always get a non-nil slice even with no origins
-	os.Unsetenv("FRONTEND_ORIGIN")
-	
+	_ = os.Unsetenv("FRONTEND_ORIGIN")
+
 	app := NewApp()
 	origins := app.parseCORSOrigins()
-	
+
 	assert.NotNil(t, origins)
 	assert.Equal(t, 0, len(origins))
 }
@@ -306,7 +306,7 @@ func TestSetupDatabaseWithGlobalDB(t *testing.T) {
 	app := NewApp()
 	// Inject the test database
 	app.DB = testDB
-	
+
 	err := app.setupDatabase()
 
 	assert.NoError(t, err)
@@ -315,7 +315,7 @@ func TestSetupDatabaseWithGlobalDB(t *testing.T) {
 
 func TestAppIntegrationWithAllComponents(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	
+
 	// Save original database.DB
 	originalDB := database.DB
 	defer func() {
@@ -323,10 +323,10 @@ func TestAppIntegrationWithAllComponents(t *testing.T) {
 	}()
 
 	// Set required environment variables
-	os.Setenv("PORT", "8080")
-	os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
-	defer os.Unsetenv("PORT")
-	defer os.Unsetenv("FRONTEND_ORIGIN")
+	_ = os.Setenv("PORT", "8080")
+	_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
+	defer func() { _ = os.Unsetenv("PORT") }()
+	defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 	// Use SQLite in-memory database for testing
 	testDB := database.SetupTestDB(t)
@@ -341,17 +341,17 @@ func TestAppIntegrationWithAllComponents(t *testing.T) {
 	// Create and configure app
 	app := NewApp()
 	app.DB = testDB
-	
+
 	err := app.setupDatabase()
 	require.NoError(t, err)
-	
+
 	router := app.setupRouter()
 	require.NotNil(t, router)
-	
+
 	// Test that the app is fully configured
 	assert.NotNil(t, app.DB)
 	assert.NotNil(t, app.Router)
-	
+
 	// Test health endpoint works
 	req, _ := http.NewRequest("GET", "/health", nil)
 	w := httptest.NewRecorder()

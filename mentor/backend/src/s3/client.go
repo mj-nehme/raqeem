@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -12,10 +13,39 @@ import (
 
 var client *minio.Client
 
+// GetEndpoint returns the MinIO endpoint with environment variable fallback
+func GetEndpoint() string {
+	if endpoint := os.Getenv("MINIO_ENDPOINT"); endpoint != "" {
+		return endpoint
+	}
+	return "minio.default.svc.cluster.local:9000"
+}
+
+// GetAccessKey returns the MinIO access key with environment variable fallback
+func GetAccessKey() string {
+	if accessKey := os.Getenv("MINIO_ACCESS_KEY"); accessKey != "" {
+		return accessKey
+	}
+	return "minioadmin"
+}
+
+// GetSecretKey returns the MinIO secret key with environment variable fallback
+func GetSecretKey() string {
+	if secretKey := os.Getenv("MINIO_SECRET_KEY"); secretKey != "" {
+		return secretKey
+	}
+	return "minioadmin1234"
+}
+
+// GetClient returns the initialized MinIO client
+func GetClient() *minio.Client {
+	return client
+}
+
 func InitClient() {
-	endpoint := "minio.default.svc.cluster.local:9000"
-	accessKey := "minioadmin"
-	secretKey := "minioadmin1234"
+	endpoint := GetEndpoint()
+	accessKey := GetAccessKey()
+	secretKey := GetSecretKey()
 
 	var err error
 	client, err = minio.New(endpoint, &minio.Options{
@@ -27,9 +57,19 @@ func InitClient() {
 	}
 }
 
+// SetClient allows setting a custom client for testing
+func SetClient(c *minio.Client) {
+	client = c
+}
+
 func GeneratePresignedURL(filename string) string {
 	// Return empty string if client is not initialized (e.g., in tests)
 	if client == nil {
+		return ""
+	}
+
+	// Return empty string for empty filename
+	if filename == "" {
 		return ""
 	}
 

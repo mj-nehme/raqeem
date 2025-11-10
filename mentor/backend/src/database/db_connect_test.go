@@ -28,20 +28,20 @@ func TestConnectEnvironmentVariableLoading(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 		DB = originalDB
 	}()
 
 	// Set test environment variables
-	os.Setenv("POSTGRES_USER", "testuser")
-	os.Setenv("POSTGRES_PASSWORD", "testpass")
-	os.Setenv("POSTGRES_DB", "testdb")
-	os.Setenv("POSTGRES_HOST", "testhost")
-	os.Setenv("POSTGRES_PORT", "5432")
+	_ = os.Setenv("POSTGRES_USER", "testuser")
+	_ = os.Setenv("POSTGRES_PASSWORD", "testpass")
+	_ = os.Setenv("POSTGRES_DB", "testdb")
+	_ = os.Setenv("POSTGRES_HOST", "testhost")
+	_ = os.Setenv("POSTGRES_PORT", "5432")
 
 	// We can't call Connect directly because it will try to connect to a real database
 	// and call log.Fatalf on failure. Instead, we test the DSN construction logic
@@ -73,20 +73,20 @@ func TestConnectWithConfig(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 		DB = originalDB
 	}()
 
 	// Test with invalid connection (should return error, not crash)
-	os.Setenv("POSTGRES_USER", "invalid")
-	os.Setenv("POSTGRES_PASSWORD", "invalid")
-	os.Setenv("POSTGRES_DB", "invalid")
-	os.Setenv("POSTGRES_HOST", "invalid-host-xyz")
-	os.Setenv("POSTGRES_PORT", "9999")
+	_ = os.Setenv("POSTGRES_USER", "invalid")
+	_ = os.Setenv("POSTGRES_PASSWORD", "invalid")
+	_ = os.Setenv("POSTGRES_DB", "invalid")
+	_ = os.Setenv("POSTGRES_HOST", "invalid-host-xyz")
+	_ = os.Setenv("POSTGRES_PORT", "9999")
 
 	err := connectWithConfig()
 	assert.Error(t, err)
@@ -105,9 +105,9 @@ func TestConnectWithConfigLoadsEnvFile(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 		DB = originalDB
@@ -128,13 +128,13 @@ POSTGRES_PORT=5432
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	assert.NoError(t, err)
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
-	os.Chdir(tmpDir)
+	_ = os.Chdir(tmpDir)
 
 	// Clear environment variables so they come from .env
-	os.Unsetenv("POSTGRES_HOST")
-	os.Unsetenv("POSTGRES_USER")
+	_ = os.Unsetenv("POSTGRES_HOST")
+	_ = os.Unsetenv("POSTGRES_USER")
 
 	// Call connectWithConfig - it will fail to connect but should load env vars
 	err = connectWithConfig()
@@ -161,9 +161,9 @@ func TestConnectWithConfigMissingEnvFile(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 		DB = originalDB
@@ -175,16 +175,16 @@ func TestConnectWithConfigMissingEnvFile(t *testing.T) {
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	assert.NoError(t, err)
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
-	os.Chdir(tmpDir)
+	_ = os.Chdir(tmpDir)
 
 	// Set environment variables directly
-	os.Setenv("POSTGRES_USER", "testuser")
-	os.Setenv("POSTGRES_PASSWORD", "testpass")
-	os.Setenv("POSTGRES_DB", "testdb")
-	os.Setenv("POSTGRES_HOST", "invalid-host")
-	os.Setenv("POSTGRES_PORT", "5432")
+	_ = os.Setenv("POSTGRES_USER", "testuser")
+	_ = os.Setenv("POSTGRES_PASSWORD", "testpass")
+	_ = os.Setenv("POSTGRES_DB", "testdb")
+	_ = os.Setenv("POSTGRES_HOST", "invalid-host")
+	_ = os.Setenv("POSTGRES_PORT", "5432")
 
 	// Call connectWithConfig - should not crash even without .env file
 	err = connectWithConfig()
@@ -205,9 +205,9 @@ func TestConnectWithConfigEmptyEnvironmentVariables(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 		DB = originalDB
@@ -217,12 +217,12 @@ func TestConnectWithConfigEmptyEnvironmentVariables(t *testing.T) {
 	tmpDir := t.TempDir()
 	originalDir, err := os.Getwd()
 	assert.NoError(t, err)
-	defer os.Chdir(originalDir)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(originalDir) }()
+	_ = os.Chdir(tmpDir)
 
 	// Clear all environment variables
 	for _, v := range vars {
-		os.Unsetenv(v)
+		_ = os.Unsetenv(v)
 	}
 
 	// Call connectWithConfig - should attempt connection with empty values
@@ -251,19 +251,19 @@ func TestConnectWithValidDatabaseConnection(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 	}()
 
 	// Clear environment variables first
-	os.Unsetenv("POSTGRES_HOST")
-	os.Unsetenv("POSTGRES_USER")
-	os.Unsetenv("POSTGRES_PASSWORD")
-	os.Unsetenv("POSTGRES_DB")
-	os.Unsetenv("POSTGRES_PORT")
+	_ = os.Unsetenv("POSTGRES_HOST")
+	_ = os.Unsetenv("POSTGRES_USER")
+	_ = os.Unsetenv("POSTGRES_PASSWORD")
+	_ = os.Unsetenv("POSTGRES_DB")
+	_ = os.Unsetenv("POSTGRES_PORT")
 
 	// Create a temporary .env file for testing
 	tmpDir := t.TempDir()
@@ -280,9 +280,9 @@ POSTGRES_PORT=5432
 	// Change to temp directory to test godotenv.Load
 	originalDir, err := os.Getwd()
 	assert.NoError(t, err)
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
-	os.Chdir(tmpDir)
+	_ = os.Chdir(tmpDir)
 
 	// Test godotenv.Load
 	err = godotenv.Load()
@@ -301,9 +301,9 @@ func TestConnectWithMissingEnvFileDoesNotCrash(t *testing.T) {
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	assert.NoError(t, err)
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
-	os.Chdir(tmpDir)
+	_ = os.Chdir(tmpDir)
 
 	// Test godotenv.Load with missing file
 	err = godotenv.Load()
@@ -375,19 +375,19 @@ func TestConnectWithEmptyEnvironmentVariables(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 	}()
 
 	// Clear all environment variables
-	os.Unsetenv("POSTGRES_USER")
-	os.Unsetenv("POSTGRES_PASSWORD")
-	os.Unsetenv("POSTGRES_DB")
-	os.Unsetenv("POSTGRES_HOST")
-	os.Unsetenv("POSTGRES_PORT")
+	_ = os.Unsetenv("POSTGRES_USER")
+	_ = os.Unsetenv("POSTGRES_PASSWORD")
+	_ = os.Unsetenv("POSTGRES_DB")
+	_ = os.Unsetenv("POSTGRES_HOST")
+	_ = os.Unsetenv("POSTGRES_PORT")
 
 	// Test DSN construction with empty values
 	user := os.Getenv("POSTGRES_USER")
@@ -422,9 +422,9 @@ func TestConnectGormOpenWithValidDSN(t *testing.T) {
 func TestConnectGormOpenWithInvalidDSN(t *testing.T) {
 	// Test with PostgreSQL driver but invalid connection string
 	invalidDSN := "host=invalid-host-12345 user=invalid password=invalid dbname=invalid port=9999 sslmode=disable"
-	
+
 	db, err := gorm.Open(postgres.Open(invalidDSN), &gorm.Config{})
-	
+
 	// Should return an error for invalid connection
 	assert.Error(t, err)
 	// DB might be nil or not, depending on GORM version
@@ -473,25 +473,25 @@ POSTGRES_USER=envfileuser
 	originalUser := os.Getenv("POSTGRES_USER")
 	defer func() {
 		if originalHost != "" {
-			os.Setenv("POSTGRES_HOST", originalHost)
+			_ = os.Setenv("POSTGRES_HOST", originalHost)
 		} else {
-			os.Unsetenv("POSTGRES_HOST")
+			_ = os.Unsetenv("POSTGRES_HOST")
 		}
 		if originalUser != "" {
-			os.Setenv("POSTGRES_USER", originalUser)
+			_ = os.Setenv("POSTGRES_USER", originalUser)
 		} else {
-			os.Unsetenv("POSTGRES_USER")
+			_ = os.Unsetenv("POSTGRES_USER")
 		}
 	}()
 
-	os.Setenv("POSTGRES_HOST", "envvarhost")
-	os.Setenv("POSTGRES_USER", "envvaruser")
+	_ = os.Setenv("POSTGRES_HOST", "envvarhost")
+	_ = os.Setenv("POSTGRES_USER", "envvaruser")
 
 	// Change to temp directory and load .env
 	originalDir, err := os.Getwd()
 	assert.NoError(t, err)
-	defer os.Chdir(originalDir)
-	os.Chdir(tmpDir)
+	defer func() { _ = os.Chdir(originalDir) }()
+	_ = os.Chdir(tmpDir)
 
 	// Load .env file (should not overwrite existing env vars)
 	err = godotenv.Load()
@@ -511,9 +511,9 @@ func TestConnectLogsErrorForMissingEnvFile(t *testing.T) {
 	// Change to temp directory
 	originalDir, err := os.Getwd()
 	assert.NoError(t, err)
-	defer os.Chdir(originalDir)
+	defer func() { _ = os.Chdir(originalDir) }()
 
-	os.Chdir(tmpDir)
+	_ = os.Chdir(tmpDir)
 
 	// The actual Connect function logs the error with log.Printf
 	// We can't easily capture log output without changing the function,
@@ -530,7 +530,7 @@ func TestConnectSuccessfulConnectionFlow(t *testing.T) {
 	// 3. Construct DSN
 	// 4. Open database connection
 	// 5. Set global DB variable
-	
+
 	// We can't actually run Connect() without a real database,
 	// but we can test the individual steps
 
@@ -546,18 +546,18 @@ func TestConnectSuccessfulConnectionFlow(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 	}()
 
-	os.Setenv("POSTGRES_USER", "testuser")
-	os.Setenv("POSTGRES_PASSWORD", "testpass")
-	os.Setenv("POSTGRES_DB", "testdb")
-	os.Setenv("POSTGRES_HOST", "localhost")
-	os.Setenv("POSTGRES_PORT", "5432")
+	_ = os.Setenv("POSTGRES_USER", "testuser")
+	_ = os.Setenv("POSTGRES_PASSWORD", "testpass")
+	_ = os.Setenv("POSTGRES_DB", "testdb")
+	_ = os.Setenv("POSTGRES_HOST", "localhost")
+	_ = os.Setenv("POSTGRES_PORT", "5432")
 
 	// Step 3: Construct DSN
 	user := os.Getenv("POSTGRES_USER")
@@ -635,19 +635,19 @@ func TestConnectAllEnvironmentVariablesUsed(t *testing.T) {
 	defer func() {
 		for k, v := range originalVars {
 			if v != "" {
-				os.Setenv(k, v)
+				_ = os.Setenv(k, v)
 			} else {
-				os.Unsetenv(k)
+				_ = os.Unsetenv(k)
 			}
 		}
 	}()
 
 	// Set all variables to unique values
-	os.Setenv("POSTGRES_USER", "user123")
-	os.Setenv("POSTGRES_PASSWORD", "pass456")
-	os.Setenv("POSTGRES_DB", "db789")
-	os.Setenv("POSTGRES_HOST", "host.example.com")
-	os.Setenv("POSTGRES_PORT", "9999")
+	_ = os.Setenv("POSTGRES_USER", "user123")
+	_ = os.Setenv("POSTGRES_PASSWORD", "pass456")
+	_ = os.Setenv("POSTGRES_DB", "db789")
+	_ = os.Setenv("POSTGRES_HOST", "host.example.com")
+	_ = os.Setenv("POSTGRES_PORT", "9999")
 
 	// Construct DSN as Connect does
 	user := os.Getenv("POSTGRES_USER")

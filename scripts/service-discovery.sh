@@ -20,14 +20,43 @@ find_available_port() {
 wait_for_service_ready() {
   local service_name=$1
   local namespace=$2
-  local timeout=${3:-60}
+  local timeout=${3:-300}  # Increased default timeout for image pulling
   
   echo "⏳ Waiting for $service_name to be ready..."
+  
+  # First, check if we need to pull images (longer timeout needed)
+  local pod_name=$(kubectl get pods -l app=$service_name -n "$namespace" -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || echo "")
+  
+  if [[ -n "$pod_name" ]]; then
+    # Check if pod is in image pulling state
+    local pod_status=$(kubectl get pod "$pod_name" -n "$namespace" -o jsonpath='{.status.containerStatuses[0].state.waiting.reason}' 2>/dev/null || echo "")
+    
+    if [[ "$pod_status" == "ContainerCreating" ]]; then
+      echo "  📦 Detecting if images need to be pulled..."
+      
+      # Check if we're pulling images
+      local events=$(kubectl get events --field-selector involvedObject.name="$pod_name" -n "$namespace" --sort-by='.lastTimestamp' -o custom-columns=TYPE:.type,REASON:.reason,MESSAGE:.message --no-headers 2>/dev/null || echo "")
+      
+      if echo "$events" | grep -q "Pulling"; then
+        echo "  ⬇️ Images are being pulled from Docker Hub (this may take several minutes for fresh installations)..."
+        echo "  💡 Tip: Pre-pull images with 'docker pull postgres:15' and 'docker pull minio/minio:RELEASE.2023-09-04T19-57-37Z' to speed up future starts"
+      fi
+    fi
+  fi
+  
   if kubectl wait --for=condition=ready pod -l app=$service_name -n "$namespace" --timeout=${timeout}s; then
     echo "✅ $service_name is ready"
     return 0
   else
     echo "❌ $service_name failed to become ready within ${timeout}s"
+    
+    # Provide helpful debugging info
+    if [[ -n "$pod_name" ]]; then
+      echo "🔍 Debug info for $service_name:"
+      kubectl get pod "$pod_name" -n "$namespace" 2>/dev/null || echo "  - Pod not found"
+      echo "  Last events:"
+      kubectl get events --field-selector involvedObject.name="$pod_name" -n "$namespace" --sort-by='.lastTimestamp' -o custom-columns=MESSAGE:.message --no-headers 2>/dev/null | tail -3 | sed 's/^/    /'
+    fi
     return 1
   fi
 }
@@ -87,4 +116,33 @@ cleanup_terminated_ports() {
   sleep 2
 }
 
-export -f find_available_port wait_for_service_ready get_nodeport register_service get_service_url cleanup_terminated_ports
+check_and_pull_images() {
+  local required_images=("postgres:15" "minio/minio:RELEASE.2023-09-04T19-57-37Z")
+  local missing_images=()
+  
+  echo "🔍 Checking required Docker images..."
+  
+  for image in "${required_images[@]}"; do
+    if ! docker image inspect "$image" >/dev/null 2>&1; then
+      missing_images+=("$image")
+    fi
+  done
+  
+  if [[ ${#missing_images[@]} -gt 0 ]]; then
+    echo "📦 Missing images detected: ${missing_images[*]}"
+    echo "⚡ Pre-pulling images to speed up deployment..."
+    
+    for image in "${missing_images[@]}"; do
+      echo "  ⬇️ Pulling $image..."
+      if docker pull "$image"; then
+        echo "    ✅ $image pulled successfully"
+      else
+        echo "    ⚠️ Failed to pull $image - will retry during Kubernetes deployment"
+      fi
+    done
+  else
+    echo "✅ All required images are available locally"
+  fi
+}
+
+export -f check_and_pull_images
