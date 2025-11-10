@@ -2,17 +2,10 @@ package main
 
 import (
 	"log"
-	"mentor-backend/controllers"
 	"mentor-backend/database"
 	"mentor-backend/models"
+	"mentor-backend/router"
 	"os"
-	"strings"
-	"time"
-
-	"github.com/gin-contrib/cors"
-	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
 
 	_ "mentor-backend/docs" // swagger docs
 )
@@ -44,59 +37,8 @@ func main() {
 		log.Fatalf("AutoMigrate device models failed: %v", err)
 	}
 
-	r := gin.Default()
-
-	// Allow the frontend dev server (vite) to call the API from the browser
-	frontendOrigin := os.Getenv("FRONTEND_ORIGIN")
-	// You can pass multiple origins as comma-separated in FRONTEND_ORIGIN
-	// Support multiple comma-separated origins
-	origins := []string{}
-	for _, o := range strings.Split(frontendOrigin, ",") {
-		if trimmed := strings.TrimSpace(o); trimmed != "" {
-			origins = append(origins, trimmed)
-		}
-	}
-
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     origins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
-
-	// Swagger documentation routes
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-	r.GET("/docs", func(c *gin.Context) {
-		c.Redirect(301, "/swagger/index.html")
-	})
-
-	// mentor endpoints
-	r.GET("/activities", controllers.ListActivities)
-
-	// health check
-	r.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{"status": "ok", "service": "mentor-backend"})
-	})
-
-	// device ingestion endpoints (devices will POST data here)
-	r.POST("/devices/register", controllers.RegisterDevice)
-	r.POST("/devices/metrics", controllers.UpdateDeviceMetrics)
-	r.POST("/devices/processes", controllers.UpdateProcessList)
-	r.POST("/devices/activity", controllers.LogActivity)
-	r.POST("/devices/commands", controllers.CreateRemoteCommand)
-	r.POST("/devices/screenshots", controllers.StoreScreenshot)
-	r.GET("/devices", controllers.ListDevices)
-	r.GET("/devices/:id/metrics", controllers.GetDeviceMetrics)
-	r.GET("/devices/:id/processes", controllers.GetDeviceProcesses)
-	r.GET("/devices/:id/activities", controllers.GetDeviceActivities)
-	r.GET("/devices/:id/alerts", controllers.GetDeviceAlerts)
-	r.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshots)
-	r.GET("/devices/:id/commands/pending", controllers.GetPendingCommands)
-	r.GET("/devices/:id/commands", controllers.GetDeviceCommands)
-	r.POST("/commands/status", controllers.UpdateCommandStatus)
-	r.POST("/devices/:id/alerts", controllers.ReportAlert)
+	r := router.New()
+	r.SetupAllRoutes()
 
 	port := os.Getenv("PORT")
 	if port == "" {
