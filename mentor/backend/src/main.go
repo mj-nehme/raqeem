@@ -26,23 +26,68 @@ import (
 // @BasePath /
 
 // @schemes http https
-func main() {
-	database.Connect()
+
+// App encapsulates the application configuration and dependencies
+type App struct {
+	DB     *gorm.DB
+	Router *gin.Engine
+	Port   string
+}
+
+// NewApp creates and initializes a new application instance
+func NewApp() *App {
+	return &App{}
+}
+
+// setupDatabase initializes the database connection and runs migrations
+// If DB is already set (for testing), it will use that instead of connecting
+func (a *App) setupDatabase() error {
+	// Only connect if DB is not already set (allows for dependency injection)
+	if a.DB == nil {
+		database.Connect()
+		a.DB = database.DB
+	}
 
 	// Auto-migrate your models (include device-related models)
-	if err := database.DB.AutoMigrate(&models.Activity{}); err != nil {
-		log.Fatalf("AutoMigrate Activity failed: %v", err)
+	if err := a.DB.AutoMigrate(&models.Activity{}); err != nil {
+		return err
 	}
-	if err := database.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.Process{}, &models.ActivityLog{}, &models.RemoteCommand{}, &models.Screenshot{}, &models.Alert{}); err != nil {
-		log.Fatalf("AutoMigrate device models failed: %v", err)
+	if err := a.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.Process{}, &models.ActivityLog{}, &models.RemoteCommand{}, &models.Screenshot{}, &models.Alert{}); err != nil {
+		return err
 	}
+	return nil
+}
 
 	r := router.New()
 	r.SetupAllRoutes()
 
-	port := os.Getenv("PORT")
-	if port == "" {
+	a.Router = r
+	return r
+}
+
+// Start initializes and starts the application server
+func (a *App) Start() error {
+	// Setup database
+	if err := a.setupDatabase(); err != nil {
+		return err
+	}
+
+	// Setup router
+	a.setupRouter()
+
+	// Get port from environment
+	a.Port = os.Getenv("PORT")
+	if a.Port == "" {
 		log.Fatal("PORT environment variable is required (set by Helm chart or .env)")
 	}
-	log.Fatal(r.Run(":" + port))
+
+	// Start server
+	return a.Router.Run(":" + a.Port)
+}
+
+func main() {
+	app := NewApp()
+	if err := app.Start(); err != nil {
+		log.Fatalf("Failed to start application: %v", err)
+	}
 }

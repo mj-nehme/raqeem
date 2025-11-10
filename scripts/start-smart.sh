@@ -15,6 +15,9 @@ MENTOR_FRONTEND_START_PORT=${MENTOR_FRONTEND_START_PORT:-5000}
 # Clean up any terminated processes first
 cleanup_terminated_ports
 
+# Check and optionally pre-pull Docker images
+check_and_pull_images
+
 # Validate tools
 for cmd in kubectl helm node npm; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
@@ -29,14 +32,17 @@ if ! kubectl cluster-info >/dev/null 2>&1; then
 fi
 
 echo "📦 Deploying backend services with NodePort discovery..."
+echo "💡 Note: First run after clearing Docker images may take 5-10 minutes for image downloads"
 
 # Deploy PostgreSQL
+echo "🐘 Deploying PostgreSQL..."
 helm upgrade --install postgres ./charts/postgres --namespace "$NAMESPACE" --create-namespace
-wait_for_service_ready "postgres" "$NAMESPACE"
+wait_for_service_ready "postgres" "$NAMESPACE" 300  # 5 minutes for fresh image pulls
 
 # Deploy MinIO  
+echo "🗄️ Deploying MinIO..."
 helm upgrade --install minio ./charts/minio --namespace "$NAMESPACE"
-wait_for_service_ready "minio" "$NAMESPACE"
+wait_for_service_ready "minio" "$NAMESPACE" 300  # 5 minutes for fresh image pulls
 
 echo ""
 echo "🌐 Detecting available frontend ports..."

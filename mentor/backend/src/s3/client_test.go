@@ -1,7 +1,6 @@
 package s3
 
 import (
-	"os"
 	"testing"
 
 	"github.com/minio/minio-go/v7"
@@ -28,18 +27,12 @@ func TestInitClientCreatesClient(t *testing.T) {
 	// Reset client to nil
 	client = nil
 
-	// Capture log output by redirecting stderr temporarily
-	// Note: InitClient will fail to connect to MinIO but should not panic
-	// and should create a client object
-	defer func() {
-		if r := recover(); r != nil {
-			t.Fatalf("InitClient should not panic, got: %v", r)
-		}
-	}()
+	// Call InitClient - it should create a client object
+	// The minio.New() call succeeds even if the server is not reachable
+	InitClient()
 
-	// This will fail to actually connect but won't panic
-	// We can't test successful connection without a real MinIO instance
-	// So we just verify the function doesn't crash
+	// Verify that client was initialized
+	assert.NotNil(t, client, "Client should be initialized after InitClient")
 }
 
 func TestGeneratePresignedURLWithMockClient(t *testing.T) {
@@ -68,26 +61,20 @@ func TestGeneratePresignedURLWithMockClient(t *testing.T) {
 }
 
 func TestInitClientEnvironmentVariables(t *testing.T) {
-	// Save original environment
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
-	originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
-
+	// Save original client
+	originalClient := client
 	defer func() {
-		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
-		}
-		if originalAccessKey != "" {
-			_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
-		}
-		if originalSecretKey != "" {
-			_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
-		}
+		client = originalClient
 	}()
 
-	// The InitClient function uses hardcoded values, not env vars
-	// This test verifies that the function works as expected
-	assert.NotNil(t, InitClient)
+	// Reset client to nil
+	client = nil
+
+	// Call InitClient - it uses hardcoded values, not env vars
+	InitClient()
+
+	// Verify that client was initialized with hardcoded credentials
+	assert.NotNil(t, client, "Client should be initialized")
 }
 
 func TestGeneratePresignedURLEmptyFilename(t *testing.T) {
@@ -114,12 +101,29 @@ func TestGeneratePresignedURLMultipleCalls(t *testing.T) {
 	assert.Equal(t, "", url3)
 }
 
-func TestInitClientDoesNotCrash(t *testing.T) {
-	// Test that InitClient doesn't crash even if MinIO is not available
-	// This will fail to connect but shouldn't panic
-	// We can't actually test this without mocking or having a real MinIO instance
-	// So we just verify the function signature exists
-	assert.NotNil(t, InitClient)
+func TestInitClientMultipleCalls(t *testing.T) {
+	// Save original client
+	originalClient := client
+	defer func() {
+		client = originalClient
+	}()
+
+	// Reset client to nil
+	client = nil
+
+	// Call InitClient multiple times - should not crash
+	InitClient()
+	assert.NotNil(t, client, "Client should be initialized")
+
+	// Store first client reference
+	_ = client
+
+	// Call again - should reinitialize
+	InitClient()
+	assert.NotNil(t, client, "Client should still be initialized")
+
+	// Client may be the same or different, just verify it's still valid
+	assert.NotNil(t, client)
 }
 
 func TestGeneratePresignedURLVariousFilenames(t *testing.T) {
@@ -201,4 +205,61 @@ func TestGeneratePresignedURLEdgeCases(t *testing.T) {
 		url := GeneratePresignedURL(filename)
 		assert.Equal(t, "", url, "Should return empty string for: %s", filename)
 	}
+}
+
+func TestInitClientSetsGlobalClient(t *testing.T) {
+	// Save original client
+	originalClient := client
+	defer func() {
+		client = originalClient
+	}()
+
+	// Reset client to nil
+	client = nil
+	assert.Nil(t, client, "Client should be nil before initialization")
+
+	// Call InitClient
+	InitClient()
+
+	// Verify that the global client variable was set
+	assert.NotNil(t, client, "Client should be set after InitClient")
+}
+
+func TestInitClientInitializesValidClient(t *testing.T) {
+	// Save original client
+	originalClient := client
+	defer func() {
+		client = originalClient
+	}()
+
+	// Reset client to nil
+	client = nil
+
+	// Call InitClient
+	InitClient()
+
+	// Verify client is initialized and has expected properties
+	assert.NotNil(t, client, "Client should be initialized")
+
+	// The client should be a valid minio.Client instance
+	// We can't test actual operations without a running MinIO server,
+	// but we can verify the client object exists
+	assert.IsType(t, &minio.Client{}, client, "Client should be a minio.Client")
+}
+
+func TestInitClientAfterPreviousInitialization(t *testing.T) {
+	// Save original client
+	originalClient := client
+	defer func() {
+		client = originalClient
+	}()
+
+	// Initialize client first time
+	client = nil
+	InitClient()
+	assert.NotNil(t, client, "First initialization should create client")
+
+	// Initialize again
+	InitClient()
+	assert.NotNil(t, client, "Second initialization should create client")
 }
