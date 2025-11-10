@@ -12,7 +12,9 @@ import (
 
 var DB *gorm.DB
 
-func Connect() {
+// connectWithConfig attempts to connect to the database and returns an error if it fails.
+// This function is separated for testing purposes.
+func connectWithConfig() error {
 	// Load environment variables from .env file
 	if err := godotenv.Load(); err != nil {
 		// Don't fail hard; .env may not exist in CI/containers
@@ -31,8 +33,15 @@ func Connect() {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
+		return fmt.Errorf("failed to connect to database: %v", err)
 	}
 
 	log.Println("Database connection successful")
+	return nil
+}
+
+func Connect() {
+	if err := connectWithConfig(); err != nil {
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
 }
