@@ -6,8 +6,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	_ "mentor-backend/docs"
+
+	"github.com/gin-gonic/gin"
 )
 
 func TestNew(t *testing.T) {
@@ -113,8 +114,8 @@ func TestSetupCORS(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	t.Run("WithSingleOrigin", func(t *testing.T) {
-		os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
-		defer os.Unsetenv("FRONTEND_ORIGIN")
+		_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
+		defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 		r := New()
 		r.setupCORS()
@@ -124,14 +125,14 @@ func TestSetupCORS(t *testing.T) {
 		req.Header.Set("Origin", "http://localhost:3000")
 		w := httptest.NewRecorder()
 		r.engine.ServeHTTP(w, req)
-		
+
 		// CORS middleware should handle OPTIONS requests
 		// Note: Just verify setup doesn't panic
 	})
 
 	t.Run("WithMultipleOrigins", func(t *testing.T) {
-		os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,http://localhost:5173")
-		defer os.Unsetenv("FRONTEND_ORIGIN")
+		_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,http://localhost:5173")
+		defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 		r := New()
 		r.setupCORS()
@@ -143,8 +144,8 @@ func TestSetupCORS(t *testing.T) {
 	})
 
 	t.Run("WithEmptyOrigin", func(t *testing.T) {
-		os.Setenv("FRONTEND_ORIGIN", "")
-		defer os.Unsetenv("FRONTEND_ORIGIN")
+		_ = os.Setenv("FRONTEND_ORIGIN", "")
+		defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 		r := New()
 		r.setupCORS()
@@ -156,8 +157,8 @@ func TestSetupCORS(t *testing.T) {
 	})
 
 	t.Run("WithWhitespaceOrigins", func(t *testing.T) {
-		os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,  , http://localhost:5173,  ")
-		defer os.Unsetenv("FRONTEND_ORIGIN")
+		_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,  , http://localhost:5173,  ")
+		defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 		r := New()
 		r.setupCORS()
@@ -205,15 +206,15 @@ func TestSetupDeviceRoutes(t *testing.T) {
 		"POST /commands/status":     "POST",
 
 		// GET routes
-		"GET /devices":                       "GET",
-		"GET /devices/:id/metrics":           "GET",
-		"GET /devices/:id/processes":         "GET",
-		"GET /devices/:id/activities":        "GET",
-		"GET /devices/:id/alerts":            "GET",
-		"GET /devices/:id/screenshots":       "GET",
-		"GET /devices/:id/commands/pending":  "GET",
-		"GET /devices/:id/commands":          "GET",
-		"POST /devices/:id/alerts":           "POST",
+		"GET /devices":                      "GET",
+		"GET /devices/:id/metrics":          "GET",
+		"GET /devices/:id/processes":        "GET",
+		"GET /devices/:id/activities":       "GET",
+		"GET /devices/:id/alerts":           "GET",
+		"GET /devices/:id/screenshots":      "GET",
+		"GET /devices/:id/commands/pending": "GET",
+		"GET /devices/:id/commands":         "GET",
+		"POST /devices/:id/alerts":          "POST",
 	}
 
 	routes := r.engine.Routes()
@@ -233,8 +234,8 @@ func TestSetupDeviceRoutes(t *testing.T) {
 
 func TestSetupAllRoutes(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
-	defer os.Unsetenv("FRONTEND_ORIGIN")
+	_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
+	defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 	r := New()
 	r.SetupAllRoutes()
@@ -294,8 +295,8 @@ func TestRun(t *testing.T) {
 
 func TestRouterIntegration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
-	defer os.Unsetenv("FRONTEND_ORIGIN")
+	_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
+	defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 	// Create router and setup all routes
 	r := New()

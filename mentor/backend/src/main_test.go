@@ -9,8 +9,9 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/router"
 
-	"github.com/gin-gonic/gin"
 	_ "mentor-backend/docs"
+
+	"github.com/gin-gonic/gin"
 )
 
 // TestMainRouterIntegration verifies that the router package integrates correctly with main
@@ -23,8 +24,8 @@ func TestMainRouterIntegration(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 
 	// Set environment variables for CORS
-	os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
-	defer os.Unsetenv("FRONTEND_ORIGIN")
+	_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000")
+	defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 	// Create router using the same approach as main.go
 	r := router.New()
@@ -141,8 +142,8 @@ func TestMainRouterIntegration(t *testing.T) {
 // TestRouterStructure verifies the router maintains the same structure as the old main.go
 func TestRouterStructure(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,http://localhost:5173")
-	defer os.Unsetenv("FRONTEND_ORIGIN")
+	_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,http://localhost:5173")
+	defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN") }()
 
 	r := router.New()
 	r.SetupAllRoutes()

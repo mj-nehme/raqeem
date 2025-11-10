@@ -7,6 +7,9 @@ import (
 	"mentor-backend/router"
 	"os"
 
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
+
 	_ "mentor-backend/docs" // swagger docs
 )
 
@@ -58,11 +61,13 @@ func (a *App) setupDatabase() error {
 	return nil
 }
 
+// setupRouter initializes the Gin router with all routes and middleware
+func (a *App) setupRouter() *gin.Engine {
 	r := router.New()
 	r.SetupAllRoutes()
 
-	a.Router = r
-	return r
+	a.Router = r.Engine()
+	return r.Engine()
 }
 
 // Start initializes and starts the application server
