@@ -13,6 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"gorm.io/gorm"
 
 	_ "mentor-backend/docs" // swagger docs
 )
@@ -33,38 +34,67 @@ import (
 // @BasePath /
 
 // @schemes http https
-func main() {
-	database.Connect()
+
+// App encapsulates the application configuration and dependencies
+type App struct {
+	DB     *gorm.DB
+	Router *gin.Engine
+	Port   string
+}
+
+// NewApp creates and initializes a new application instance
+func NewApp() *App {
+	return &App{}
+}
+
+// setupDatabase initializes the database connection and runs migrations
+// If DB is already set (for testing), it will use that instead of connecting
+func (a *App) setupDatabase() error {
+	// Only connect if DB is not already set (allows for dependency injection)
+	if a.DB == nil {
+		database.Connect()
+		a.DB = database.DB
+	}
 
 	// Auto-migrate your models (include device-related models)
-	if err := database.DB.AutoMigrate(&models.Activity{}); err != nil {
-		log.Fatalf("AutoMigrate Activity failed: %v", err)
+	if err := a.DB.AutoMigrate(&models.Activity{}); err != nil {
+		return err
 	}
-	if err := database.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.Process{}, &models.ActivityLog{}, &models.RemoteCommand{}, &models.Screenshot{}, &models.Alert{}); err != nil {
-		log.Fatalf("AutoMigrate device models failed: %v", err)
+	if err := a.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.Process{}, &models.ActivityLog{}, &models.RemoteCommand{}, &models.Screenshot{}, &models.Alert{}); err != nil {
+		return err
 	}
+	return nil
+}
 
-	r := gin.Default()
-
-	// Allow the frontend dev server (vite) to call the API from the browser
+// parseCORSOrigins parses CORS origins from environment variable
+func (a *App) parseCORSOrigins() []string {
 	frontendOrigin := os.Getenv("FRONTEND_ORIGIN")
-	// You can pass multiple origins as comma-separated in FRONTEND_ORIGIN
-	// Support multiple comma-separated origins
 	origins := []string{}
 	for _, o := range strings.Split(frontendOrigin, ",") {
 		if trimmed := strings.TrimSpace(o); trimmed != "" {
 			origins = append(origins, trimmed)
 		}
 	}
+	return origins
+}
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     origins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
-	}))
+// setupRouter initializes the Gin router with all routes and middleware
+func (a *App) setupRouter() *gin.Engine {
+	r := gin.Default()
+
+	// Configure CORS
+	origins := a.parseCORSOrigins()
+	// Only configure CORS if origins are specified
+	if len(origins) > 0 {
+		r.Use(cors.New(cors.Config{
+			AllowOrigins:     origins,
+			AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+			MaxAge:           12 * time.Hour,
+		}))
+	}
 
 	// Swagger documentation routes
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -98,9 +128,33 @@ func main() {
 	r.POST("/commands/status", controllers.UpdateCommandStatus)
 	r.POST("/devices/:id/alerts", controllers.ReportAlert)
 
-	port := os.Getenv("PORT")
-	if port == "" {
+	a.Router = r
+	return r
+}
+
+// Start initializes and starts the application server
+func (a *App) Start() error {
+	// Setup database
+	if err := a.setupDatabase(); err != nil {
+		return err
+	}
+
+	// Setup router
+	a.setupRouter()
+
+	// Get port from environment
+	a.Port = os.Getenv("PORT")
+	if a.Port == "" {
 		log.Fatal("PORT environment variable is required (set by Helm chart or .env)")
 	}
-	log.Fatal(r.Run(":" + port))
+
+	// Start server
+	return a.Router.Run(":" + a.Port)
+}
+
+func main() {
+	app := NewApp()
+	if err := app.Start(); err != nil {
+		log.Fatalf("Failed to start application: %v", err)
+	}
 }
