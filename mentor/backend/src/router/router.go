@@ -2,6 +2,9 @@ package router
 
 import (
 	"mentor-backend/controllers"
+	"os"
+	"strings"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -9,119 +12,103 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-// Router holds the configuration for HTTP routes
+// Router wraps a gin.Engine and provides route setup methods
 type Router struct {
 	engine *gin.Engine
 }
 
-// New creates a new router instance
+// New creates a new Router with default gin engine
 func New() *Router {
 	return &Router{
 		engine: gin.Default(),
 	}
 }
 
-// NewWithEngine creates a router with a provided gin engine
-func NewWithEngine(engine *gin.Engine) *Router {
-	return &Router{
-		engine: engine,
+// SetupAllRoutes configures all routes, middleware, and Swagger documentation
+func (r *Router) SetupAllRoutes() {
+	r.setupCORS()
+	r.setupSwagger()
+	r.setupHealthCheck()
+	r.setupActivityRoutes()
+	r.setupDeviceRoutes()
+}
+
+// setupCORS configures CORS middleware
+func (r *Router) setupCORS() {
+	frontendOrigin := os.Getenv("FRONTEND_ORIGIN")
+	origins := []string{}
+	for _, o := range strings.Split(frontendOrigin, ",") {
+		if trimmed := strings.TrimSpace(o); trimmed != "" {
+			origins = append(origins, trimmed)
+		}
 	}
+
+	// If no origins specified, allow all origins to prevent panic
+	if len(origins) == 0 {
+		origins = []string{"*"}
+	}
+
+	r.engine.Use(cors.New(cors.Config{
+		AllowOrigins:     origins,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 }
 
-// SetupCORS configures Cross-Origin Resource Sharing
-func (r *Router) SetupCORS() {
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"*"}
-	config.AllowMethods = []string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
-	config.AllowHeaders = []string{"Origin", "Content-Length", "Content-Type", "Authorization"}
-	r.engine.Use(cors.New(config))
-}
-
-// SetupSwagger configures Swagger documentation routes
-func (r *Router) SetupSwagger() {
+// setupSwagger configures Swagger documentation routes
+func (r *Router) setupSwagger() {
 	r.engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	r.engine.GET("/docs", func(c *gin.Context) {
 		c.Redirect(301, "/swagger/index.html")
 	})
 }
 
-// SetupDeviceRoutes configures all device-related routes
-func (r *Router) SetupDeviceRoutes() {
-	deviceGroup := r.engine.Group("/devices")
-	{
-		// Device management
-		deviceGroup.POST("/register", controllers.RegisterDevice)
-		deviceGroup.GET("", controllers.ListDevices)
-
-		// Device metrics and monitoring
-		deviceGroup.POST("/:id/metrics", controllers.UpdateDeviceMetrics)
-		deviceGroup.GET("/:id/metrics", controllers.GetDeviceMetrics)
-
-		// Device processes
-		deviceGroup.POST("/:id/processes", controllers.UpdateProcessList)
-		deviceGroup.GET("/:id/processes", controllers.GetDeviceProcesses)
-
-		// Activity logging
-		deviceGroup.POST("/:id/activity", controllers.LogActivity)
-		deviceGroup.GET("/:id/activities", controllers.GetDeviceActivities)
-
-		// Alerts
-		deviceGroup.POST("/:id/alerts", controllers.ReportAlert)
-		deviceGroup.GET("/:id/alerts", controllers.GetDeviceAlerts)
-
-		// Screenshots
-		deviceGroup.POST("/:id/screenshots", controllers.StoreScreenshot)
-		deviceGroup.GET("/:id/screenshots", controllers.GetDeviceScreenshots)
-
-		// Remote commands
-		deviceGroup.POST("/:id/commands", controllers.CreateRemoteCommand)
-		deviceGroup.GET("/:id/commands", controllers.GetDeviceCommands)
-		deviceGroup.GET("/:id/commands/pending", controllers.GetPendingCommands)
-		deviceGroup.PUT("/commands/:commandId/status", controllers.UpdateCommandStatus)
-	}
+// setupHealthCheck configures the health check endpoint
+func (r *Router) setupHealthCheck() {
+	r.engine.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok", "service": "mentor-backend"})
+	})
 }
 
-// SetupActivityRoutes configures activity-related routes
-func (r *Router) SetupActivityRoutes() {
+// setupActivityRoutes configures activity-related routes
+func (r *Router) setupActivityRoutes() {
 	r.engine.GET("/activities", controllers.ListActivities)
 }
 
-// SetupHealthCheck configures health check endpoints
-func (r *Router) SetupHealthCheck() {
-	r.engine.GET("/health", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"status":  "ok",
-			"service": "mentor-backend",
-		})
-	})
+// setupDeviceRoutes configures all device-related routes
+func (r *Router) setupDeviceRoutes() {
+	// Device ingestion endpoints (devices will POST data here)
+	r.engine.POST("/devices/register", controllers.RegisterDevice)
+	r.engine.POST("/devices/metrics", controllers.UpdateDeviceMetrics)
+	r.engine.POST("/devices/processes", controllers.UpdateProcessList)
+	r.engine.POST("/devices/activity", controllers.LogActivity)
+	r.engine.POST("/devices/commands", controllers.CreateRemoteCommand)
+	r.engine.POST("/devices/screenshots", controllers.StoreScreenshot)
 
-	r.engine.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
-}
+	// Device query endpoints
+	r.engine.GET("/devices", controllers.ListDevices)
+	r.engine.GET("/devices/:id/metrics", controllers.GetDeviceMetrics)
+	r.engine.GET("/devices/:id/processes", controllers.GetDeviceProcesses)
+	r.engine.GET("/devices/:id/activities", controllers.GetDeviceActivities)
+	r.engine.GET("/devices/:id/alerts", controllers.GetDeviceAlerts)
+	r.engine.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshots)
+	r.engine.GET("/devices/:id/commands/pending", controllers.GetPendingCommands)
+	r.engine.GET("/devices/:id/commands", controllers.GetDeviceCommands)
 
-// SetupAllRoutes configures all application routes
-func (r *Router) SetupAllRoutes() {
-	r.SetupCORS()
-	r.SetupSwagger()
-	r.SetupHealthCheck()
-	r.SetupDeviceRoutes()
-	r.SetupActivityRoutes()
-}
-
-// GetEngine returns the underlying gin engine
-func (r *Router) GetEngine() *gin.Engine {
-	return r.engine
-}
-
-// GetRoutes returns information about registered routes
-func (r *Router) GetRoutes() gin.RoutesInfo {
-	return r.engine.Routes()
+	// Command and alert endpoints
+	r.engine.POST("/commands/status", controllers.UpdateCommandStatus)
+	r.engine.POST("/devices/:id/alerts", controllers.ReportAlert)
 }
 
 // Run starts the HTTP server on the specified address
-func (r *Router) Run(addr ...string) error {
-	return r.engine.Run(addr...)
+func (r *Router) Run(addr string) error {
+	return r.engine.Run(addr)
+}
+
+// Engine returns the underlying gin.Engine for testing purposes
+func (r *Router) Engine() *gin.Engine {
+	return r.engine
 }
