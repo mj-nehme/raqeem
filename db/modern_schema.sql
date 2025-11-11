@@ -2,6 +2,10 @@
 -- This replaces the old monitor.sql with schema matching current SQLAlchemy models
 -- Device-centric architecture using UUID primary keys with proper foreign key relationships
 
+-- Database setup
+DROP DATABASE IF EXISTS monitoring_db;
+CREATE DATABASE monitoring_db;
+
 -- Enable UUID generation
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
