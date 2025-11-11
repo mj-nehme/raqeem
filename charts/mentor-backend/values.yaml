@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: jaafarn/raqeem-mentor-backend
-  tag: "0.0.6"
+  tag: v0.0.6
   pullPolicy: IfNotPresent
 
 service:
