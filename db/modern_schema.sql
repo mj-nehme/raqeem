@@ -10,7 +10,7 @@ CREATE DATABASE monitoring_db;
 -- devices
 -- device_metrics
 -- device_processes
--- device_activity
+-- device_activities
 -- device_alerts
 -- remote_commands
 -- device_screenshots
@@ -61,7 +61,7 @@ CREATE TABLE device_processes (
 );
 
 -- Device activity logs
-CREATE TABLE device_activity (
+CREATE TABLE device_activities (
     activity_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     device_id UUID NOT NULL,
     activity_timestamp TIMESTAMP DEFAULT NOW(),
@@ -84,7 +84,7 @@ CREATE TABLE device_alerts (
 );
 
 -- Remote commands for device management
-CREATE TABLE remote_commands (
+CREATE TABLE device_remote_commands (
     command_id SERIAL PRIMARY KEY,
     device_id UUID NOT NULL,
     command_text TEXT NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE device_screenshots (
 );
 
 -- Screenshots table for user-based screenshots (separate from device screenshots)
-CREATE TABLE screenshots (
+CREATE TABLE device_screenshots (
     screenshot_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     image_path TEXT NOT NULL,
@@ -122,7 +122,7 @@ CREATE TABLE users (
 );
 
 -- Locations table
-CREATE TABLE locations (
+CREATE TABLE device_locations (
     location_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     latitude DOUBLE PRECISION NOT NULL,
@@ -131,34 +131,25 @@ CREATE TABLE locations (
 );
 
 -- Keystrokes table
-CREATE TABLE keystrokes (
+CREATE TABLE device_keystrokes (
     keystroke_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     user_id UUID NOT NULL,
     keylog TEXT NOT NULL,
     logged_at TIMESTAMP DEFAULT NOW()
 );
 
--- App activity table
-CREATE TABLE app_activity (
-    app_activity_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
-    app_name TEXT NOT NULL,
-    action TEXT CHECK (action IN ('open', 'close', 'background')),
-    activity_time TIMESTAMP DEFAULT NOW()
-);
 
 -- Performance indexes
 CREATE INDEX idx_device_metrics_device_id ON device_metrics(device_id);
 CREATE INDEX idx_device_metrics_timestamp ON device_metrics(metrics_timestamp);
 CREATE INDEX idx_device_processes_device_id ON device_processes(device_id);
-CREATE INDEX idx_device_activity_device_id ON device_activity(device_id);
+CREATE INDEX idx_device_activities_device_id ON device_activities(device_id);
 CREATE INDEX idx_device_alerts_device_id ON device_alerts(device_id);
 CREATE INDEX idx_device_screenshots_device_id ON device_screenshots(device_id);
 CREATE INDEX idx_remote_commands_device_id ON remote_commands(device_id);
 CREATE INDEX idx_screenshots_user_id ON screenshots(user_id);
 CREATE INDEX idx_locations_user_id ON locations(user_id);
 CREATE INDEX idx_keystrokes_user_id ON keystrokes(user_id);
-CREATE INDEX idx_app_activity_user_id ON app_activity(user_id);
 
 -- Foreign key constraints for referential integrity
 ALTER TABLE device_metrics ADD CONSTRAINT fk_device_metrics_device 
@@ -167,7 +158,7 @@ ALTER TABLE device_metrics ADD CONSTRAINT fk_device_metrics_device
 ALTER TABLE device_processes ADD CONSTRAINT fk_device_processes_device 
     FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE;
 
-ALTER TABLE device_activity ADD CONSTRAINT fk_device_activity_device 
+ALTER TABLE device_activities ADD CONSTRAINT fk_device_activities_device 
     FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE;
 
 ALTER TABLE device_alerts ADD CONSTRAINT fk_device_alerts_device 
@@ -189,7 +180,4 @@ ALTER TABLE locations ADD CONSTRAINT fk_locations_user
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
 
 ALTER TABLE keystrokes ADD CONSTRAINT fk_keystrokes_user 
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
-
-ALTER TABLE app_activity ADD CONSTRAINT fk_app_activity_user 
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;

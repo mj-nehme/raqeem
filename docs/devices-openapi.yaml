@@ -4,7 +4,7 @@ info:
   description: |
     API for device telemetry ingestion, device registration, and data collection.
     This backend receives data from monitored devices and stores it in PostgreSQL and MinIO.
-    
+
     ## Features
     - Device registration and management
     - Real-time metrics ingestion (CPU, memory, disk, network)
@@ -12,18 +12,18 @@ info:
     - Alert collection with auto-forwarding to Mentor Backend
     - Screenshot upload to S3-compatible storage (MinIO)
     - Process information tracking
-    
+
     ## Base URL
     Local: `http://localhost:30080/api/v1`
     Production: `https://api.raqeem.example.com/api/v1`
-    
+
     ## Authentication
     Currently no authentication required (MVP). For production deployment,
     implement JWT bearer tokens or API key authentication.
-    
+
     ## Rate Limiting
     No rate limiting in MVP. Recommended for production: 100 req/min per IP.
-    
+
     ## Docs
     - Interactive API docs: `/docs` (Swagger UI)
     - Alternative docs: `/redoc` (ReDoc)
@@ -70,8 +70,6 @@ tags:
     description: Device location tracking (legacy)
   - name: keystrokes
     description: Keystroke logging (legacy)
-  - name: app_activity
-    description: Application activity logging (legacy)
 
 # Authentication (Future)
 # Currently, no authentication is required for MVP release.
@@ -457,22 +455,6 @@ paths:
         "200":
           description: Keystroke logged
 
-  /app-activity/:
-    post:
-      tags:
-        - app_activity
-      summary: Log app activity (legacy)
-      operationId: createAppActivity
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AppActivityCreate"
-      responses:
-        "200":
-          description: Activity logged
-
 components:
   schemas:
     DeviceRegistration:
@@ -669,16 +651,6 @@ components:
         user_id:
           type: string
         key:
-          type: string
-
-    AppActivityCreate:
-      type: object
-      properties:
-        user_id:
-          type: string
-        app_name:
-          type: string
-        activity:
           type: string
 
     Error:

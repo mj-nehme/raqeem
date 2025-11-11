@@ -59,7 +59,7 @@ func (d *Device) GetFormattedType() string {
 }
 
 // ValidateAlert validates alert fields
-func (a *Alert) ValidateAlert() []string {
+func (a *DeviceAlerts) ValidateAlert() []string {
 	var errors []string
 
 	if strings.TrimSpace(a.DeviceID) == "" {
@@ -97,7 +97,7 @@ func (a *Alert) ValidateAlert() []string {
 }
 
 // IsCritical checks if alert is critical level
-func (a *Alert) IsCritical() bool {
+func (a *DeviceAlerts) IsCritical() bool {
 	return strings.ToLower(a.Level) == "critical"
 }
 
@@ -145,7 +145,7 @@ func (dm *DeviceMetrics) GetDiskUsagePercent() float64 {
 }
 
 // ValidateRemoteCommand validates remote command fields
-func (rc *RemoteCommand) ValidateRemoteCommand() []string {
+func (rc *DeviceRemoteCommands) ValidateRemoteCommand() []string {
 	var errors []string
 
 	if strings.TrimSpace(rc.DeviceID) == "" {
@@ -171,12 +171,12 @@ func (rc *RemoteCommand) ValidateRemoteCommand() []string {
 }
 
 // IsCompleted checks if command is completed (either successfully or failed)
-func (rc *RemoteCommand) IsCompleted() bool {
+func (rc *DeviceRemoteCommands) IsCompleted() bool {
 	status := strings.ToLower(rc.Status)
 	return status == "completed" || status == "failed"
 }
 
 // IsSuccessful checks if command completed successfully
-func (rc *RemoteCommand) IsSuccessful() bool {
+func (rc *DeviceRemoteCommands) IsSuccessful() bool {
 	return strings.ToLower(rc.Status) == "completed" && rc.ExitCode == 0
 }

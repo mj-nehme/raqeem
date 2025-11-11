@@ -62,7 +62,7 @@ func TestTemplateContainsExpectedModels(t *testing.T) {
 	template := getDocTemplate()
 
 	// Check for expected model definitions
-	expectedModels := []string{"models.Device", "models.Alert", "models.DeviceMetrics"}
+	expectedModels := []string{"models.Device", "models.DeviceAlerts", "models.DeviceMetrics"}
 
 	for _, model := range expectedModels {
 		if !strings.Contains(template, model) {

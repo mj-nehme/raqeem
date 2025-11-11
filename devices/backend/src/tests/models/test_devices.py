@@ -156,7 +156,7 @@ class TestActivityLog:
     
     def test_activity_log_table_name(self):
         """Test that ActivityLog model has correct table name."""
-        assert ActivityLog.__tablename__ == "device_activity"
+        assert ActivityLog.__tablename__ == "device_activities"
     
     def test_activity_log_columns(self):
         """Test that ActivityLog model has all expected columns."""

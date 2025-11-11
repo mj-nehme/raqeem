@@ -43,7 +43,7 @@ type DeviceMetrics struct {
 }
 
 // Process represents a running process on the device
-type Process struct {
+type DeviceProcesses struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	DeviceID  string    `json:"device_id"`
 	Timestamp time.Time `json:"timestamp"`
@@ -55,7 +55,7 @@ type Process struct {
 }
 
 // ActivityLog tracks user activity
-type ActivityLog struct {
+type DeviceActivities struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	DeviceID    string    `json:"device_id"`
 	Timestamp   time.Time `json:"timestamp"`
@@ -66,7 +66,7 @@ type ActivityLog struct {
 }
 
 // RemoteCommand represents a command to be executed on the device
-type RemoteCommand struct {
+type DeviceRemoteCommands struct {
 	ID          uint      `json:"id" gorm:"primaryKey"`
 	DeviceID    string    `json:"device_id"`
 	Command     string    `json:"command"`
@@ -78,7 +78,7 @@ type RemoteCommand struct {
 }
 
 // Screenshot stores device screen captures
-type Screenshot struct {
+type DeviceScreenshots struct {
 	ID         uint      `json:"id" gorm:"primaryKey"`
 	DeviceID   string    `json:"device_id"`
 	Timestamp  time.Time `json:"timestamp"`
@@ -88,7 +88,7 @@ type Screenshot struct {
 }
 
 // Alert represents device monitoring alerts
-type Alert struct {
+type DeviceAlerts struct {
 	ID        uint      `json:"id" gorm:"primaryKey"`
 	DeviceID  string    `json:"device_id"`
 	Timestamp time.Time `json:"timestamp"`

@@ -32,7 +32,7 @@ func TestUpdateProcessListWithValidData(t *testing.T) {
 	database.DB.Create(&device)
 
 	// Create process list
-	processes := []models.Process{
+	processes := []models.DeviceProcesses{
 		{
 			DeviceID: deviceID,
 			PID:      1234,
@@ -60,7 +60,7 @@ func TestUpdateProcessListWithValidData(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// Verify processes were created
-	var savedProcesses []models.Process
+	var savedProcesses []models.DeviceProcesses
 	database.DB.Where("device_id = ?", deviceID).Find(&savedProcesses)
 	assert.GreaterOrEqual(t, len(savedProcesses), 2)
 }
@@ -80,7 +80,7 @@ func TestUpdateProcessListDeletion(t *testing.T) {
 	database.DB.Create(&device)
 
 	// Add initial processes
-	oldProcesses := []models.Process{
+	oldProcesses := []models.DeviceProcesses{
 		{DeviceID: deviceID, PID: 1111, Name: "old-process-1", Timestamp: time.Now()},
 		{DeviceID: deviceID, PID: 2222, Name: "old-process-2", Timestamp: time.Now()},
 	}
@@ -89,7 +89,7 @@ func TestUpdateProcessListDeletion(t *testing.T) {
 	}
 
 	// Update with new process list (should replace old ones)
-	newProcesses := []models.Process{
+	newProcesses := []models.DeviceProcesses{
 		{DeviceID: deviceID, PID: 3333, Name: "new-process", CPU: 10.0, Memory: 100000},
 	}
 
@@ -200,7 +200,7 @@ func TestGetDeviceMetricsInvalidLimit(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestGetDeviceProcessesWithLimit(t *testing.T) {
+func TestGetDeviceProcessesesWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -216,7 +216,7 @@ func TestGetDeviceProcessesWithLimit(t *testing.T) {
 
 	// Create multiple processes
 	for i := 0; i < 8; i++ {
-		process := models.Process{
+		process := models.DeviceProcesses{
 			DeviceID:  deviceID,
 			PID:       1000 + i,
 			Name:      fmt.Sprintf("process-%d", i),
@@ -234,13 +234,13 @@ func TestGetDeviceProcessesWithLimit(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var processes []models.Process
+	var processes []models.DeviceProcesses
 	err := json.Unmarshal(w.Body.Bytes(), &processes)
 	assert.NoError(t, err)
 	assert.Equal(t, 5, len(processes))
 }
 
-func TestGetDeviceAlertsWithLimit(t *testing.T) {
+func TestGetDeviceAlertssWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -256,7 +256,7 @@ func TestGetDeviceAlertsWithLimit(t *testing.T) {
 
 	// Create multiple alerts
 	for i := 0; i < 7; i++ {
-		alert := models.Alert{
+		alert := models.DeviceAlerts{
 			DeviceID:  deviceID,
 			Type:      "cpu",
 			Level:     "warning",
@@ -275,13 +275,13 @@ func TestGetDeviceAlertsWithLimit(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var alerts []models.Alert
+	var alerts []models.DeviceAlerts
 	err := json.Unmarshal(w.Body.Bytes(), &alerts)
 	assert.NoError(t, err)
 	assert.Equal(t, 4, len(alerts))
 }
 
-func TestGetDeviceScreenshotsWithLimit(t *testing.T) {
+func TestGetDeviceScreenshotssWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -297,7 +297,7 @@ func TestGetDeviceScreenshotsWithLimit(t *testing.T) {
 
 	// Create multiple screenshots
 	for i := 0; i < 6; i++ {
-		screenshot := models.Screenshot{
+		screenshot := models.DeviceScreenshots{
 			DeviceID:   deviceID,
 			Path:       fmt.Sprintf("/path/screenshot-%d.jpg", i),
 			Resolution: "1920x1080",
@@ -330,7 +330,7 @@ func TestCreateRemoteCommandSuccess(t *testing.T) {
 	database.DB.Create(&device)
 
 	// Create command
-	command := models.RemoteCommand{
+	command := models.DeviceRemoteCommands{
 		DeviceID: deviceID,
 		Command:  "ls -la",
 		Status:   "pending",
@@ -344,7 +344,7 @@ func TestCreateRemoteCommandSuccess(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var response models.RemoteCommand
+	var response models.DeviceRemoteCommands
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.NotZero(t, response.ID)
@@ -365,7 +365,7 @@ func TestGetPendingCommandsForDevice(t *testing.T) {
 	database.DB.Create(&device)
 
 	// Create pending commands
-	commands := []models.RemoteCommand{
+	commands := []models.DeviceRemoteCommands{
 		{DeviceID: deviceID, Command: "cmd1", Status: "pending", CreatedAt: time.Now()},
 		{DeviceID: deviceID, Command: "cmd2", Status: "pending", CreatedAt: time.Now()},
 		{DeviceID: deviceID, Command: "cmd3", Status: "completed", CreatedAt: time.Now()},
@@ -382,7 +382,7 @@ func TestGetPendingCommandsForDevice(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var response []models.RemoteCommand
+	var response []models.DeviceRemoteCommands
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	assert.NoError(t, err)
 	assert.GreaterOrEqual(t, len(response), 2)
@@ -397,7 +397,7 @@ func TestUpdateCommandStatusSuccess(t *testing.T) {
 	database.DB.Create(&device)
 
 	// Create command
-	command := models.RemoteCommand{
+	command := models.DeviceRemoteCommands{
 		DeviceID:  deviceID,
 		Command:   "test command",
 		Status:    "pending",
@@ -429,7 +429,7 @@ func TestReportAlertSuccess(t *testing.T) {
 	database.DB.Create(&device)
 
 	// Report alert
-	alert := models.Alert{
+	alert := models.DeviceAlerts{
 		DeviceID:  deviceID,
 		Type:      "cpu",
 		Level:     "warning",

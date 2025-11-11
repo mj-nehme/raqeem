@@ -32,13 +32,13 @@ This document provides a comprehensive overview of test coverage across all comp
 - RegisterDevice: 81.8%
 - UpdateDeviceMetrics: 83.3%
 - UpdateProcessList: 61.9%
-- LogActivity: 77.8%
+- Activity: 77.8%
 - ListDevices: 66.7%
 - GetDeviceMetrics: 100% ✅
-- GetDeviceProcesses: 81.8%
+- GetDeviceProcesseses: 81.8%
 - GetDeviceActivities: 100% ✅
-- GetDeviceAlerts: 81.8%
-- GetDeviceScreenshots: 86.7%
+- GetDeviceAlertss: 81.8%
+- GetDeviceScreenshotss: 86.7%
 - CreateRemoteCommand: Improved with new tests ✅
 - GetPendingCommands: 66.7%
 - GetDeviceCommands: 81.8% ✅

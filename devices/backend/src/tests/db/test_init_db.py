@@ -13,11 +13,10 @@ async def test_init_db_runs():
 def test_init_db_imports_models():
     """Test that init_db imports all models."""
     # Models should be imported by init_db module
-    from app.models import users, locations, screenshots, keystrokes, app_activity, devices
+    from app.models import users, locations, screenshots, keystrokes, devices
     
     assert users is not None
     assert locations is not None
     assert screenshots is not None
     assert keystrokes is not None
-    assert app_activity is not None
     assert devices is not None

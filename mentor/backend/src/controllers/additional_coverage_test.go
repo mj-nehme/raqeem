@@ -25,7 +25,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.RemoteCommand{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
@@ -46,7 +46,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-forward"}}
 
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: "test-device-forward",
 			Command:  "get_info",
 		}
@@ -58,7 +58,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.RemoteCommand
+		var result models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "pending", result.Status)
@@ -89,7 +89,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-fail"}}
 
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: "test-device-fail",
 			Command:  "get_info",
 		}
@@ -118,18 +118,18 @@ func TestGetDeviceCommandsWithLimit(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.RemoteCommand{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
 	deviceID := "test-device-limit-" + time.Now().Format("20060102150405")
 
 	// Clean up any existing commands for this device
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.RemoteCommand{})
+	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommands{})
 
 	// Create multiple commands
 	for i := 0; i < 5; i++ {
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID:  deviceID,
 			Command:   "test_cmd",
 			Status:    "pending",
@@ -170,7 +170,7 @@ func TestGetDeviceCommandsWithLimit(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var commands []models.RemoteCommand
+		var commands []models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &commands)
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, len(commands), 5)
@@ -185,7 +185,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.Screenshot{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceScreenshots{}); err != nil {
 		t.Fatalf("AutoMigrate Screenshot failed: %v", err)
 	}
 
@@ -193,7 +193,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		screenshot := models.Screenshot{
+		screenshot := models.DeviceScreenshots{
 			DeviceID: "test-device-screenshot",
 			Path:     "https://example.com/screenshot.png",
 		}
@@ -205,7 +205,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.Screenshot
+		var result models.DeviceScreenshots
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "test-device-screenshot", result.DeviceID)
@@ -240,7 +240,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		screenshot := models.Screenshot{
+		screenshot := models.DeviceScreenshots{
 			DeviceID: "minimal-device",
 		}
 		b, _ := json.Marshal(screenshot)
@@ -261,7 +261,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.Process{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceProcesses{}); err != nil {
 		t.Fatalf("AutoMigrate Process failed: %v", err)
 	}
 
@@ -270,7 +270,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-empty"}}
 
-		processes := []models.Process{}
+		processes := []models.DeviceProcesses{}
 		b, _ := json.Marshal(processes)
 		c.Request, _ = http.NewRequest("POST", "/devices/test-device-empty/processes", bytes.NewReader(b))
 		c.Request.Header.Set("Content-Type", "application/json")
@@ -298,9 +298,9 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-many"}}
 
-		processes := make([]models.Process, 50)
+		processes := make([]models.DeviceProcesses, 50)
 		for i := 0; i < 50; i++ {
-			processes[i] = models.Process{
+			processes[i] = models.DeviceProcesses{
 				DeviceID: "test-device-many",
 				Name:     fmt.Sprintf("process%d", i),
 				PID:      i + 1,

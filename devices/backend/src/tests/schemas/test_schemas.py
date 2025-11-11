@@ -1,42 +1,9 @@
 from uuid import uuid4
 from datetime import datetime
-from app.schemas.app_activity import AppActivityCreate, AppActivityOut
 from app.schemas.keystrokes import KeystrokeCreate, KeystrokeOut
 from app.schemas.locations import LocationCreate, LocationOut
 from app.schemas.screenshots import ScreenshotCreate, ScreenshotOut
 from app.schemas.users import UserCreate, UserOut
-
-
-class TestAppActivitySchemas:
-    """Test app activity schemas."""
-    
-    def test_app_activity_create(self):
-        """Test creating AppActivityCreate schema."""
-        user_id = uuid4()
-        data = AppActivityCreate(
-            user_id=user_id,
-            app_name="Chrome",
-            action="opened"
-        )
-        assert data.user_id == user_id
-        assert data.app_name == "Chrome"
-        assert data.action == "opened"
-    
-    def test_app_activity_out(self):
-        """Test creating AppActivityOut schema."""
-        user_id = uuid4()
-        activity_id = uuid4()
-        now = datetime.now()
-        data = AppActivityOut(
-            id=activity_id,
-            user_id=user_id,
-            app_name="Firefox",
-            action="closed",
-            activity_time=now
-        )
-        assert data.id == activity_id
-        assert data.app_name == "Firefox"
-        assert data.activity_time == now
 
 
 class TestKeystrokeSchemas:

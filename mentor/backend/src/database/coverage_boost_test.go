@@ -62,12 +62,12 @@ func TestSetupTestDBWithPostgresEnv(t *testing.T) {
 	tables := []interface{}{
 		&models.Device{},
 		&models.DeviceMetrics{},
-		&models.Process{},
-		&models.Activity{},
-		&models.ActivityLog{},
-		&models.RemoteCommand{},
-		&models.Screenshot{},
-		&models.Alert{},
+		&models.DeviceProcesses{},
+		&models.DeviceActivities{},
+		&models.DeviceActivities{},
+		&models.DeviceRemoteCommands{},
+		&models.DeviceScreenshots{},
+		&models.DeviceAlerts{},
 	}
 
 	for _, table := range tables {
@@ -210,41 +210,34 @@ func TestCleanupTestDBRemovesAllData(t *testing.T) {
 	}
 	db.Create(&metrics)
 
-	process := models.Process{
+	process := models.DeviceProcesses{
 		DeviceID: "cleanup-test-device",
 		PID:      1234,
 		Name:     "test-process",
 	}
 	db.Create(&process)
 
-	activity := models.Activity{
-		UserID:   "test-user",
-		Location: "test-location",
-		Filename: "test.txt",
-	}
-	db.Create(&activity)
-
-	activityLog := models.ActivityLog{
+	activity := models.DeviceActivities{
 		DeviceID:    "cleanup-test-device",
 		Type:        "test-type",
 		Description: "test activity",
 	}
-	db.Create(&activityLog)
+	db.Create(&activity)
 
-	remoteCmd := models.RemoteCommand{
+	remoteCmd := models.DeviceRemoteCommands{
 		DeviceID: "cleanup-test-device",
 		Command:  "test-command",
 		Status:   "pending",
 	}
 	db.Create(&remoteCmd)
 
-	screenshot := models.Screenshot{
+	screenshot := models.DeviceScreenshots{
 		DeviceID: "cleanup-test-device",
 		Path:     "/test/path",
 	}
 	db.Create(&screenshot)
 
-	alert := models.Alert{
+	alert := models.DeviceAlerts{
 		DeviceID: "cleanup-test-device",
 		Level:    "info",
 		Type:     "test",
@@ -267,22 +260,22 @@ func TestCleanupTestDBRemovesAllData(t *testing.T) {
 	db.Model(&models.DeviceMetrics{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.Process{}).Count(&count)
+	db.Model(&models.DeviceProcesses{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.Activity{}).Count(&count)
+	db.Model(&models.DeviceActivities{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.ActivityLog{}).Count(&count)
+	db.Model(&models.DeviceActivities{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.RemoteCommand{}).Count(&count)
+	db.Model(&models.DeviceRemoteCommands{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.Screenshot{}).Count(&count)
+	db.Model(&models.DeviceScreenshots{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.Alert{}).Count(&count)
+	db.Model(&models.DeviceAlerts{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 }
 

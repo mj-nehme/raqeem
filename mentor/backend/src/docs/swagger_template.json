@@ -184,7 +184,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.Alert"
+                                "$ref": "#/definitions/models.DeviceAlerts"
                             }
                         }
                     },
@@ -268,7 +268,7 @@
         }
     },
     "definitions": {
-        "models.Alert": {
+        "models.DeviceAlerts": {
             "type": "object",
             "properties": {
                 "device_id": {

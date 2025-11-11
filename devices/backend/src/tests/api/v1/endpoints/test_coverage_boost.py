@@ -82,13 +82,3 @@ async def test_get_locations_list():
         response = await ac.get("/api/v1/locations/")
         assert response.status_code == 200
         assert isinstance(response.json(), list)
-
-
-# Test app_activity GET endpoint
-@pytest.mark.asyncio
-async def test_get_app_activities_list():
-    """Test GET /api/v1/app-activity/ endpoint returns list."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/api/v1/app-activity/")
-        assert response.status_code == 200
-        assert isinstance(response.json(), list)

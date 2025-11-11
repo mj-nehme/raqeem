@@ -31,9 +31,9 @@ The schema uses a **device-centric architecture**:
 - `devices` - Core device registry
 - `device_metrics` - Time-series performance data
 - `device_processes` - Running process information
-- `device_activity` - User activity logs
+- `device_activities` - User activity logs
 - `device_alerts` - System alerts and notifications
-- `screenshots` - User screenshot storage
-- `remote_commands` - Device management commands
+- `device_screenshots` - User screenshot storage
+- `device_remote_commands` - Device management commands
 
 All tables include proper timestamps and UUID primary keys for scalability and uniqueness.

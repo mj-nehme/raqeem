@@ -161,7 +161,7 @@ func TestDeviceMetrics_Fields(t *testing.T) {
 
 func TestProcess_Fields(t *testing.T) {
 	now := time.Now()
-	process := Process{
+	process := DeviceProcesses{
 		ID:        1,
 		DeviceID:  "test-device-123",
 		Timestamp: now,
@@ -197,7 +197,7 @@ func TestProcess_Fields(t *testing.T) {
 
 func TestActivityLog_Fields(t *testing.T) {
 	now := time.Now()
-	activity := ActivityLog{
+	activity := DeviceActivities{
 		ID:          1,
 		DeviceID:    "test-device-123",
 		Timestamp:   now,
@@ -229,7 +229,7 @@ func TestActivityLog_Fields(t *testing.T) {
 
 func TestRemoteCommand_Fields(t *testing.T) {
 	now := time.Now()
-	cmd := RemoteCommand{
+	cmd := DeviceRemoteCommands{
 		ID:          1,
 		DeviceID:    "test-device-123",
 		Command:     "ls -la",
@@ -262,7 +262,7 @@ func TestRemoteCommand_Fields(t *testing.T) {
 
 func TestScreenshot_Fields(t *testing.T) {
 	now := time.Now()
-	screenshot := Screenshot{
+	screenshot := DeviceScreenshots{
 		ID:         1,
 		DeviceID:   "test-device-123",
 		Timestamp:  now,
@@ -290,7 +290,7 @@ func TestScreenshot_Fields(t *testing.T) {
 
 func TestAlert_Fields(t *testing.T) {
 	now := time.Now()
-	alert := Alert{
+	alert := DeviceAlerts{
 		ID:        1,
 		DeviceID:  "test-device-123",
 		Timestamp: now,
@@ -328,7 +328,7 @@ func TestAlert_Levels(t *testing.T) {
 	validLevels := []string{"info", "warning", "error", "critical"}
 
 	for _, level := range validLevels {
-		alert := Alert{
+		alert := DeviceAlerts{
 			ID:        1,
 			DeviceID:  "test-device",
 			Level:     level,
@@ -348,7 +348,7 @@ func TestAlert_Types(t *testing.T) {
 	validTypes := []string{"cpu", "memory", "disk", "network", "security"}
 
 	for _, alertType := range validTypes {
-		alert := Alert{
+		alert := DeviceAlerts{
 			ID:        1,
 			DeviceID:  "test-device",
 			Level:     "warning",

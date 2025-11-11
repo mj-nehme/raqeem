@@ -79,7 +79,7 @@ func TestDeviceValidation(t *testing.T) {
 
 func TestDeviceIsOnlineRecently(t *testing.T) {
 	now := time.Now()
-	
+
 	tests := []struct {
 		name     string
 		device   Device
@@ -155,12 +155,12 @@ func TestDeviceGetFormattedType(t *testing.T) {
 func TestAlertValidation(t *testing.T) {
 	tests := []struct {
 		name     string
-		alert    Alert
+		alert    DeviceAlerts
 		wantErrs int
 	}{
 		{
 			name: "valid alert",
-			alert: Alert{
+			alert: DeviceAlerts{
 				DeviceID: "device1",
 				Level:    "warning",
 				Type:     "cpu",
@@ -170,7 +170,7 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "empty device ID",
-			alert: Alert{
+			alert: DeviceAlerts{
 				DeviceID: "",
 				Level:    "warning",
 				Type:     "cpu",
@@ -180,7 +180,7 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "invalid level",
-			alert: Alert{
+			alert: DeviceAlerts{
 				DeviceID: "device1",
 				Level:    "invalid",
 				Type:     "cpu",
@@ -190,7 +190,7 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "invalid type",
-			alert: Alert{
+			alert: DeviceAlerts{
 				DeviceID: "device1",
 				Level:    "warning",
 				Type:     "invalid",
@@ -200,7 +200,7 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "empty message",
-			alert: Alert{
+			alert: DeviceAlerts{
 				DeviceID: "device1",
 				Level:    "warning",
 				Type:     "cpu",
@@ -221,14 +221,14 @@ func TestAlertValidation(t *testing.T) {
 func TestAlertIsCritical(t *testing.T) {
 	tests := []struct {
 		name     string
-		alert    Alert
+		alert    DeviceAlerts
 		expected bool
 	}{
-		{"critical", Alert{Level: "critical"}, true},
-		{"CRITICAL", Alert{Level: "CRITICAL"}, true},
-		{"warning", Alert{Level: "warning"}, false},
-		{"info", Alert{Level: "info"}, false},
-		{"error", Alert{Level: "error"}, false},
+		{"critical", DeviceAlerts{Level: "critical"}, true},
+		{"CRITICAL", DeviceAlerts{Level: "CRITICAL"}, true},
+		{"warning", DeviceAlerts{Level: "warning"}, false},
+		{"info", DeviceAlerts{Level: "info"}, false},
+		{"error", DeviceAlerts{Level: "error"}, false},
 	}
 
 	for _, tt := range tests {
@@ -368,12 +368,12 @@ func TestDeviceMetricsGetDiskUsagePercent(t *testing.T) {
 func TestRemoteCommandValidation(t *testing.T) {
 	tests := []struct {
 		name     string
-		command  RemoteCommand
+		command  DeviceRemoteCommands
 		wantErrs int
 	}{
 		{
 			name: "valid command",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				DeviceID: "device1",
 				Command:  "ls -la",
 				Status:   "pending",
@@ -382,7 +382,7 @@ func TestRemoteCommandValidation(t *testing.T) {
 		},
 		{
 			name: "empty device ID",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				DeviceID: "",
 				Command:  "ls -la",
 			},
@@ -390,7 +390,7 @@ func TestRemoteCommandValidation(t *testing.T) {
 		},
 		{
 			name: "empty command",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				DeviceID: "device1",
 				Command:  "",
 			},
@@ -398,7 +398,7 @@ func TestRemoteCommandValidation(t *testing.T) {
 		},
 		{
 			name: "invalid status",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				DeviceID: "device1",
 				Command:  "ls -la",
 				Status:   "invalid",
@@ -418,14 +418,14 @@ func TestRemoteCommandValidation(t *testing.T) {
 func TestRemoteCommandIsCompleted(t *testing.T) {
 	tests := []struct {
 		name     string
-		command  RemoteCommand
+		command  DeviceRemoteCommands
 		expected bool
 	}{
-		{"completed", RemoteCommand{Status: "completed"}, true},
-		{"failed", RemoteCommand{Status: "failed"}, true},
-		{"COMPLETED", RemoteCommand{Status: "COMPLETED"}, true},
-		{"pending", RemoteCommand{Status: "pending"}, false},
-		{"running", RemoteCommand{Status: "running"}, false},
+		{"completed", DeviceRemoteCommands{Status: "completed"}, true},
+		{"failed", DeviceRemoteCommands{Status: "failed"}, true},
+		{"COMPLETED", DeviceRemoteCommands{Status: "COMPLETED"}, true},
+		{"pending", DeviceRemoteCommands{Status: "pending"}, false},
+		{"running", DeviceRemoteCommands{Status: "running"}, false},
 	}
 
 	for _, tt := range tests {
@@ -439,12 +439,12 @@ func TestRemoteCommandIsCompleted(t *testing.T) {
 func TestRemoteCommandIsSuccessful(t *testing.T) {
 	tests := []struct {
 		name     string
-		command  RemoteCommand
+		command  DeviceRemoteCommands
 		expected bool
 	}{
 		{
 			name: "successful",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				Status:   "completed",
 				ExitCode: 0,
 			},
@@ -452,7 +452,7 @@ func TestRemoteCommandIsSuccessful(t *testing.T) {
 		},
 		{
 			name: "completed with error",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				Status:   "completed",
 				ExitCode: 1,
 			},
@@ -460,7 +460,7 @@ func TestRemoteCommandIsSuccessful(t *testing.T) {
 		},
 		{
 			name: "failed",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				Status:   "failed",
 				ExitCode: 0,
 			},
@@ -468,7 +468,7 @@ func TestRemoteCommandIsSuccessful(t *testing.T) {
 		},
 		{
 			name: "still running",
-			command: RemoteCommand{
+			command: DeviceRemoteCommands{
 				Status:   "running",
 				ExitCode: 0,
 			},

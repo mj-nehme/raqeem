@@ -73,12 +73,12 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	err = db.AutoMigrate(
 		&models.Device{},
 		&models.DeviceMetrics{},
-		&models.Process{},
-		&models.Activity{},
-		&models.ActivityLog{},
-		&models.RemoteCommand{},
-		&models.Screenshot{},
-		&models.Alert{},
+		&models.DeviceProcesses{},
+		&models.DeviceActivities{},
+		&models.DeviceActivities{},
+		&models.DeviceRemoteCommands{},
+		&models.DeviceScreenshots{},
+		&models.DeviceAlerts{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate test database: %v", err)
@@ -96,12 +96,12 @@ func CleanupTestDB(t *testing.T, db *gorm.DB) {
 
 	// Clean up all test data - using Delete with unscoped to actually remove records
 	// Order matters due to foreign key constraints
-	db.Unscoped().Where("1 = 1").Delete(&models.Alert{})
-	db.Unscoped().Where("1 = 1").Delete(&models.Screenshot{})
-	db.Unscoped().Where("1 = 1").Delete(&models.RemoteCommand{})
-	db.Unscoped().Where("1 = 1").Delete(&models.Activity{})
-	db.Unscoped().Where("1 = 1").Delete(&models.ActivityLog{})
-	db.Unscoped().Where("1 = 1").Delete(&models.Process{})
+	db.Unscoped().Where("1 = 1").Delete(&models.DeviceAlerts{})
+	db.Unscoped().Where("1 = 1").Delete(&models.DeviceScreenshots{})
+	db.Unscoped().Where("1 = 1").Delete(&models.DeviceRemoteCommands{})
+	db.Unscoped().Where("1 = 1").Delete(&models.DeviceActivities{})
+	db.Unscoped().Where("1 = 1").Delete(&models.DeviceActivities{})
+	db.Unscoped().Where("1 = 1").Delete(&models.DeviceProcesses{})
 	db.Unscoped().Where("1 = 1").Delete(&models.DeviceMetrics{})
 	db.Unscoped().Where("1 = 1").Delete(&models.Device{})
 }

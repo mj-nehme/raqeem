@@ -44,9 +44,9 @@ func TestSetupTestDBAutoMigrationSuccess(t *testing.T) {
 		"devices",
 		"device_metrics",
 		"device_processes",
-		"device_activity",
+		"device_activities",
 		"device_alerts",
-		"remote_commands",
+		"device_remote_commands",
 		"device_screenshots",
 	}
 

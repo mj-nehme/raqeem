@@ -52,10 +52,10 @@ func (a *App) setupDatabase() error {
 	}
 
 	// Auto-migrate your models (include device-related models)
-	if err := a.DB.AutoMigrate(&models.Activity{}); err != nil {
+	if err := a.DB.AutoMigrate(&models.DeviceActivities{}); err != nil {
 		return err
 	}
-	if err := a.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.Process{}, &models.ActivityLog{}, &models.RemoteCommand{}, &models.Screenshot{}, &models.Alert{}); err != nil {
+	if err := a.DB.AutoMigrate(&models.Device{}, &models.DeviceMetrics{}, &models.DeviceProcesses{}, &models.DeviceActivities{}, &models.DeviceRemoteCommands{}, &models.DeviceScreenshots{}, &models.DeviceAlerts{}); err != nil {
 		return err
 	}
 	return nil

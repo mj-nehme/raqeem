@@ -22,7 +22,7 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.RemoteCommand{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
@@ -31,7 +31,7 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-cmd"}}
 
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			Command: "get_info",
 		}
 		b, _ := json.Marshal(cmd)
@@ -44,7 +44,7 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 			t.Errorf("expected status 200, got %d, body: %s", w.Code, w.Body.String())
 		}
 
-		var result models.RemoteCommand
+		var result models.DeviceRemoteCommands
 		if err := json.Unmarshal(w.Body.Bytes(), &result); err != nil {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
@@ -83,7 +83,7 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.Process{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceProcesses{}); err != nil {
 		t.Fatalf("AutoMigrate Process failed: %v", err)
 	}
 
@@ -91,7 +91,7 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		processes := []models.Process{
+		processes := []models.DeviceProcesses{
 			{DeviceID: "test-device-proc", PID: 1234, Name: "test-process", CPU: 10.5, Memory: 1024},
 			{DeviceID: "test-device-proc", PID: 5678, Name: "another-process", CPU: 5.2, Memory: 2048},
 		}
@@ -110,7 +110,7 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		processes := []models.Process{}
+		processes := []models.DeviceProcesses{}
 		b, _ := json.Marshal(processes)
 		c.Request, _ = http.NewRequest("POST", "/devices/processes", bytes.NewReader(b))
 		c.Request.Header.Set("Content-Type", "application/json")
@@ -211,18 +211,18 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.RemoteCommand{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
 	deviceID := "test-pending-device"
 
 	// Clean up first
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.RemoteCommand{})
+	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommands{})
 
 	t.Run("Get pending commands returns array", func(t *testing.T) {
 		// Create a pending command
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: deviceID,
 			Command:  "get_info",
 			Status:   "pending",
@@ -240,7 +240,7 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 			t.Errorf("expected status 200, got %d", w.Code)
 		}
 
-		var commands []models.RemoteCommand
+		var commands []models.DeviceRemoteCommands
 		if err := json.Unmarshal(w.Body.Bytes(), &commands); err != nil {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
@@ -277,13 +277,13 @@ func TestUpdateCommandStatusComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.RemoteCommand{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
 	t.Run("Update command status with valid data", func(t *testing.T) {
 		// Create a command first
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: "test-status-device",
 			Command:  "get_info",
 			Status:   "pending",
@@ -294,7 +294,7 @@ func TestUpdateCommandStatusComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		updateCmd := models.RemoteCommand{
+		updateCmd := models.DeviceRemoteCommands{
 			ID:       cmd.ID,
 			Status:   "completed",
 			Result:   "Command executed successfully",
@@ -334,19 +334,19 @@ func TestGetDeviceCommandsComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.RemoteCommand{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
 	deviceID := "test-cmd-history-device"
 
 	// Clean up first
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.RemoteCommand{})
+	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommands{})
 
 	t.Run("Get commands without limit parameter", func(t *testing.T) {
 		// Create some commands
 		for i := 0; i < 3; i++ {
-			cmd := models.RemoteCommand{
+			cmd := models.DeviceRemoteCommands{
 				DeviceID: deviceID,
 				Command:  "test command",
 				Status:   "completed",
@@ -365,7 +365,7 @@ func TestGetDeviceCommandsComprehensive(t *testing.T) {
 			t.Errorf("expected status 200, got %d", w.Code)
 		}
 
-		var commands []models.RemoteCommand
+		var commands []models.DeviceRemoteCommands
 		if err := json.Unmarshal(w.Body.Bytes(), &commands); err != nil {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
@@ -387,7 +387,7 @@ func TestGetDeviceCommandsComprehensive(t *testing.T) {
 			t.Errorf("expected status 200, got %d", w.Code)
 		}
 
-		var commands []models.RemoteCommand
+		var commands []models.DeviceRemoteCommands
 		if err := json.Unmarshal(w.Body.Bytes(), &commands); err != nil {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}

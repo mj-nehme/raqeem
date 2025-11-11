@@ -36,14 +36,14 @@ func setupTestRouterWithDB(t *testing.T) (*gin.Engine, func()) {
 	// Register all routes
 	router.POST("/devices", RegisterDevice)
 	router.POST("/devices/:id/metrics", UpdateDeviceMetrics)
-	router.POST("/devices/:id/activity", LogActivity)
+	router.POST("/devices/:id/activity", Activity)
 	router.POST("/devices/:id/processes", UpdateProcessList)
 	router.GET("/devices", ListDevices)
 	router.GET("/devices/:id/metrics", GetDeviceMetrics)
-	router.GET("/devices/:id/processes", GetDeviceProcesses)
+	router.GET("/devices/:id/processes", GetDeviceProcesseses)
 	router.GET("/devices/:id/activities", GetDeviceActivities)
-	router.GET("/devices/:id/alerts", GetDeviceAlerts)
-	router.GET("/devices/:id/screenshots", GetDeviceScreenshots)
+	router.GET("/devices/:id/alerts", GetDeviceAlertss)
+	router.GET("/devices/:id/screenshots", GetDeviceScreenshotss)
 	router.POST("/devices/:id/commands", CreateRemoteCommand)
 	router.GET("/devices/:id/commands/pending", GetPendingCommands)
 	router.PUT("/commands/:id/status", UpdateCommandStatus)
@@ -114,7 +114,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// 3. Log activity
-	activity := models.ActivityLog{
+	activity := models.DeviceActivities{
 		DeviceID:    deviceID,
 		Type:        "app_launch",
 		Description: "User opened Firefox browser",
@@ -132,7 +132,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// 4. Update process list
-	processes := []models.Process{
+	processes := []models.DeviceProcesses{
 		{
 			DeviceID:  deviceID,
 			PID:       1234,
@@ -162,7 +162,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// 5. Create a remote command
-	command := models.RemoteCommand{
+	command := models.DeviceRemoteCommands{
 		DeviceID:  deviceID,
 		Command:   "ls -la /home",
 		Status:    "pending",
@@ -177,14 +177,14 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var commandResponse models.RemoteCommand
+	var commandResponse models.DeviceRemoteCommands
 	err = json.Unmarshal(w.Body.Bytes(), &commandResponse)
 	require.NoError(t, err)
 	assert.NotZero(t, commandResponse.ID)
 	commandID := commandResponse.ID
 
 	// 6. Report an alert
-	alert := models.Alert{
+	alert := models.DeviceAlerts{
 		DeviceID:  deviceID,
 		Type:      "security",
 		Level:     "critical",
@@ -234,7 +234,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var processesResponse []models.Process
+	var processesResponse []models.DeviceProcesses
 	err = json.Unmarshal(w.Body.Bytes(), &processesResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(processesResponse), 2)
@@ -246,7 +246,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var activitiesResponse []models.ActivityLog
+	var activitiesResponse []models.DeviceActivities
 	err = json.Unmarshal(w.Body.Bytes(), &activitiesResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(activitiesResponse), 1)
@@ -258,7 +258,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var alertsResponse []models.Alert
+	var alertsResponse []models.DeviceAlerts
 	err = json.Unmarshal(w.Body.Bytes(), &alertsResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(alertsResponse), 1)
@@ -270,13 +270,13 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var commandsResponse []models.RemoteCommand
+	var commandsResponse []models.DeviceRemoteCommands
 	err = json.Unmarshal(w.Body.Bytes(), &commandsResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(commandsResponse), 1)
 
 	// 13. Update command status
-	statusUpdate := models.RemoteCommand{
+	statusUpdate := models.DeviceRemoteCommands{
 		ID:     commandID,
 		Status: "completed",
 		Result: "total 24\ndrwxr-xr-x 3 user user 4096 Nov  3 10:00 .",
@@ -290,7 +290,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var updateResponse models.RemoteCommand
+	var updateResponse models.DeviceRemoteCommands
 	err = json.Unmarshal(w.Body.Bytes(), &updateResponse)
 	require.NoError(t, err)
 	assert.Equal(t, "completed", updateResponse.Status)
@@ -403,7 +403,7 @@ func TestAlertFlowIntegration(t *testing.T) {
 	}
 
 	for _, alertTest := range alertTests {
-		alert := models.Alert{
+		alert := models.DeviceAlerts{
 			DeviceID:  deviceID,
 			Type:      alertTest.alertType,
 			Level:     alertTest.level,
@@ -429,7 +429,7 @@ func TestAlertFlowIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var alertsResponse []models.Alert
+	var alertsResponse []models.DeviceAlerts
 	err := json.Unmarshal(w.Body.Bytes(), &alertsResponse)
 	require.NoError(t, err)
 	assert.Equal(t, len(alertTests), len(alertsResponse))

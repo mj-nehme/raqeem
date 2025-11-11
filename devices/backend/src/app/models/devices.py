@@ -41,7 +41,7 @@ class DeviceMetrics(Base):
     net_bytes_out = Column(BigInteger, nullable=True)
 
 
-class Process(Base):
+class DeviceProcesses(Base):
     __tablename__ = "device_processes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -54,8 +54,8 @@ class Process(Base):
     command = Column(Text, nullable=True)
 
 
-class ActivityLog(Base):
-    __tablename__ = "device_activity"
+class DeviceActivities(Base):
+    __tablename__ = "device_activities"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     device_id = Column(String, nullable=False)
@@ -66,7 +66,7 @@ class ActivityLog(Base):
     duration = Column(Integer, nullable=True)
 
 
-class Alert(Base):
+class DeviceAlerts(Base):
     __tablename__ = "device_alerts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -79,7 +79,7 @@ class Alert(Base):
     threshold = Column(Float, nullable=True)
 
 
-class RemoteCommand(Base):
+class DeviceRemoteCommands(Base):
     __tablename__ = "remote_commands"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -92,7 +92,7 @@ class RemoteCommand(Base):
     exit_code = Column(Integer, nullable=True)
 
 
-class DeviceScreenshot(Base):
+class DeviceScreenshots(Base):
     __tablename__ = "device_screenshots"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

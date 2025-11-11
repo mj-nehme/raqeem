@@ -30,11 +30,11 @@ func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 	deviceID := "test-device-commands-sqlite"
 
 	// Clean up any existing commands for this device
-	db.Where("device_id = ?", deviceID).Delete(&models.RemoteCommand{})
+	db.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommands{})
 
 	// Create multiple commands
 	for i := 0; i < 5; i++ {
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID:  deviceID,
 			Command:   "test_cmd",
 			Status:    "completed",
@@ -53,7 +53,7 @@ func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var commands []models.RemoteCommand
+		var commands []models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &commands)
 		assert.NoError(t, err)
 		assert.Equal(t, 5, len(commands))
@@ -69,7 +69,7 @@ func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var commands []models.RemoteCommand
+		var commands []models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &commands)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(commands))
@@ -96,7 +96,7 @@ func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var commands []models.RemoteCommand
+		var commands []models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &commands)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(commands))
@@ -117,7 +117,7 @@ func TestStoreScreenshotWithSQLite(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		screenshot := models.Screenshot{
+		screenshot := models.DeviceScreenshots{
 			DeviceID: "test-device-screenshot",
 			Path:     "https://example.com/screenshot.png",
 		}
@@ -129,7 +129,7 @@ func TestStoreScreenshotWithSQLite(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.Screenshot
+		var result models.DeviceScreenshots
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "test-device-screenshot", result.DeviceID)
@@ -166,7 +166,7 @@ func TestStoreScreenshotWithSQLite(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		screenshot := models.Screenshot{
+		screenshot := models.DeviceScreenshots{
 			DeviceID: "test-device-full",
 			Path:     "s3://bucket/screenshots/test.png",
 		}
@@ -178,7 +178,7 @@ func TestStoreScreenshotWithSQLite(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.Screenshot
+		var result models.DeviceScreenshots
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "test-device-full", result.DeviceID)
@@ -219,7 +219,7 @@ func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: "test-device-forward",
 			Command:  "get_info",
 		}
@@ -231,7 +231,7 @@ func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.RemoteCommand
+		var result models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "pending", result.Status)
@@ -247,7 +247,7 @@ func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: "test-device-no-forward",
 			Command:  "get_status",
 		}
@@ -259,7 +259,7 @@ func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.RemoteCommand
+		var result models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "pending", result.Status)
@@ -271,7 +271,7 @@ func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: "test-device-fail",
 			Command:  "get_info",
 		}
@@ -299,7 +299,7 @@ func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		cmd := models.RemoteCommand{
+		cmd := models.DeviceRemoteCommands{
 			DeviceID: "test-device-error",
 			Command:  "get_info",
 		}
@@ -327,7 +327,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 	database.DB = db
 
 	// Create a test command
-	testCmd := models.RemoteCommand{
+	testCmd := models.DeviceRemoteCommands{
 		DeviceID:  "test-device-update",
 		Command:   "test_command",
 		Status:    "pending",
@@ -339,7 +339,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		updateCmd := models.RemoteCommand{
+		updateCmd := models.DeviceRemoteCommands{
 			ID:       testCmd.ID,
 			Status:   "completed",
 			Result:   "success",
@@ -353,7 +353,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.RemoteCommand
+		var result models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "completed", result.Status)
@@ -362,7 +362,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 
 	t.Run("Update status to failed", func(t *testing.T) {
 		// Create another test command
-		failCmd := models.RemoteCommand{
+		failCmd := models.DeviceRemoteCommands{
 			DeviceID:  "test-device-fail",
 			Command:   "fail_command",
 			Status:    "pending",
@@ -373,7 +373,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		updateCmd := models.RemoteCommand{
+		updateCmd := models.DeviceRemoteCommands{
 			ID:       failCmd.ID,
 			Status:   "failed",
 			Result:   "error occurred",
@@ -387,7 +387,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.RemoteCommand
+		var result models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "failed", result.Status)
@@ -396,7 +396,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 
 	t.Run("Update status to running (no CompletedAt)", func(t *testing.T) {
 		// Create another test command
-		runCmd := models.RemoteCommand{
+		runCmd := models.DeviceRemoteCommands{
 			DeviceID:  "test-device-run",
 			Command:   "run_command",
 			Status:    "pending",
@@ -407,7 +407,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		updateCmd := models.RemoteCommand{
+		updateCmd := models.DeviceRemoteCommands{
 			ID:     runCmd.ID,
 			Status: "running",
 		}
@@ -419,7 +419,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.RemoteCommand
+		var result models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "running", result.Status)

@@ -100,8 +100,8 @@ func TestUpdateDeviceMetricsEdgeCases(t *testing.T) {
 	})
 }
 
-// TestLogActivityEdgeCases tests LogActivity with edge cases
-func TestLogActivityEdgeCases(t *testing.T) {
+// TestActivityEdgeCases tests Activity with edge cases
+func TestActivityEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -112,7 +112,7 @@ func TestLogActivityEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		activity := models.ActivityLog{
+		activity := models.DeviceActivities{
 			DeviceID:    "test-device-activity",
 			Type:        "app_launch",
 			Description: "Launched Chrome",
@@ -122,7 +122,7 @@ func TestLogActivityEdgeCases(t *testing.T) {
 		c.Request, _ = http.NewRequest("POST", "/activity", bytes.NewReader(b))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		LogActivity(c)
+		Activity(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
@@ -134,7 +134,7 @@ func TestLogActivityEdgeCases(t *testing.T) {
 		c.Request, _ = http.NewRequest("POST", "/activity", bytes.NewBufferString("{bad}"))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		LogActivity(c)
+		Activity(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -155,7 +155,7 @@ func TestUpdateProcessListAdditionalEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 
-		processes := []models.Process{
+		processes := []models.DeviceProcesses{
 			{DeviceID: deviceID, PID: 1234, Name: "process1"},
 			{DeviceID: deviceID, PID: 5678, Name: "process2"},
 		}
@@ -284,8 +284,8 @@ func TestGetDeviceMetricsEdgeCases(t *testing.T) {
 	})
 }
 
-// TestGetDeviceProcessesEdgeCases tests GetDeviceProcesses with edge cases
-func TestGetDeviceProcessesEdgeCases(t *testing.T) {
+// TestGetDeviceProcessesesEdgeCases tests GetDeviceProcesseses with edge cases
+func TestGetDeviceProcessesesEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -295,7 +295,7 @@ func TestGetDeviceProcessesEdgeCases(t *testing.T) {
 	deviceID := "test-device-get-processes"
 
 	// Create test processes
-	processes := []models.Process{
+	processes := []models.DeviceProcesses{
 		{DeviceID: deviceID, PID: 1000, Name: "proc1"},
 		{DeviceID: deviceID, PID: 2000, Name: "proc2"},
 	}
@@ -309,11 +309,11 @@ func TestGetDeviceProcessesEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/processes", nil)
 
-		GetDeviceProcesses(c)
+		GetDeviceProcesseses(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result []models.Process
+		var result []models.DeviceProcesses
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.GreaterOrEqual(t, len(result), 2)
@@ -332,7 +332,7 @@ func TestGetDeviceActivitiesEdgeCases(t *testing.T) {
 
 	// Create test activities
 	for i := 0; i < 3; i++ {
-		activity := models.ActivityLog{
+		activity := models.DeviceActivities{
 			DeviceID:    deviceID,
 			Type:        "test",
 			Description: "Test activity",
@@ -353,8 +353,8 @@ func TestGetDeviceActivitiesEdgeCases(t *testing.T) {
 	})
 }
 
-// TestGetDeviceAlertsEdgeCases tests GetDeviceAlerts
-func TestGetDeviceAlertsEdgeCases(t *testing.T) {
+// TestGetDeviceAlertssEdgeCases tests GetDeviceAlertss
+func TestGetDeviceAlertssEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -365,7 +365,7 @@ func TestGetDeviceAlertsEdgeCases(t *testing.T) {
 
 	// Create test alerts
 	for i := 0; i < 3; i++ {
-		alert := models.Alert{
+		alert := models.DeviceAlerts{
 			DeviceID:  deviceID,
 			Level:     "info",
 			Type:      "test",
@@ -381,14 +381,14 @@ func TestGetDeviceAlertsEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts?limit=2", nil)
 
-		GetDeviceAlerts(c)
+		GetDeviceAlertss(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
 
-// TestGetDeviceScreenshotsEdgeCases tests GetDeviceScreenshots
-func TestGetDeviceScreenshotsEdgeCases(t *testing.T) {
+// TestGetDeviceScreenshotssEdgeCases tests GetDeviceScreenshotss
+func TestGetDeviceScreenshotssEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -399,7 +399,7 @@ func TestGetDeviceScreenshotsEdgeCases(t *testing.T) {
 
 	// Create test screenshots
 	for i := 0; i < 3; i++ {
-		screenshot := models.Screenshot{
+		screenshot := models.DeviceScreenshots{
 			DeviceID:  deviceID,
 			Path:      "/path/to/screenshot",
 			Timestamp: time.Now().Add(time.Duration(-i) * time.Hour),
@@ -413,7 +413,7 @@ func TestGetDeviceScreenshotsEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/screenshots?limit=2", nil)
 
-		GetDeviceScreenshots(c)
+		GetDeviceScreenshotss(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
@@ -430,7 +430,7 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 	deviceID := "test-device-pending"
 
 	// Create test commands
-	commands := []models.RemoteCommand{
+	commands := []models.DeviceRemoteCommands{
 		{DeviceID: deviceID, Command: "cmd1", Status: "pending"},
 		{DeviceID: deviceID, Command: "cmd2", Status: "completed"},
 		{DeviceID: deviceID, Command: "cmd3", Status: "pending"},
@@ -449,7 +449,7 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result []models.RemoteCommand
+		var result []models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(result))
@@ -468,7 +468,7 @@ func TestReportAlertEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		alert := models.Alert{
+		alert := models.DeviceAlerts{
 			DeviceID: "test-device-alert",
 			Level:    "warning",
 			Type:     "cpu_high",

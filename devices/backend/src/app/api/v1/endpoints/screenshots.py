@@ -50,7 +50,7 @@ async def create_screenshot(
         db.add(obj)
         
         # Also store in device_screenshots table with proper schema
-        device_screenshot = dev_models.DeviceScreenshot(
+        device_screenshot = dev_models.DeviceScreenshots(
             device_id=device_id,
             path=filename,
             resolution=DEFAULT_SCREENSHOT_RESOLUTION,

@@ -80,9 +80,9 @@ func UpdateDeviceMetrics(c *gin.Context) {
 	c.JSON(http.StatusOK, metrics)
 }
 
-// LogActivity stores a new activity log entry
-func LogActivity(c *gin.Context) {
-	var activity models.ActivityLog
+// Activity stores a new activity log entry
+func Activity(c *gin.Context) {
+	var activity models.DeviceActivities
 	if err := c.BindJSON(&activity); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -100,7 +100,7 @@ func LogActivity(c *gin.Context) {
 
 // UpdateProcessList stores the current process list
 func UpdateProcessList(c *gin.Context) {
-	var processes []models.Process
+	var processes []models.DeviceProcesses
 	if err := c.BindJSON(&processes); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -111,7 +111,7 @@ func UpdateProcessList(c *gin.Context) {
 
 	// Delete old processes for this device
 	if len(processes) > 0 {
-		if err := tx.Where("device_id = ?", processes[0].DeviceID).Delete(&models.Process{}).Error; err != nil {
+		if err := tx.Where("device_id = ?", processes[0].DeviceID).Delete(&models.DeviceProcesses{}).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -195,8 +195,8 @@ func GetDeviceMetrics(c *gin.Context) {
 	c.JSON(http.StatusOK, metrics)
 }
 
-// GetDeviceProcesses returns latest known processes for a specific device
-func GetDeviceProcesses(c *gin.Context) {
+// GetDeviceProcesseses returns latest known processes for a specific device
+func GetDeviceProcesseses(c *gin.Context) {
 	deviceID := c.Param("id")
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -206,7 +206,7 @@ func GetDeviceProcesses(c *gin.Context) {
 		}
 	}
 
-	processes := make([]models.Process, 0)
+	processes := make([]models.DeviceProcesses, 0)
 	// Return most recent snapshot of processes for device (ordered by cpu desc, then timestamp desc)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc, cpu desc").
@@ -230,7 +230,7 @@ func GetDeviceActivities(c *gin.Context) {
 		}
 	}
 
-	logs := make([]models.ActivityLog, 0)
+	logs := make([]models.DeviceActivities, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -242,18 +242,18 @@ func GetDeviceActivities(c *gin.Context) {
 	c.JSON(http.StatusOK, logs)
 }
 
-// GetDeviceAlerts returns recent alerts for a device
+// GetDeviceAlertss returns recent alerts for a device
 // @Summary Get device alerts
 // @Description Get recent alerts for a specific device
 // @Tags devices
 // @Produce json
 // @Param id path string true "Device ID"
 // @Param limit query int false "Number of records to return" default(100)
-// @Success 200 {array} models.Alert
+// @Success 200 {array} models.DeviceAlerts
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /devices/{id}/alerts [get]
-func GetDeviceAlerts(c *gin.Context) {
+func GetDeviceAlertss(c *gin.Context) {
 	deviceID := c.Param("id")
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -263,7 +263,7 @@ func GetDeviceAlerts(c *gin.Context) {
 		}
 	}
 
-	alerts := make([]models.Alert, 0)
+	alerts := make([]models.DeviceAlerts, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -275,8 +275,8 @@ func GetDeviceAlerts(c *gin.Context) {
 	c.JSON(http.StatusOK, alerts)
 }
 
-// GetDeviceScreenshots returns recent screenshots metadata for a device
-func GetDeviceScreenshots(c *gin.Context) {
+// GetDeviceScreenshotss returns recent screenshots metadata for a device
+func GetDeviceScreenshotss(c *gin.Context) {
 	deviceID := c.Param("id")
 	limit := 50
 	if l := c.Query("limit"); l != "" {
@@ -286,7 +286,7 @@ func GetDeviceScreenshots(c *gin.Context) {
 		}
 	}
 
-	shots := make([]models.Screenshot, 0)
+	shots := make([]models.DeviceScreenshots, 0)
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("timestamp desc").
 		Limit(limit).
@@ -318,7 +318,7 @@ func GetDeviceScreenshots(c *gin.Context) {
 
 // CreateRemoteCommand queues a command for execution on a device
 func CreateRemoteCommand(c *gin.Context) {
-	var cmd models.RemoteCommand
+	var cmd models.DeviceRemoteCommands
 	if err := c.BindJSON(&cmd); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -372,7 +372,7 @@ func CreateRemoteCommand(c *gin.Context) {
 func GetPendingCommands(c *gin.Context) {
 	deviceID := c.Param("id")
 
-	commands := make([]models.RemoteCommand, 0)
+	commands := make([]models.DeviceRemoteCommands, 0)
 	if err := database.DB.Where("device_id = ? AND status = ?", deviceID, "pending").
 		Find(&commands).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -393,7 +393,7 @@ func GetDeviceCommands(c *gin.Context) {
 		}
 	}
 
-	var commands []models.RemoteCommand
+	var commands []models.DeviceRemoteCommands
 	if err := database.DB.Where("device_id = ?", deviceID).
 		Order("created_at desc").
 		Limit(limit).
@@ -407,7 +407,7 @@ func GetDeviceCommands(c *gin.Context) {
 
 // UpdateCommandStatus updates command execution status
 func UpdateCommandStatus(c *gin.Context) {
-	var cmd models.RemoteCommand
+	var cmd models.DeviceRemoteCommands
 	if err := c.BindJSON(&cmd); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -417,7 +417,7 @@ func UpdateCommandStatus(c *gin.Context) {
 		cmd.CompletedAt = time.Now()
 	}
 
-	if err := database.DB.Model(&models.RemoteCommand{}).
+	if err := database.DB.Model(&models.DeviceRemoteCommands{}).
 		Where("id = ?", cmd.ID).
 		Updates(map[string]interface{}{
 			"status":       cmd.Status,
@@ -434,7 +434,7 @@ func UpdateCommandStatus(c *gin.Context) {
 
 // ReportAlert stores a new device alert
 func ReportAlert(c *gin.Context) {
-	var alert models.Alert
+	var alert models.DeviceAlerts
 	if err := c.BindJSON(&alert); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -452,7 +452,7 @@ func ReportAlert(c *gin.Context) {
 
 // StoreScreenshot stores screenshot metadata forwarded from devices backend
 func StoreScreenshot(c *gin.Context) {
-	var screenshot models.Screenshot
+	var screenshot models.DeviceScreenshots
 	if err := c.BindJSON(&screenshot); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -467,4 +467,14 @@ func StoreScreenshot(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, screenshot)
+}
+
+// ListActivities returns all device activities (global, not per device)
+func ListActivities(c *gin.Context) {
+	var activities []models.DeviceActivities
+	if err := database.DB.Order("timestamp desc").Find(&activities).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, activities)
 }

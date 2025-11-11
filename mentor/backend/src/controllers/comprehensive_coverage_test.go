@@ -105,7 +105,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 
-		processes := []models.Process{
+		processes := []models.DeviceProcesses{
 			{DeviceID: deviceID, PID: 100, Name: "process-1", CPU: 10.5},
 			{DeviceID: deviceID, PID: 200, Name: "process-2", CPU: 20.5},
 			{DeviceID: deviceID, PID: 300, Name: "process-3", CPU: 30.5},
@@ -120,7 +120,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 
 		// Verify processes were created
 		var count int64
-		db.Model(&models.Process{}).Where("device_id = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceProcesses{}).Where("device_id = ?", deviceID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 
@@ -130,7 +130,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 		c1, _ := gin.CreateTestContext(w1)
 		c1.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 
-		processes1 := []models.Process{
+		processes1 := []models.DeviceProcesses{
 			{DeviceID: deviceID, PID: 400, Name: "new-process-1"},
 		}
 		b1, _ := json.Marshal(processes1)
@@ -142,7 +142,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 
 		// Verify old processes are gone and new process exists
 		var count int64
-		db.Model(&models.Process{}).Where("device_id = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceProcesses{}).Where("device_id = ?", deviceID).Count(&count)
 		assert.Equal(t, int64(1), count)
 	})
 
@@ -151,7 +151,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 
-		processes := []models.Process{}
+		processes := []models.DeviceProcesses{}
 		b, _ := json.Marshal(processes)
 		c.Request, _ = http.NewRequest("POST", "/devices/"+deviceID+"/processes", bytes.NewReader(b))
 		c.Request.Header.Set("Content-Type", "application/json")
@@ -173,7 +173,7 @@ func TestGetPendingCommandsAdvanced(t *testing.T) {
 	deviceID := "test-device-pending-cmds"
 
 	// Create commands with various statuses
-	commands := []models.RemoteCommand{
+	commands := []models.DeviceRemoteCommands{
 		{DeviceID: deviceID, Command: "cmd1", Status: "pending", CreatedAt: time.Now()},
 		{DeviceID: deviceID, Command: "cmd2", Status: "completed", CreatedAt: time.Now()},
 		{DeviceID: deviceID, Command: "cmd3", Status: "pending", CreatedAt: time.Now()},
@@ -196,7 +196,7 @@ func TestGetPendingCommandsAdvanced(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result []models.RemoteCommand
+		var result []models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, 3, len(result)) // Only 3 pending commands for this device
@@ -218,7 +218,7 @@ func TestGetPendingCommandsAdvanced(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result []models.RemoteCommand
+		var result []models.DeviceRemoteCommands
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, 0, len(result))
@@ -237,7 +237,7 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		screenshot := models.Screenshot{
+		screenshot := models.DeviceScreenshots{
 			DeviceID:  "test-device-screenshot",
 			Path:      "s3://bucket/screenshots/test.png",
 			Timestamp: time.Now(),
@@ -250,7 +250,7 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.Screenshot
+		var result models.DeviceScreenshots
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "test-device-screenshot", result.DeviceID)
@@ -262,7 +262,7 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
-			screenshot := models.Screenshot{
+			screenshot := models.DeviceScreenshots{
 				DeviceID: "test-device-multi",
 				Path:     "s3://bucket/screenshots/test-" + strconv.Itoa(i) + ".png",
 			}
@@ -277,13 +277,13 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 
 		// Verify all screenshots were stored
 		var count int64
-		db.Model(&models.Screenshot{}).Where("device_id = ?", "test-device-multi").Count(&count)
+		db.Model(&models.DeviceScreenshots{}).Where("device_id = ?", "test-device-multi").Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }
 
-// TestLogActivityFullScenarios tests LogActivity with various scenarios
-func TestLogActivityFullScenarios(t *testing.T) {
+// TestActivityFullScenarios tests Activity with various scenarios
+func TestActivityFullScenarios(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -294,7 +294,7 @@ func TestLogActivityFullScenarios(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		activity := models.ActivityLog{
+		activity := models.DeviceActivities{
 			DeviceID:    "test-device-activity",
 			Type:        "app_launch",
 			Description: "Launched application",
@@ -306,12 +306,12 @@ func TestLogActivityFullScenarios(t *testing.T) {
 		c.Request, _ = http.NewRequest("POST", "/activity", bytes.NewReader(b))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		LogActivity(c)
+		Activity(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// Verify activity was stored
-		var storedActivity models.ActivityLog
+		var storedActivity models.DeviceActivities
 		db.Where("device_id = ?", "test-device-activity").First(&storedActivity)
 		assert.Equal(t, "app_launch", storedActivity.Type)
 		assert.Equal(t, "Chrome", storedActivity.App)
@@ -325,7 +325,7 @@ func TestLogActivityFullScenarios(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
-			activity := models.ActivityLog{
+			activity := models.DeviceActivities{
 				DeviceID:    deviceID,
 				Type:        actType,
 				Description: "Activity of type " + actType,
@@ -334,14 +334,14 @@ func TestLogActivityFullScenarios(t *testing.T) {
 			c.Request, _ = http.NewRequest("POST", "/activity", bytes.NewReader(b))
 			c.Request.Header.Set("Content-Type", "application/json")
 
-			LogActivity(c)
+			Activity(c)
 
 			assert.Equal(t, http.StatusOK, w.Code)
 		}
 
 		// Verify all activities were stored
 		var count int64
-		db.Model(&models.ActivityLog{}).Where("device_id = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceActivities{}).Where("device_id = ?", deviceID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }
@@ -358,7 +358,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		alert := models.Alert{
+		alert := models.DeviceAlerts{
 			DeviceID:  "test-device-alert",
 			Level:     "critical",
 			Type:      "disk_full",
@@ -375,7 +375,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w.Code)
 
 		// Verify alert was stored
-		var storedAlert models.Alert
+		var storedAlert models.DeviceAlerts
 		db.Where("device_id = ? AND type = ?", "test-device-alert", "disk_full").First(&storedAlert)
 		assert.Equal(t, "critical", storedAlert.Level)
 		assert.Equal(t, 98.0, storedAlert.Value)
@@ -389,7 +389,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
-			alert := models.Alert{
+			alert := models.DeviceAlerts{
 				DeviceID: deviceID,
 				Level:    "warning",
 				Type:     alertType,
@@ -407,7 +407,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 
 		// Verify all alerts were stored
 		var count int64
-		db.Model(&models.Alert{}).Where("device_id = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceAlerts{}).Where("device_id = ?", deviceID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }

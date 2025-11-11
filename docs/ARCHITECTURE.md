@@ -45,7 +45,7 @@ Raqeem is a full-stack IoT device monitoring platform built with microservices a
          │  - devices table                │
          │  - device_metrics table         │
          │  - device_processes table       │
-         │  - device_activity table        │
+         │  - device_activities table        │
          │  - device_alerts table          │
          │  - remote_commands table        │
          │  - screenshots table            │
@@ -320,7 +320,7 @@ Running processes snapshot
 | memory | BigInt | Memory usage (bytes) |
 | command | Text | Full command line |
 
-#### 4. `device_activity` (Devices & Mentor)
+#### 4. `device_activities` (Devices & Mentor)
 User activity logs
 
 | Column | Type | Description |

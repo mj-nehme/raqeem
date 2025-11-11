@@ -21,12 +21,11 @@ func TestSetupTestDB(t *testing.T) {
 	tables := []interface{}{
 		&models.Device{},
 		&models.DeviceMetrics{},
-		&models.Process{},
-		&models.Activity{},
-		&models.ActivityLog{},
-		&models.RemoteCommand{},
-		&models.Screenshot{},
-		&models.Alert{},
+		&models.DeviceProcesses{},
+		&models.DeviceActivities{},
+		&models.DeviceRemoteCommands{},
+		&models.DeviceScreenshots{},
+		&models.DeviceAlerts{},
 	}
 
 	for _, table := range tables {
@@ -153,7 +152,7 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 	}
 	assert.NoError(t, db.Create(&metrics).Error)
 
-	process := models.Process{
+	process := models.DeviceProcesses{
 		DeviceID:  device.ID,
 		PID:       1234,
 		Name:      "test-process",
@@ -164,15 +163,7 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 	}
 	assert.NoError(t, db.Create(&process).Error)
 
-	activity := models.Activity{
-		UserID:    "testuser",
-		Location:  "office",
-		Filename:  "test.jpg",
-		Timestamp: time.Now(),
-	}
-	assert.NoError(t, db.Create(&activity).Error)
-
-	activityLog := models.ActivityLog{
+	activityLog := models.DeviceActivities{
 		DeviceID:    device.ID,
 		Type:        "app_launch",
 		Description: "Test activity",
@@ -182,7 +173,7 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 	}
 	assert.NoError(t, db.Create(&activityLog).Error)
 
-	command := models.RemoteCommand{
+	command := models.DeviceRemoteCommands{
 		DeviceID:  device.ID,
 		Command:   "test command",
 		Status:    "pending",
@@ -190,7 +181,7 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 	}
 	assert.NoError(t, db.Create(&command).Error)
 
-	screenshot := models.Screenshot{
+	screenshot := models.DeviceScreenshots{
 		DeviceID:   device.ID,
 		Path:       "/path/to/screenshot.jpg",
 		Resolution: "1920x1080",
@@ -199,7 +190,7 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 	}
 	assert.NoError(t, db.Create(&screenshot).Error)
 
-	alert := models.Alert{
+	alert := models.DeviceAlerts{
 		DeviceID:  device.ID,
 		Type:      "security",
 		Level:     "critical",
@@ -219,22 +210,22 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 	db.Model(&models.DeviceMetrics{}).Count(&count)
 	assert.GreaterOrEqual(t, count, int64(1))
 
-	db.Model(&models.Process{}).Count(&count)
+	db.Model(&models.DeviceProcesses{}).Count(&count)
 	assert.GreaterOrEqual(t, count, int64(1))
 
-	db.Model(&models.Activity{}).Count(&count)
+	db.Model(&models.DeviceActivities{}).Count(&count)
 	assert.GreaterOrEqual(t, count, int64(1))
 
-	db.Model(&models.ActivityLog{}).Count(&count)
+	db.Model(&models.DeviceActivities{}).Count(&count)
 	assert.GreaterOrEqual(t, count, int64(1))
 
-	db.Model(&models.RemoteCommand{}).Count(&count)
+	db.Model(&models.DeviceRemoteCommands{}).Count(&count)
 	assert.GreaterOrEqual(t, count, int64(1))
 
-	db.Model(&models.Screenshot{}).Count(&count)
+	db.Model(&models.DeviceScreenshots{}).Count(&count)
 	assert.GreaterOrEqual(t, count, int64(1))
 
-	db.Model(&models.Alert{}).Count(&count)
+	db.Model(&models.DeviceAlerts{}).Count(&count)
 	assert.GreaterOrEqual(t, count, int64(1))
 }
 
@@ -502,7 +493,7 @@ func TestAddActivityLogAndCheckExistence(t *testing.T) {
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
-	activity := models.ActivityLog{
+	activity := models.DeviceActivities{
 		DeviceID:    "test-device-activity",
 		Type:        "app_launch",
 		Description: "User launched Chrome",
@@ -516,7 +507,7 @@ func TestAddActivityLogAndCheckExistence(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Check existence
-	var found models.ActivityLog
+	var found models.DeviceActivities
 	err = db.Where("device_id = ? AND type = ?", "test-device-activity", "app_launch").First(&found).Error
 	assert.NoError(t, err)
 	assert.Equal(t, "chrome", found.App)
