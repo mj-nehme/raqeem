@@ -240,7 +240,7 @@ func TestGetDeviceProcessesesWithLimit(t *testing.T) {
 	assert.Equal(t, 5, len(processes))
 }
 
-func TestGetDeviceAlertssWithLimit(t *testing.T) {
+func TestGetDeviceAlertsWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -281,7 +281,7 @@ func TestGetDeviceAlertssWithLimit(t *testing.T) {
 	assert.Equal(t, 4, len(alerts))
 }
 
-func TestGetDeviceScreenshotssWithLimit(t *testing.T) {
+func TestGetDeviceScreenshotsWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 

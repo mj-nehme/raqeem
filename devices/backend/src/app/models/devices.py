@@ -80,7 +80,7 @@ class DeviceAlerts(Base):
 
 
 class DeviceRemoteCommands(Base):
-    __tablename__ = "remote_commands"
+    __tablename__ = "device_remote_commands"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     device_id = Column(String, nullable=False)

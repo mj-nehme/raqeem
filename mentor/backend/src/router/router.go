@@ -93,8 +93,8 @@ func (r *Router) setupDeviceRoutes() {
 	r.engine.GET("/devices/:id/metrics", controllers.GetDeviceMetrics)
 	r.engine.GET("/devices/:id/processes", controllers.GetDeviceProcesseses)
 	r.engine.GET("/devices/:id/activities", controllers.GetDeviceActivities)
-	r.engine.GET("/devices/:id/alerts", controllers.GetDeviceAlertss)
-	r.engine.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshotss)
+	r.engine.GET("/devices/:id/alerts", controllers.GetDeviceAlerts)
+	r.engine.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshots)
 	r.engine.GET("/devices/:id/commands/pending", controllers.GetPendingCommands)
 	r.engine.GET("/devices/:id/commands", controllers.GetDeviceCommands)
 

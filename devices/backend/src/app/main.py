@@ -4,18 +4,11 @@ from app.api.routes import api_router
 from app.db.init_db import init_db
 from app.core.cors import setup_cors
 
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-	# Startup
-	try:
-		await init_db()
-	except Exception:
-		# don't block startup if init fails here (DB may be initialized separately)
-		pass
-	yield
-	# Shutdown: nothing to clean up currently
-
+    # Startup
+    yield
+    # Shutdown: nothing to clean up currently
 
 app = FastAPI(
 	title="Raqeem Devices Backend API",

@@ -66,10 +66,6 @@ tags:
     description: Running processes information
   - name: users
     description: User management (legacy)
-  - name: locations
-    description: Device location tracking (legacy)
-  - name: keystrokes
-    description: Keystroke logging (legacy)
 
 # Authentication (Future)
 # Currently, no authentication is required for MVP release.
@@ -423,38 +419,6 @@ paths:
                   data:
                     $ref: "#/components/schemas/UserCreate"
 
-  /locations/:
-    post:
-      tags:
-        - locations
-      summary: Log location (legacy)
-      operationId: createLocation
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/LocationCreate"
-      responses:
-        "200":
-          description: Location logged
-
-  /keystrokes/:
-    post:
-      tags:
-        - keystrokes
-      summary: Log keystroke (legacy)
-      operationId: createKeystroke
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/KeystrokeCreate"
-      responses:
-        "200":
-          description: Keystroke logged
-
 components:
   schemas:
     DeviceRegistration:
@@ -633,24 +597,6 @@ components:
         device_id:
           type: string
         name:
-          type: string
-
-    LocationCreate:
-      type: object
-      properties:
-        user_id:
-          type: string
-        latitude:
-          type: number
-        longitude:
-          type: number
-
-    KeystrokeCreate:
-      type: object
-      properties:
-        user_id:
-          type: string
-        key:
           type: string
 
     Error:

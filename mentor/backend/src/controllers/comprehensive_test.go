@@ -331,7 +331,7 @@ func TestGetDeviceActivities_QueryParameters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestGetDeviceAlertss_QueryParameters(t *testing.T) {
+func TestGetDeviceAlerts_QueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -352,7 +352,7 @@ func TestGetDeviceAlertss_QueryParameters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestGetDeviceScreenshotss_QueryParameters(t *testing.T) {
+func TestGetDeviceScreenshots_QueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 

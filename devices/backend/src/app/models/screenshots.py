@@ -5,7 +5,7 @@ import sqlalchemy.sql as sa
 import uuid
 
 class Screenshot(Base):
-    __tablename__ = "screenshots"
+    __tablename__ = "device_screenshots"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     # Store user_id as plain text to avoid strict FK/UUID constraints for tests

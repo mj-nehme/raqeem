@@ -1,7 +1,7 @@
 FROM python:3.10-slim
 
 # Version and metadata
-LABEL version="0.0.4"
+LABEL version="0.0.6"
 LABEL description="Raqeem Devices Backend - FastAPI IoT device monitoring service"
 
 # Set working directory

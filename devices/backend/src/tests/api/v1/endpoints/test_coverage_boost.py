@@ -6,17 +6,6 @@ import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
 
-
-# Test keystrokes GET endpoint
-@pytest.mark.asyncio
-async def test_get_keystrokes_list():
-    """Test GET /api/v1/keystrokes/ endpoint returns list."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/api/v1/keystrokes/")
-        assert response.status_code == 200
-        assert isinstance(response.json(), list)
-
-
 # Test users GET endpoint
 @pytest.mark.asyncio
 async def test_get_users_list():
@@ -70,15 +59,5 @@ async def test_get_devices_alerts():
     """Test GET /api/v1/devices/alerts endpoint returns list."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get("/api/v1/devices/alerts")
-        assert response.status_code == 200
-        assert isinstance(response.json(), list)
-
-
-# Test locations GET endpoint
-@pytest.mark.asyncio
-async def test_get_locations_list():
-    """Test GET /api/v1/locations/ endpoint returns list."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/api/v1/locations/")
         assert response.status_code == 200
         assert isinstance(response.json(), list)

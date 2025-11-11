@@ -353,8 +353,8 @@ func TestGetDeviceActivitiesEdgeCases(t *testing.T) {
 	})
 }
 
-// TestGetDeviceAlertssEdgeCases tests GetDeviceAlertss
-func TestGetDeviceAlertssEdgeCases(t *testing.T) {
+// TestGetDeviceAlertsEdgeCases tests GetDeviceAlerts
+func TestGetDeviceAlertsEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -381,14 +381,14 @@ func TestGetDeviceAlertssEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts?limit=2", nil)
 
-		GetDeviceAlertss(c)
+		GetDeviceAlerts(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
 
-// TestGetDeviceScreenshotssEdgeCases tests GetDeviceScreenshotss
-func TestGetDeviceScreenshotssEdgeCases(t *testing.T) {
+// TestGetDeviceScreenshotsEdgeCases tests GetDeviceScreenshots
+func TestGetDeviceScreenshotsEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -413,7 +413,7 @@ func TestGetDeviceScreenshotssEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/screenshots?limit=2", nil)
 
-		GetDeviceScreenshotss(c)
+		GetDeviceScreenshots(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})

@@ -52,7 +52,7 @@ def random_metrics():
 
 def random_activity():
     return {
-        "activity_type": random.choice(["keystroke", "window_focus", "file_open"]),
+        "activity_type": random.choice(["RandomActivity", "window_focus", "file_open"]),
         "details": "simulated",
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }

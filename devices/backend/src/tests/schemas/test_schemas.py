@@ -1,70 +1,7 @@
 from uuid import uuid4
 from datetime import datetime
-from app.schemas.keystrokes import KeystrokeCreate, KeystrokeOut
-from app.schemas.locations import LocationCreate, LocationOut
 from app.schemas.screenshots import ScreenshotCreate, ScreenshotOut
 from app.schemas.users import UserCreate, UserOut
-
-
-class TestKeystrokeSchemas:
-    """Test keystroke schemas."""
-    
-    def test_keystroke_create(self):
-        """Test creating KeystrokeCreate schema."""
-        user_id = uuid4()
-        data = KeystrokeCreate(
-            user_id=user_id,
-            keylog="a"
-        )
-        assert data.user_id == user_id
-        assert data.keylog == "a"
-    
-    def test_keystroke_out(self):
-        """Test creating KeystrokeOut schema."""
-        user_id = uuid4()
-        keystroke_id = uuid4()
-        now = datetime.now()
-        data = KeystrokeOut(
-            id=keystroke_id,
-            user_id=user_id,
-            keylog="Enter",
-            logged_at=now
-        )
-        assert data.id == keystroke_id
-        assert data.keylog == "Enter"
-        assert data.logged_at == now
-
-
-class TestLocationSchemas:
-    """Test location schemas."""
-    
-    def test_location_create(self):
-        """Test creating LocationCreate schema."""
-        user_id = uuid4()
-        data = LocationCreate(
-            user_id=user_id,
-            latitude=51.5074,
-            longitude=-0.1278
-        )
-        assert data.user_id == user_id
-        assert data.latitude == 51.5074
-        assert data.longitude == -0.1278
-    
-    def test_location_out(self):
-        """Test creating LocationOut schema."""
-        user_id = uuid4()
-        location_id = uuid4()
-        now = datetime.now()
-        data = LocationOut(
-            id=location_id,
-            user_id=user_id,
-            latitude=40.7128,
-            longitude=-74.0060,
-            timestamp=now
-        )
-        assert data.id == location_id
-        assert data.latitude == 40.7128
-        assert data.timestamp == now
 
 
 class TestScreenshotSchemas:

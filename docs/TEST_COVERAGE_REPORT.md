@@ -37,8 +37,8 @@ This document provides a comprehensive overview of test coverage across all comp
 - GetDeviceMetrics: 100% ✅
 - GetDeviceProcesseses: 81.8%
 - GetDeviceActivities: 100% ✅
-- GetDeviceAlertss: 81.8%
-- GetDeviceScreenshotss: 86.7%
+- GetDeviceAlerts: 81.8%
+- GetDeviceScreenshots: 86.7%
 - CreateRemoteCommand: Improved with new tests ✅
 - GetPendingCommands: 66.7%
 - GetDeviceCommands: 81.8% ✅

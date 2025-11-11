@@ -1,5 +1,4 @@
 -- Modern schema initialization for Raqeem device monitoring
--- This replaces the old monitor.sql with schema matching current SQLAlchemy models
 -- Device-centric architecture using UUID primary keys with proper foreign key relationships
 
 -- Database setup
@@ -105,14 +104,6 @@ CREATE TABLE device_screenshots (
     screenshot_size BIGINT
 );
 
--- Screenshots table for user-based screenshots (separate from device screenshots)
-CREATE TABLE device_screenshots (
-    screenshot_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
-    image_path TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
 -- Users table (simplified, no UUID foreign keys)
 CREATE TABLE users (
     user_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -120,24 +111,6 @@ CREATE TABLE users (
     name TEXT,
     created_at TIMESTAMP DEFAULT NOW()
 );
-
--- Locations table
-CREATE TABLE device_locations (
-    location_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
-    latitude DOUBLE PRECISION NOT NULL,
-    longitude DOUBLE PRECISION NOT NULL,
-    timestamp TIMESTAMP DEFAULT NOW()
-);
-
--- Keystrokes table
-CREATE TABLE device_keystrokes (
-    keystroke_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    user_id UUID NOT NULL,
-    keylog TEXT NOT NULL,
-    logged_at TIMESTAMP DEFAULT NOW()
-);
-
 
 -- Performance indexes
 CREATE INDEX idx_device_metrics_device_id ON device_metrics(device_id);
@@ -148,8 +121,6 @@ CREATE INDEX idx_device_alerts_device_id ON device_alerts(device_id);
 CREATE INDEX idx_device_screenshots_device_id ON device_screenshots(device_id);
 CREATE INDEX idx_remote_commands_device_id ON remote_commands(device_id);
 CREATE INDEX idx_screenshots_user_id ON screenshots(user_id);
-CREATE INDEX idx_locations_user_id ON locations(user_id);
-CREATE INDEX idx_keystrokes_user_id ON keystrokes(user_id);
 
 -- Foreign key constraints for referential integrity
 ALTER TABLE device_metrics ADD CONSTRAINT fk_device_metrics_device 
@@ -174,10 +145,4 @@ ALTER TABLE users ADD CONSTRAINT fk_users_device
     FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE;
 
 ALTER TABLE screenshots ADD CONSTRAINT fk_screenshots_user 
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
-
-ALTER TABLE locations ADD CONSTRAINT fk_locations_user 
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;
-
-ALTER TABLE keystrokes ADD CONSTRAINT fk_keystrokes_user 
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE;

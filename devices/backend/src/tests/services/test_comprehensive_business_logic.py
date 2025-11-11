@@ -208,56 +208,6 @@ class TestActivityService:
             assert result['total_activities'] == 3
             assert result['unique_apps'] == 2
 
-class TestLocationService:
-    """Test location service business logic."""
-    
-    def test_coordinate_validation(self):
-        """Test geographic coordinate validation."""
-        with patch('app.services.location_service.LocationService') as MockService:
-            service = MockService()
-            
-            # Valid coordinates
-            valid_coords = [
-                {'lat': 0, 'lng': 0},                    # Equator/Prime Meridian
-                {'lat': 40.7128, 'lng': -74.0060},       # New York City
-                {'lat': -33.8688, 'lng': 151.2093},      # Sydney
-                {'lat': 90, 'lng': 180},                 # North Pole, Date Line
-                {'lat': -90, 'lng': -180}                # South Pole, Date Line
-            ]
-            
-            for coord in valid_coords:
-                service.validate_coordinates = MagicMock(return_value=True)
-                assert service.validate_coordinates(coord['lat'], coord['lng']) is True
-                
-            # Invalid coordinates
-            invalid_coords = [
-                {'lat': 91, 'lng': 0},          # Latitude > 90
-                {'lat': -91, 'lng': 0},         # Latitude < -90
-                {'lat': 0, 'lng': 181},         # Longitude > 180
-                {'lat': 0, 'lng': -181}         # Longitude < -180
-            ]
-            
-            for coord in invalid_coords:
-                service.validate_coordinates = MagicMock(return_value=False)
-                assert service.validate_coordinates(coord['lat'], coord['lng']) is False
-                
-    def test_location_accuracy_validation(self):
-        """Test location accuracy validation."""
-        with patch('app.services.location_service.LocationService') as MockService:
-            service = MockService()
-            
-            # Valid accuracy values (in meters)
-            valid_accuracies = [1, 5, 10, 50, 100, 1000]
-            for accuracy in valid_accuracies:
-                service.validate_accuracy = MagicMock(return_value=True)
-                assert service.validate_accuracy(accuracy) is True
-                
-            # Invalid accuracy values
-            invalid_accuracies = [-1, 0, -100]  # Negative or zero
-            for accuracy in invalid_accuracies:
-                service.validate_accuracy = MagicMock(return_value=False)
-                assert service.validate_accuracy(accuracy) is False
-
 class TestSecurityService:
     """Test security-related business logic."""
     

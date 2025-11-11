@@ -63,13 +63,13 @@ func TestReportAndGetAlerts(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", w.Code)
 	}
 
-	// Prepare gin context for GetDeviceAlertss
+	// Prepare gin context for GetDeviceAlerts
 	w2 := httptest.NewRecorder()
 	c2, _ := gin.CreateTestContext(w2)
 	c2.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 	c2.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts", nil)
 
-	GetDeviceAlertss(c2)
+	GetDeviceAlerts(c2)
 	if w2.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w2.Code)
 	}
@@ -171,8 +171,8 @@ func TestEmptyArraySerialization(t *testing.T) {
 		}
 	})
 
-	// Test GetDeviceAlertss
-	t.Run("GetDeviceAlertss returns empty array", func(t *testing.T) {
+	// Test GetDeviceAlerts
+	t.Run("GetDeviceAlerts returns empty array", func(t *testing.T) {
 		if os.Getenv("POSTGRES_HOST") == "" {
 			t.Skip("POSTGRES_* env vars not set; skipping integration test")
 		}
@@ -183,7 +183,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts", nil)
 
-		GetDeviceAlertss(c)
+		GetDeviceAlerts(c)
 
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected status 200, got %d", w.Code)
@@ -191,7 +191,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 		body := w.Body.String()
 		if body == "null" {
-			t.Errorf("GetDeviceAlertss returned null instead of empty array")
+			t.Errorf("GetDeviceAlerts returned null instead of empty array")
 		}
 	})
 

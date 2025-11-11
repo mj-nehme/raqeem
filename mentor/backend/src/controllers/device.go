@@ -242,7 +242,7 @@ func GetDeviceActivities(c *gin.Context) {
 	c.JSON(http.StatusOK, logs)
 }
 
-// GetDeviceAlertss returns recent alerts for a device
+// GetDeviceAlerts returns recent alerts for a device
 // @Summary Get device alerts
 // @Description Get recent alerts for a specific device
 // @Tags devices
@@ -253,7 +253,7 @@ func GetDeviceActivities(c *gin.Context) {
 // @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /devices/{id}/alerts [get]
-func GetDeviceAlertss(c *gin.Context) {
+func GetDeviceAlerts(c *gin.Context) {
 	deviceID := c.Param("id")
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -275,8 +275,8 @@ func GetDeviceAlertss(c *gin.Context) {
 	c.JSON(http.StatusOK, alerts)
 }
 
-// GetDeviceScreenshotss returns recent screenshots metadata for a device
-func GetDeviceScreenshotss(c *gin.Context) {
+// GetDeviceScreenshots returns recent screenshots metadata for a device
+func GetDeviceScreenshots(c *gin.Context) {
 	deviceID := c.Param("id")
 	limit := 50
 	if l := c.Query("limit"); l != "" {
