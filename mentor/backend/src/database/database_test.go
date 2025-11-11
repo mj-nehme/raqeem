@@ -496,3 +496,29 @@ func TestDatabaseErrorHandling(t *testing.T) {
 	err = db.Where("id = ?", "nonexistent").First(&notFound).Error
 	assert.Error(t, err, "Should error when record not found")
 }
+
+func TestAddActivityLogAndCheckExistence(t *testing.T) {
+	db := SetupTestDB(t)
+	require.NotNil(t, db)
+	defer CleanupTestDB(t, db)
+
+	activity := models.ActivityLog{
+		DeviceID:    "test-device-activity",
+		Type:        "app_launch",
+		Description: "User launched Chrome",
+		App:         "chrome",
+		Duration:    120,
+		Timestamp:   time.Now(),
+	}
+
+	// Add activity to database
+	err := db.Create(&activity).Error
+	assert.NoError(t, err)
+
+	// Check existence
+	var found models.ActivityLog
+	err = db.Where("device_id = ? AND type = ?", "test-device-activity", "app_launch").First(&found).Error
+	assert.NoError(t, err)
+	assert.Equal(t, "chrome", found.App)
+	assert.Equal(t, "User launched Chrome", found.Description)
+}

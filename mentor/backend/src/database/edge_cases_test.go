@@ -43,12 +43,11 @@ func TestSetupTestDBAutoMigrationSuccess(t *testing.T) {
 	tables := []string{
 		"devices",
 		"device_metrics",
-		"processes",
-		"activities",
-		"activity_logs",
+		"device_processes",
+		"device_activity",
+		"device_alerts",
 		"remote_commands",
-		"screenshots",
-		"alerts",
+		"device_screenshots",
 	}
 
 	for _, table := range tables {

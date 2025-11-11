@@ -6,6 +6,15 @@
 DROP DATABASE IF EXISTS monitoring_db;
 CREATE DATABASE monitoring_db;
 
+-- Tables:
+-- devices
+-- device_metrics
+-- device_processes
+-- device_activity
+-- device_alerts
+-- remote_commands
+-- device_screenshots
+
 -- Enable UUID generation
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
