@@ -217,7 +217,7 @@ jobs:
           MINIO_SECRET_KEY: miniosecret
           MINIO_SECURE: "false"
           MENTOR_API_URL: http://127.0.0.1:8080
-        run: pytest -v --tb=short --cov=app --cov-report=xml:coverage.xml --cov-report=term || echo "⚠️ Python tests failed but continuing CI"
+        run: pytest -v --tb=short --cov=app --cov-report=xml:coverage.xml --cov-report=term --maxfail=1
       - name: Upload Python coverage to Codecov
         uses: codecov/codecov-action@v5
         continue-on-error: true
@@ -267,7 +267,7 @@ jobs:
           POSTGRES_DB: monitoring_db
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: "5432"
-        run: go test ./... -v -race -coverprofile=coverage.out || echo "⚠️ Go tests failed but continuing CI"
+        run: go test ./... -v -race -coverprofile=coverage.out
       - name: Upload Go coverage to Codecov
         uses: codecov/codecov-action@v5
         continue-on-error: true
@@ -312,7 +312,8 @@ jobs:
         working-directory: mentor/frontend
         env:
           VITE_MENTOR_API_URL: http://127.0.0.1:8080
-        run: npm run test:coverage -- --run || echo "⚠️ Mentor frontend tests failed but continuing CI"
+        run: npm run test:coverage -- --run
+
       - name: Upload Mentor Frontend coverage to Codecov
         uses: codecov/codecov-action@v5
         continue-on-error: true
@@ -357,7 +358,7 @@ jobs:
         working-directory: devices/frontend
         env:
           VITE_DEVICES_API_URL: http://127.0.0.1:8000
-        run: npm run test:coverage -- --run || echo "⚠️ Devices frontend tests failed but continuing CI"
+        run: npm run test:coverage -- --run
       - name: Upload Devices Frontend coverage to Codecov
         uses: codecov/codecov-action@v5
         continue-on-error: true
