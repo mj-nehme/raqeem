@@ -222,7 +222,7 @@ jobs:
         uses: codecov/codecov-action@v5
         continue-on-error: true
         with:
-          file: devices/backend/src/coverage.xml
+          files: devices/backend/src/coverage.xml
           flags: devices-backend
           name: devices-backend
           token: ${{ secrets.CODECOV_TOKEN }}

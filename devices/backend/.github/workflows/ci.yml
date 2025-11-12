@@ -17,7 +17,7 @@ jobs:
         image: postgres:15
         env:
           POSTGRES_USER: monitor
-          POSTGRES_PASSWORD: supersecret
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB: monitoring_db
         ports:
           - 5432:5432

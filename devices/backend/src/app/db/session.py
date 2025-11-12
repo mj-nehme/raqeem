@@ -13,7 +13,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL and "$(POSTGRES_PASSWORD)" in DATABASE_URL:
     # Construct from individual env vars
     user = os.getenv("POSTGRES_USER", "monitor")
-    password = os.getenv("POSTGRES_PASSWORD", "supersecret")
+    password = os.getenv("POSTGRES_PASSWORD", "password")
     host = os.getenv("POSTGRES_HOST", "localhost")
     port = os.getenv("POSTGRES_PORT", "5432")
     db = os.getenv("POSTGRES_DB", "monitoring_db")

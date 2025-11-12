@@ -43,16 +43,11 @@ func NewApp() *App {
 }
 
 // setupDatabase initializes the database connection and runs migrations
-// If DB is already set (for testing), it will use that instead of connecting
 func (a *App) setupDatabase() error {
-	// Only connect if DB is not already set (allows for dependency injection)
-	if a.DB == nil {
-		database.Connect()
-		a.DB = database.DB
-	}
+	database.Connect()
 
 	// Auto-migrate your models (include device-related models)
-	if err := a.DB.AutoMigrate(&models.Device{}, &models.DeviceMetric{}, &models.DeviceProcess{}, &models.DeviceActivity{}, &models.DeviceRemoteCommand{}, &models.DeviceScreenshot{}, &models.DeviceAlert{}, &models.User{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.Device{}, &models.DeviceMetric{}, &models.DeviceProcess{}, &models.DeviceActivity{}, &models.DeviceRemoteCommand{}, &models.DeviceScreenshot{}, &models.DeviceAlert{}, &models.User{}); err != nil {
 		return err
 	}
 	return nil

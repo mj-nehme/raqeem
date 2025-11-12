@@ -5,6 +5,8 @@ from unittest.mock import patch, AsyncMock
 from fastapi.testclient import TestClient
 from app.main import app
 
+sample_uuid = "550e8400-e29b-41d4-a716-446655440000"
+
 @pytest.fixture
 def client():
     """Create test client."""
@@ -25,16 +27,16 @@ class TestDeviceEndpoints:
     def test_register_device_success(self, client, mock_database):
         """Test successful device registration."""
         device_data = {
-            "id": "test-device-123",
-            "name": "Test Device",
-            "type": "laptop",
+            "deviceid": sample_uuid,
+            "device_name": "Test Device",
+            "device_type": "laptop",
             "os": "macOS",
-            "location": "Office"
+            "device_location": "Office"
         }
         
         response = client.post("/api/v1/devices/register", json=device_data)
         assert response.status_code in [200, 201, 422]  # Handle potential validation
-        
+
     def test_register_device_invalid_data(self, client):
         """Test device registration with invalid data."""
         invalid_data = {
@@ -49,9 +51,9 @@ class TestDeviceEndpoints:
         """Test getting devices list."""
         mock_database.fetch_all.return_value = [
             {
-                "id": "device-1",
-                "name": "Test Device 1",
-                "type": "laptop",
+                "deviceid": sample_uuid,
+                "device_name": "Test Device 1",
+                "device_type": "laptop",
                 "os": "macOS",
                 "is_online": True
             }
@@ -63,8 +65,8 @@ class TestDeviceEndpoints:
     def test_get_device_by_id(self, client, mock_database):
         """Test getting specific device."""
         mock_database.fetch_one.return_value = {
-            "id": "device-1",
-            "name": "Test Device",
+            "deviceid": sample_uuid,
+            "device_name": "Test Device",
             "type": "laptop"
         }
         
@@ -81,7 +83,7 @@ class TestDeviceEndpoints:
             "disk_total": 1099511627776
         }
         
-        response = client.post("/api/v1/devices/device-1/metrics", json=metrics_data)
+        response = client.post("/api/v1/devices/{sample_uuid}/metrics", json=metrics_data)
         assert response.status_code in [200, 201, 422]
         
     def test_update_metrics_invalid_data(self, client):
@@ -91,7 +93,7 @@ class TestDeviceEndpoints:
             "memory_used": "invalid"  # Invalid type
         }
         
-        response = client.post("/api/v1/devices/device-1/metrics", json=invalid_metrics)
+        response = client.post("/api/v1/devices/{sample_uuid}/metrics", json=invalid_metrics)
         assert response.status_code == 422
 
 class TestActivityEndpoints:
@@ -106,21 +108,21 @@ class TestActivityEndpoints:
             "duration": 3600
         }
         
-        response = client.post("/api/v1/devices/device-1/activities", json=activity_data)
+        response = client.post("/api/v1/devices/{sample_uuid}/activities", json=activity_data)
         assert response.status_code in [200, 201, 422]
         
     def test_get_device_activities(self, client, mock_database):
         """Test getting device activities."""
         mock_database.fetch_all.return_value = [
             {
-                "id": 1,
+                "activityid": 1,
                 "type": "app_launch",
                 "app": "chrome",
                 "description": "User launched Chrome"
             }
         ]
-        
-        response = client.get("/api/v1/devices/device-1/activities")
+
+        response = client.get(f"/api/v1/devices/{sample_uuid}/activities")
         assert response.status_code in [200, 422]
         
     def test_log_activity_invalid_type(self, client):
@@ -129,8 +131,8 @@ class TestActivityEndpoints:
             "type": "",  # Invalid empty type
             "app": "test-app"
         }
-        
-        response = client.post("/api/v1/devices/device-1/activities", json=invalid_activity)
+
+        response = client.post(f"/api/v1/devices/{sample_uuid}/activities", json=invalid_activity)
         assert response.status_code == 422
 
 class TestScreenshotEndpoints:
@@ -156,8 +158,8 @@ class TestScreenshotEndpoints:
         """Test getting screenshots list."""
         mock_database.fetch_all.return_value = [
             {
-                "id": 1,
-                "device_id": "device-1",
+                "screenshotid": 1,
+                "deviceid": sample_uuid,
                 "path": "screenshots/test.png",
                 "resolution": "1920x1080"
             }
@@ -276,7 +278,7 @@ class TestValidationLogic:
         
         for case in test_cases:
             response = client.post(
-                "/api/v1/devices/device-1/metrics",
+                "/api/v1/devices/{sample_uuid}/metrics",
                 json={"cpu_usage": case["cpu_usage"]}
             )
             if case["should_fail"]:
@@ -301,7 +303,7 @@ class TestValidationLogic:
         
         for case in test_cases:
             response = client.post(
-                "/api/v1/devices/device-1/metrics",
+                "/api/v1/devices/{sample_uuid}/metrics",
                 json={
                     "memory_used": case["memory_used"],
                     "memory_total": case["memory_total"]
@@ -322,7 +324,7 @@ class TestValidationLogic:
         
         for case in test_cases:
             response = client.post(
-                "/api/v1/devices/device-1/location",
+                "/api/v1/devices/{sample_uuid}/location",
                 json={
                     "latitude": case["latitude"],
                     "longitude": case["longitude"]
@@ -341,7 +343,7 @@ class TestPerformanceEdgeCases:
         large_description = "A" * 10000  # Very long description
         
         response = client.post(
-            "/api/v1/devices/device-1/activities",
+            "/api/v1/devices/{sample_uuid}/activities",
             json={
                 "type": "app_launch",
                 "description": large_description
