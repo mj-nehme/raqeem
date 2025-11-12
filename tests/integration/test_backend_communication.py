@@ -53,7 +53,7 @@ def test_device_registration():
     
     payload = {
         "id": TEST_DEVICE_ID,
-        "name": f"Backend Communication Test Device",
+        "name": "Backend Communication Test Device",
         "type": "server",
         "os": "CentOS 8",
         "current_user": "integration-test",

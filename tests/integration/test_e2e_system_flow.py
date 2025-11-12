@@ -186,9 +186,9 @@ def verify_in_mentor(device_id, expected_alerts):
         
         device_found = any(d.get("id") == device_id for d in devices)
         if device_found:
-            log(f"  ✓ Device found in device list")
+            log("  ✓ Device found in device list")
         else:
-            log(f"  ℹ Device not yet in list (may need registration sync)")
+            log("  ℹ Device not yet in list (may need registration sync)")
         
         # Check alerts
         response = requests.get(

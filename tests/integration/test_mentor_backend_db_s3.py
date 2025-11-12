@@ -145,7 +145,7 @@ def test_alert_retrieval():
                     return all_passed
             
             if not found:
-                log(f"✗ Test alert not found in retrieved alerts", "ERROR")
+                log("✗ Test alert not found in retrieved alerts", "ERROR")
                 return False
         else:
             log(f"✗ Alert retrieval returned unexpected format: {type(alerts)}", "ERROR")
@@ -174,7 +174,7 @@ def test_device_metrics_retrieval():
                 count = len(metrics) if isinstance(metrics, list) else 'N/A'
                 log(f"✓ Metrics retrieval successful: found {count} metric(s)", "SUCCESS")
             else:
-                log(f"✓ Metrics endpoint accessible (no data yet, expected)", "SUCCESS")
+                log("✓ Metrics endpoint accessible (no data yet, expected)", "SUCCESS")
             return True
         else:
             log(f"✗ Metrics retrieval returned unexpected status: {response.status_code}", "ERROR")
@@ -202,7 +202,7 @@ def test_screenshots_retrieval():
                 count = len(screenshots) if isinstance(screenshots, list) else 'N/A'
                 log(f"✓ Screenshots retrieval successful: found {count} screenshot(s)", "SUCCESS")
             else:
-                log(f"✓ Screenshots endpoint accessible (no data yet, expected)", "SUCCESS")
+                log("✓ Screenshots endpoint accessible (no data yet, expected)", "SUCCESS")
             return True
         else:
             log(f"✗ Screenshots retrieval returned unexpected status: {response.status_code}", "ERROR")
