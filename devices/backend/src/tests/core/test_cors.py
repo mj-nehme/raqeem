@@ -30,7 +30,7 @@ def test_cors_allows_screenshot_upload(client):
             "Origin": "http://localhost:4000",
         },
         files={"file": ("test.png", b"fake image data", "image/png")},
-        data={"device_id": "test-device"}
+        data={"deviceid": "test-device"}
     )
     # May fail due to DB, but should have CORS headers
     assert "access-control-allow-origin" in response.headers

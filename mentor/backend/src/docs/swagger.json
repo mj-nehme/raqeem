@@ -35,7 +35,7 @@
                     {
                         "type": "string",
                         "description": "Filter by user ID",
-                        "name": "user_id",
+                        "name": "userid",
                         "in": "query"
                     },
                     {
@@ -274,7 +274,7 @@
         "models.DeviceAlert": {
             "type": "object",
             "properties": {
-                "device_id": {
+                "deviceid": {
                     "type": "string"
                 },
                 "id": {
@@ -351,7 +351,7 @@
                     "description": "CPU metrics",
                     "type": "number"
                 },
-                "device_id": {
+                "deviceid": {
                     "type": "string"
                 },
                 "disk_total": {

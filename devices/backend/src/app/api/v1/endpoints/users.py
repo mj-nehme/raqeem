@@ -26,10 +26,10 @@ async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
     async with db.begin():
         db.add(obj)
     # At this point, the object has been flushed/committed; UUID is generated client-side
-    return {"id": str(obj.id), "device_id": obj.device_id, "name": obj.name}
+    return {"id": str(obj.id), "deviceid": obj.device_id, "name": obj.name}
 
 @router.get("/", response_model=List[UserResponse])
 async def get_users(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(UserModel))
     items = result.scalars().all()
-    return [{"id": str(u.id), "device_id": u.device_id, "name": u.name} for u in items]
+    return [{"id": str(u.id), "deviceid": u.device_id, "name": u.name} for u in items]

@@ -54,7 +54,7 @@ def test_device_registration():
     payload = {
         "id": TEST_DEVICE_ID,
         "name": "Backend Communication Test Device",
-        "type": "server",
+        "alert_type": "server",
         "os": "CentOS 8",
         "current_user": "integration-test",
         "location": "Backend Integration Test Suite",
@@ -71,7 +71,7 @@ def test_device_registration():
         response.raise_for_status()
         result = response.json()
         
-        if result.get("device_id") == TEST_DEVICE_ID:
+        if result.get("deviceid") == TEST_DEVICE_ID:
             log(f"✓ Device registered: {result}", "SUCCESS")
             return True
         else:
@@ -91,21 +91,21 @@ def test_alert_forwarding():
     alerts = [
         {
             "level": "info",
-            "type": "system_update",
+            "alert_type": "system_update",
             "message": "System update available",
             "value": 1.0,
             "threshold": 0.0
         },
         {
             "level": "warning",
-            "type": "disk_space",
+            "alert_type": "disk_space",
             "message": "Disk space running low",
             "value": 85.0,
             "threshold": 80.0
         },
         {
             "level": "critical",
-            "type": "service_down",
+            "alert_type": "service_down",
             "message": "Critical service unavailable",
             "value": 0.0,
             "threshold": 1.0
@@ -190,7 +190,7 @@ def test_data_consistency():
     # Submit a test alert with specific values
     test_alert = {
         "level": "error",
-        "type": "consistency_check",
+        "alert_type": "consistency_check",
         "message": "Backend consistency test alert",
         "value": 42.42,
         "threshold": 40.0
@@ -226,7 +226,7 @@ def test_data_consistency():
         if found_alert:
             # Verify all fields match
             checks = [
-                (found_alert.get("device_id") == TEST_DEVICE_ID, "device_id"),
+                (found_alert.get("deviceid") == TEST_DEVICE_ID, "deviceid"),
                 (found_alert.get("level") == "error", "level"),
                 (found_alert.get("type") == "consistency_check", "type"),
                 (found_alert.get("value") == 42.42, "value"),

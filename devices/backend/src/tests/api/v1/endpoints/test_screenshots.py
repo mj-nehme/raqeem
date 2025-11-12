@@ -8,7 +8,7 @@ import io
 async def test_create_screenshot_json():
     """Test creating screenshot via JSON endpoint."""
     payload = {
-        "user_id": "some-valid-uuid",
+        "userid": "some-valid-uuid",
         "image_url": "https://example.com/screenshot.png",
         "timestamp": "2025-06-25T10:00:00Z"
     }
@@ -24,14 +24,14 @@ async def test_create_screenshot_json():
 async def test_create_screenshot_json_minimal():
     """Test creating screenshot with minimal fields."""
     payload = {
-        "user_id": "user-123",
+        "userid": "user-123",
         "image_url": "screenshot.png"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/screenshots/json", json=payload)
     assert response.status_code == 201
     data = response.json()
-    assert data["user_id"] == "user-123"
+    assert data["userid"] == "user-123"
     assert "id" in data
 
 
@@ -45,7 +45,7 @@ async def test_create_screenshot_file_upload():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(
             "/api/v1/screenshots/",
-            data={"device_id": "device-upload-001"},
+            data={"deviceid": "device-upload-001"},
             files={"file": ("screenshot.png", fake_image, "image/png")}
         )
     assert response.status_code == 201
@@ -64,7 +64,7 @@ async def test_create_screenshot_file_upload_jpg():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(
             "/api/v1/screenshots/",
-            data={"device_id": "device-upload-002"},
+            data={"deviceid": "device-upload-002"},
             files={"file": ("screenshot.jpg", fake_image, "image/jpeg")}
         )
     assert response.status_code == 201
@@ -85,7 +85,7 @@ async def test_get_screenshots_list_with_data():
     """Test getting screenshots list after creating one."""
     # First create a screenshot
     payload = {
-        "user_id": "user-list-test",
+        "userid": "user-list-test",
         "image_url": "test-screenshot.png"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -98,5 +98,5 @@ async def test_get_screenshots_list_with_data():
     data = response.json()
     assert isinstance(data, list)
     # Check that our screenshot is in the list
-    user_ids = [s["user_id"] for s in data]
+    user_ids = [s["userid"] for s in data]
     assert "user-list-test" in user_ids

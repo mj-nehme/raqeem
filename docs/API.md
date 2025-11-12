@@ -96,7 +96,7 @@ X-API-Key: device_12345_api_key_here
 Content-Type: application/json
 
 {
-  "device_id": "device-001",
+  "deviceid": "device-001",
   "cpu_usage": 45.5
 }
 ```
@@ -178,7 +178,7 @@ Content-Type: application/json
 {
   "id": "device-001",
   "name": "John's Laptop",
-  "type": "laptop",
+  "device_type": "laptop",
   "os": "macOS 14.0",
   "location": "Office Building A",
   "ip_address": "192.168.1.100",
@@ -192,7 +192,7 @@ Response:
 {
   "id": "device-001",
   "name": "John's Laptop",
-  "type": "laptop",
+  "device_type": "laptop",
   "os": "macOS 14.0",
   "last_seen": "2024-11-04T10:30:00Z",
   "is_online": true,
@@ -212,7 +212,7 @@ POST /api/v1/metrics
 Content-Type: application/json
 
 {
-  "device_id": "device-001",
+  "deviceid": "device-001",
   "cpu_usage": 45.5,
   "cpu_temp": 65.0,
   "memory_total": 17179869184,
@@ -249,8 +249,8 @@ POST /api/v1/activities
 Content-Type: application/json
 
 {
-  "device_id": "device-001",
-  "type": "app_launch",
+  "deviceid": "device-001",
+  "activity_type": "app_launch",
   "description": "Opened Visual Studio Code",
   "app": "Visual Studio Code",
   "duration": 3600
@@ -273,9 +273,9 @@ POST /api/v1/alerts
 Content-Type: application/json
 
 {
-  "device_id": "device-001",
+  "deviceid": "device-001",
   "level": "high",
-  "type": "cpu",
+  "alert_type": "cpu",
   "message": "CPU usage exceeded threshold",
   "value": 95.5,
   "threshold": 90.0
@@ -305,7 +305,7 @@ Response:
 ```json
 {
   "id": 123,
-  "device_id": "device-001",
+  "deviceid": "device-001",
   "timestamp": "2024-11-04T10:30:00Z",
   "path": "screenshots/device-001/2024-11-04-10-30-00.png",
   "resolution": "1920x1080",
@@ -322,7 +322,7 @@ POST /api/v1/processes
 Content-Type: application/json
 
 {
-  "device_id": "device-001",
+  "deviceid": "device-001",
   "processes": [
     {
       "pid": 1234,
@@ -374,7 +374,7 @@ Response:
   {
     "id": "device-001",
     "name": "John's Laptop",
-    "type": "laptop",
+    "device_type": "laptop",
     "os": "macOS 14.0",
     "last_seen": "2024-11-04T10:30:00Z",
     "is_online": true,
@@ -408,7 +408,7 @@ Response:
 [
   {
     "id": "550e8400-e29b-41d4-a716-446655440000",
-    "device_id": "device-001",
+    "deviceid": "device-001",
     "timestamp": "2024-11-04T10:30:00Z",
     "cpu_usage": 45.5,
     "cpu_temp": 65.0,
@@ -436,10 +436,10 @@ Response:
 [
   {
     "id": 1,
-    "device_id": "device-001",
+    "deviceid": "device-001",
     "timestamp": "2024-11-04T10:25:00Z",
     "level": "high",
-    "type": "cpu",
+    "alert_type": "cpu",
     "message": "CPU usage exceeded threshold",
     "value": 95.5,
     "threshold": 90.0
@@ -458,9 +458,9 @@ Response:
 [
   {
     "id": 1,
-    "device_id": "device-001",
+    "deviceid": "device-001",
     "timestamp": "2024-11-04T10:20:00Z",
-    "type": "app_launch",
+    "activity_type": "app_launch",
     "description": "Opened Visual Studio Code",
     "app": "Visual Studio Code",
     "duration": 3600
@@ -479,7 +479,7 @@ Response:
 [
   {
     "id": 123,
-    "device_id": "device-001",
+    "deviceid": "device-001",
     "timestamp": "2024-11-04T10:30:00Z",
     "url": "https://minio.example.com/screenshots/device-001/2024-11-04-10-30-00.png?signature=...",
     "resolution": "1920x1080",
@@ -501,7 +501,7 @@ Response:
 [
   {
     "id": 1,
-    "device_id": "device-001",
+    "deviceid": "device-001",
     "timestamp": "2024-11-04T10:30:00Z",
     "pid": 1234,
     "name": "chrome",
@@ -521,7 +521,7 @@ POST /devices/commands
 Content-Type: application/json
 
 {
-  "device_id": "device-001",
+  "deviceid": "device-001",
   "command": "restart"
 }
 ```
@@ -530,7 +530,7 @@ Response:
 ```json
 {
   "id": 1,
-  "device_id": "device-001",
+  "deviceid": "device-001",
   "command": "restart",
   "status": "pending",
   "created_at": "2024-11-04T10:30:00Z"
@@ -548,7 +548,7 @@ Response:
 [
   {
     "id": 1,
-    "device_id": "device-001",
+    "deviceid": "device-001",
     "command": "restart",
     "status": "pending",
     "created_at": "2024-11-04T10:30:00Z"
@@ -582,7 +582,7 @@ Content-Type: application/json
 
 {
   "level": "high",
-  "type": "cpu",
+  "alert_type": "cpu",
   "message": "CPU usage exceeded threshold",
   "value": 95.5,
   "threshold": 90.0
@@ -700,7 +700,7 @@ curl -X POST http://localhost:30080/api/v1/devices/register \
   -d '{
     "id": "laptop-001",
     "name": "Development Laptop",
-    "type": "laptop",
+    "device_type": "laptop",
     "os": "macOS 14.0"
   }'
 ```
@@ -711,7 +711,7 @@ curl -X POST http://localhost:30080/api/v1/devices/register \
 curl -X POST http://localhost:30080/api/v1/metrics \
   -H "Content-Type: application/json" \
   -d '{
-    "device_id": "laptop-001",
+    "deviceid": "laptop-001",
     "cpu_usage": 45.5,
     "memory_total": 17179869184,
     "memory_used": 8589934592,
@@ -726,8 +726,8 @@ curl -X POST http://localhost:30080/api/v1/metrics \
 curl -X POST http://localhost:30080/api/v1/activities \
   -H "Content-Type: application/json" \
   -d '{
-    "device_id": "laptop-001",
-    "type": "app_launch",
+    "deviceid": "laptop-001",
+    "activity_type": "app_launch",
     "description": "Opened Visual Studio Code",
     "app": "Visual Studio Code"
   }'
@@ -739,9 +739,9 @@ curl -X POST http://localhost:30080/api/v1/activities \
 curl -X POST http://localhost:30080/api/v1/alerts \
   -H "Content-Type: application/json" \
   -d '{
-    "device_id": "laptop-001",
+    "deviceid": "laptop-001",
     "level": "high",
-    "type": "cpu",
+    "alert_type": "cpu",
     "message": "CPU usage exceeded 90%",
     "value": 95.5,
     "threshold": 90.0
@@ -784,7 +784,7 @@ print(f"Device registered: {response.json()}")
 # Submit metrics periodically
 while True:
     metrics = {
-        "device_id": DEVICE_ID,
+        "deviceid": DEVICE_ID,
         "cpu_usage": 45.5,
         "memory_used": 8589934592,
         "disk_used": 250053931008
@@ -866,7 +866,7 @@ type Device struct {
 }
 
 type Metrics struct {
-    DeviceID   string  `json:"device_id"`
+    DeviceID   string  `json:"deviceid"`
     CPUUsage   float64 `json:"cpu_usage"`
     MemoryUsed uint64  `json:"memory_used"`
     DiskUsed   uint64  `json:"disk_used"`

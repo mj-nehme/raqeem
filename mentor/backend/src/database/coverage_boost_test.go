@@ -221,9 +221,9 @@ func TestCleanupTestDBRemovesAllData(t *testing.T) {
 	db.Create(&process)
 
 	activity := models.DeviceActivity{
-		DeviceID:    sampleUUID,
-		Type:        "test-type",
-		Description: "test activity",
+		DeviceID:     sampleUUID,
+		ActivityType: "test-type",
+		Description:  "test activity",
 	}
 	db.Create(&activity)
 
@@ -241,10 +241,10 @@ func TestCleanupTestDBRemovesAllData(t *testing.T) {
 	db.Create(&screenshot)
 
 	alert := models.DeviceAlert{
-		DeviceID: sampleUUID,
-		Level:    "info",
-		Type:     "test",
-		Message:  "test alert",
+		DeviceID:  sampleUUID,
+		Level:     "info",
+		AlertType: "test",
+		Message:   "test alert",
 	}
 	db.Create(&alert)
 

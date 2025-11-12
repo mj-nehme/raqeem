@@ -11,17 +11,17 @@ class TestDeviceRegistrationLogic:
         """Test device ID extraction from different payload formats."""
         # Test with 'id' field
         payload1 = {"id": "device-123", "name": "Test Device"}
-        device_id = payload1.get("id") or payload1.get("device_id")
+        device_id = payload1.get("id") or payload1.get("deviceid")
         assert device_id == "device-123"
         
         # Test with 'device_id' field
-        payload2 = {"device_id": "device-456", "name": "Test Device"}
-        device_id = payload2.get("id") or payload2.get("device_id")
+        payload2 = {"deviceid": "device-456", "name": "Test Device"}
+        device_id = payload2.get("id") or payload2.get("deviceid")
         assert device_id == "device-456"
         
         # Test with both fields (id takes precedence)
-        payload3 = {"id": "device-123", "device_id": "device-456", "name": "Test Device"}
-        device_id = payload3.get("id") or payload3.get("device_id")
+        payload3 = {"id": "device-123", "deviceid": "device-456", "name": "Test Device"}
+        device_id = payload3.get("id") or payload3.get("deviceid")
         assert device_id == "device-123"
     
     def test_missing_device_id_validation(self):
@@ -30,12 +30,12 @@ class TestDeviceRegistrationLogic:
             {},
             {"name": "Test Device"},
             {"id": None},
-            {"device_id": None},
-            {"id": "", "device_id": ""},
+            {"deviceid": None},
+            {"id": "", "deviceid": ""},
         ]
         
         for payload in payloads_without_id:
-            device_id = payload.get("id") or payload.get("device_id")
+            device_id = payload.get("id") or payload.get("deviceid")
             assert not device_id, f"Should be falsy for payload: {payload}"
     
     def test_payload_field_extraction(self):
@@ -43,7 +43,7 @@ class TestDeviceRegistrationLogic:
         payload = {
             "id": "device-123",
             "name": "Test Device",
-            "type": "laptop",
+            "device_type": "laptop",
             "os": "macOS",
             "location": "Office",
             "ip_address": "192.168.1.100",
@@ -88,7 +88,7 @@ class TestMetricsValidation:
     def test_valid_metrics_payload(self):
         """Test validation of a complete metrics payload."""
         metrics_payload = {
-            "device_id": "device-123",
+            "deviceid": "device-123",
             "cpu_usage": 50.5,
             "cpu_temp": 65.2,
             "memory_total": 8589934592,  # 8GB
@@ -101,7 +101,7 @@ class TestMetricsValidation:
         }
         
         # Test that all expected fields are present
-        assert "device_id" in metrics_payload
+        assert "deviceid" in metrics_payload
         assert "cpu_usage" in metrics_payload
         assert "memory_total" in metrics_payload
         assert "disk_total" in metrics_payload
@@ -151,14 +151,14 @@ class TestActivityLogValidation:
     def test_valid_activity_payload(self):
         """Test validation of activity log payload."""
         activity_payload = {
-            "device_id": "device-123",
-            "type": "app_launch",
+            "deviceid": "device-123",
+            "activity_type": "app_launch",
             "description": "User launched Chrome browser",
             "app": "chrome",
             "duration": 3600
         }
         
-        assert "device_id" in activity_payload
+        assert "deviceid" in activity_payload
         assert "type" in activity_payload
         assert activity_payload["type"] in ["app_launch", "file_access", "browser", "system"]
         assert activity_payload["duration"] >= 0
@@ -176,7 +176,7 @@ class TestActivityLogValidation:
         
         for activity_type in valid_types:
             payload = {
-                "device_id": "device-123",
+                "deviceid": "device-123",
                 "type": activity_type,
                 "description": f"Test {activity_type} activity",
                 "duration": 60
@@ -189,8 +189,8 @@ class TestActivityLogValidation:
         
         for duration in valid_durations:
             payload = {
-                "device_id": "device-123",
-                "type": "app_launch",
+                "deviceid": "device-123",
+                "activity_type": "app_launch",
                 "duration": duration
             }
             assert payload["duration"] >= 0
@@ -202,15 +202,15 @@ class TestAlertValidation:
     def test_valid_alert_payload(self):
         """Test validation of alert payload."""
         alert_payload = {
-            "device_id": "device-123",
+            "deviceid": "device-123",
             "level": "warning",
-            "type": "cpu",
+            "alert_type": "cpu",
             "message": "High CPU usage detected",
             "value": 85.5,
             "threshold": 80.0
         }
         
-        assert "device_id" in alert_payload
+        assert "deviceid" in alert_payload
         assert "level" in alert_payload
         assert "type" in alert_payload
         assert "message" in alert_payload
@@ -222,9 +222,9 @@ class TestAlertValidation:
         
         for level in valid_levels:
             payload = {
-                "device_id": "device-123",
+                "deviceid": "device-123",
                 "level": level,
-                "type": "cpu",
+                "alert_type": "cpu",
                 "message": f"Test {level} alert",
                 "value": 50.0,
                 "threshold": 40.0
@@ -237,7 +237,7 @@ class TestAlertValidation:
         
         for alert_type in valid_types:
             payload = {
-                "device_id": "device-123",
+                "deviceid": "device-123",
                 "level": "warning",
                 "type": alert_type,
                 "message": f"Test {alert_type} alert",
@@ -266,7 +266,7 @@ class TestProcessValidation:
     def test_valid_process_payload(self):
         """Test validation of process data."""
         process_payload = {
-            "device_id": "device-123",
+            "deviceid": "device-123",
             "pid": 1234,
             "name": "chrome",
             "cpu": 25.5,
@@ -274,7 +274,7 @@ class TestProcessValidation:
             "command": "/usr/bin/chrome --enable-features=test"
         }
         
-        assert "device_id" in process_payload
+        assert "deviceid" in process_payload
         assert "pid" in process_payload
         assert "name" in process_payload
         assert process_payload["pid"] > 0
@@ -285,14 +285,14 @@ class TestProcessValidation:
         """Test validation of process list."""
         process_list = [
             {
-                "device_id": "device-123",
+                "deviceid": "device-123",
                 "pid": 1234,
                 "name": "chrome",
                 "cpu": 25.5,
                 "memory": 536870912
             },
             {
-                "device_id": "device-123", 
+                "deviceid": "device-123", 
                 "pid": 5678,
                 "name": "firefox",
                 "cpu": 15.2,
@@ -302,7 +302,7 @@ class TestProcessValidation:
         
         assert len(process_list) == 2
         for process in process_list:
-            assert "device_id" in process
+            assert "deviceid" in process
             assert "pid" in process
             assert process["pid"] > 0
             assert 0 <= process["cpu"] <= 100
@@ -358,9 +358,9 @@ class TestHTTPClientLogic:
         import json
         
         payload = {
-            "device_id": "device-123",
+            "deviceid": "device-123",
             "level": "warning",
-            "type": "cpu",
+            "alert_type": "cpu",
             "message": "High CPU usage",
             "value": 85.5,
             "timestamp": "2024-01-01T12:00:00"
@@ -370,7 +370,7 @@ class TestHTTPClientLogic:
         json_payload = json.dumps(payload)
         parsed_payload = json.loads(json_payload)
         
-        assert parsed_payload["device_id"] == payload["device_id"]
+        assert parsed_payload["deviceid"] == payload["deviceid"]
         assert parsed_payload["value"] == payload["value"]
 
 
@@ -394,7 +394,7 @@ class TestErrorHandling:
     def test_validation_error_messages(self):
         """Test validation error message formatting."""
         error_cases = [
-            {"field": "device_id", "error": "missing device id"},
+            {"field": "deviceid", "error": "missing device id"},
             {"field": "cpu_usage", "error": "cpu usage must be between 0 and 100"},
             {"field": "memory_total", "error": "memory total must be positive"},
         ]
@@ -417,6 +417,6 @@ class TestErrorHandling:
             if payload is None or payload == "" or payload == []:
                 assert not payload
             elif isinstance(payload, dict):
-                device_id = payload.get("id") or payload.get("device_id")
+                device_id = payload.get("id") or payload.get("deviceid")
                 if not device_id:
                     assert True  # Should be handled as invalid

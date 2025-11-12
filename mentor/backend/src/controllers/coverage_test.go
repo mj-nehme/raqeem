@@ -257,7 +257,7 @@ func TestGetDeviceAlertWithLimit(t *testing.T) {
 	for i := 0; i < 7; i++ {
 		alert := models.DeviceAlert{
 			DeviceID:  sampleUUID,
-			Type:      "cpu",
+			AlertType: "cpu",
 			Level:     "warning",
 			Message:   fmt.Sprintf("Alert %d", i),
 			Value:     80.0 + float64(i),
@@ -429,7 +429,7 @@ func TestReportAlertSuccess(t *testing.T) {
 	// Report alert
 	alert := models.DeviceAlert{
 		DeviceID:  sampleUUID,
-		Type:      "cpu",
+		AlertType: "cpu",
 		Level:     "warning",
 		Message:   "High CPU usage",
 		Value:     85.0,

@@ -77,9 +77,9 @@ def test_alert_submission():
     # First, we need to create a device via devices backend
     # For this test, we'll submit an alert directly to mentor
     alert_payload = {
-        "device_id": TEST_DEVICE_ID,
+        "deviceid": TEST_DEVICE_ID,
         "level": "warning",
-        "type": "network_latency",
+        "device_type": "network_latency",
         "message": "Network latency detected in mentor backend test",
         "value": 150.5,
         "threshold": 100.0
@@ -127,7 +127,7 @@ def test_alert_retrieval():
                     
                     # Verify fields
                     checks = [
-                        (alert.get("device_id") == TEST_DEVICE_ID, "device_id matches"),
+                        (alert.get("deviceid") == TEST_DEVICE_ID, "device_id matches"),
                         (alert.get("level") == "warning", "level is warning"),
                         (alert.get("type") == "network_latency", "type is network_latency"),
                         (alert.get("value") == 150.5, "value is 150.5"),

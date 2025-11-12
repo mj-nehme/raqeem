@@ -280,7 +280,7 @@ mypy devices/backend/src
 ```go
 // DeviceMetric represents system performance metrics
 type DeviceMetric struct {
-    DeviceID  string    `json:"device_id"`
+    DeviceID  string    `json:"deviceid"`
     CPUUsage  float64   `json:"cpu_usage"`
     Timestamp time.Time `json:"timestamp"`
 }
@@ -426,7 +426,7 @@ async def test_register_device():
     device_data = {
         "id": "test-device-001",
         "name": "Test Device",
-        "type": "laptop"
+        "device_type": "laptop"
     }
     
     async with AsyncClient(

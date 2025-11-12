@@ -162,7 +162,7 @@ def upload_screenshot(device_id):
     try:
         response = requests.post(
             f"{DEVICES_BACKEND_URL}/api/v1/screenshots/",
-            data={"device_id": device_id},
+            data={"deviceid": device_id},
             files={"file": (f"{device_id}-screenshot.png", fake_image, "image/png")},
             timeout=10
         )

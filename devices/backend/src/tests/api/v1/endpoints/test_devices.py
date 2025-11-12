@@ -9,7 +9,7 @@ async def test_register_device_new():
     payload = {
         "id": "test-device-001",
         "name": "Test Device",
-        "type": "laptop",
+        "device_type": "laptop",
         "os": "Windows 11",
         "location": "Office A",
         "ip_address": "192.168.1.100",
@@ -20,7 +20,7 @@ async def test_register_device_new():
         response = await ac.post("/api/v1/devices/register", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["device_id"] == "test-device-001"
+    assert data["deviceid"] == "test-device-001"
     assert data.get("created") is True
 
 
@@ -31,7 +31,7 @@ async def test_register_device_update_existing():
     payload = {
         "id": "test-device-002",
         "name": "Device Original",
-        "type": "desktop"
+        "device_type": "desktop"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/devices/register", json=payload)
@@ -41,13 +41,13 @@ async def test_register_device_update_existing():
         update_payload = {
             "id": "test-device-002",
             "name": "Device Updated",
-            "type": "laptop"
+            "device_type": "laptop"
         }
         response = await ac.post("/api/v1/devices/register", json=update_payload)
     
     assert response.status_code == 200
     data = response.json()
-    assert data["device_id"] == "test-device-002"
+    assert data["deviceid"] == "test-device-002"
     assert data.get("updated") is True
 
 
@@ -56,7 +56,7 @@ async def test_register_device_missing_id():
     """Test registering device without id fails."""
     payload = {
         "name": "Test Device",
-        "type": "laptop"
+        "device_type": "laptop"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/devices/register", json=payload)
@@ -68,14 +68,14 @@ async def test_register_device_missing_id():
 async def test_register_device_with_device_id_key():
     """Test registering device using device_id key instead of id."""
     payload = {
-        "device_id": "test-device-003",
+        "deviceid": "test-device-003",
         "name": "Test Device 3"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/devices/register", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["device_id"] == "test-device-003"
+    assert data["deviceid"] == "test-device-003"
 
 
 @pytest.mark.asyncio
@@ -156,13 +156,13 @@ async def test_post_activities():
     device_id = "test-device-act"
     activities = [
         {
-            "type": "app_launch",
+            "activity_type": "app_launch",
             "description": "User launched Chrome",
             "app": "chrome",
             "duration": 3600
         },
         {
-            "type": "app_close",
+            "activity_type": "app_close",
             "description": "User closed Firefox",
             "app": "firefox",
             "duration": 7200
@@ -194,14 +194,14 @@ async def test_post_alerts():
     alerts = [
         {
             "level": "warning",
-            "type": "cpu",
+            "alert_type": "cpu",
             "message": "High CPU usage detected",
             "value": 85.5,
             "threshold": 80.0
         },
         {
             "level": "critical",
-            "type": "memory",
+            "alert_type": "memory",
             "message": "Memory usage critical",
             "value": 95.0,
             "threshold": 90.0
@@ -233,7 +233,7 @@ async def test_list_devices():
     payload = {
         "id": "test-device-list",
         "name": "Device for Listing",
-        "type": "tablet",
+        "device_type": "tablet",
         "os": "iOS"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -267,7 +267,7 @@ async def test_register_device_preserves_existing_fields():
     initial_payload = {
         "id": "test-device-preserve",
         "name": "Original Name",
-        "type": "laptop",
+        "device_type": "laptop",
         "os": "Linux",
         "location": "Office",
         "ip_address": "192.168.1.50",
@@ -327,7 +327,7 @@ async def test_create_command_success():
         response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["device_id"] == device_id
+    assert data["deviceid"] == device_id
     assert data["command"] == "get_info"
     assert data["status"] == "pending"
     assert "id" in data
@@ -383,7 +383,7 @@ async def test_submit_command_result_success():
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "ok"
-        assert data["command_id"] == command_id
+        assert data["commandid"] == command_id
 
 
 @pytest.mark.asyncio
@@ -429,8 +429,8 @@ async def test_list_devices_multiple():
     """Test listing all devices."""
     # First register a couple of devices
     devices = [
-        {"id": "list-device-1", "name": "Device 1", "type": "laptop"},
-        {"id": "list-device-2", "name": "Device 2", "type": "desktop"}
+        {"id": "list-device-1", "name": "Device 1", "device_type": "laptop"},
+        {"id": "list-device-2", "name": "Device 2", "device_type": "desktop"}
     ]
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -467,7 +467,7 @@ async def test_get_device_by_id():
     device_payload = {
         "id": device_id,
         "name": "Test Device",
-        "type": "laptop",
+        "device_type": "laptop",
         "os": "Windows 11"
     }
     
@@ -529,7 +529,7 @@ async def test_post_alerts_with_forwarding():
     alerts = [
         {
             "level": "critical",
-            "type": "cpu",
+            "alert_type": "cpu",
             "message": "CPU critical",
             "value": 95.0,
             "threshold": 90.0
@@ -615,13 +615,13 @@ async def test_list_all_activities():
     # First post some activities
     activities = [
         {
-            "type": "test_activity",
+            "activity_type": "test_activity",
             "description": "Test activity 1",
             "app": "test-app-1",
             "duration": 100
         },
         {
-            "type": "test_activity",
+            "activity_type": "test_activity",
             "description": "Test activity 2",
             "app": "test-app-2",
             "duration": 200
@@ -653,14 +653,14 @@ async def test_list_all_alerts():
     alerts = [
         {
             "level": "warning",
-            "type": "test_alert",
+            "alert_type": "test_alert",
             "message": "Test alert 1",
             "value": 75.0,
             "threshold": 70.0
         },
         {
             "level": "critical",
-            "type": "test_alert",
+            "alert_type": "test_alert",
             "message": "Test alert 2",
             "value": 95.0,
             "threshold": 90.0

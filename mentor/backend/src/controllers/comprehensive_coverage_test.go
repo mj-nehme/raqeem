@@ -293,12 +293,12 @@ func TestActivityFullScenarios(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		activity := models.DeviceActivity{
-			DeviceID:    sampleUUID,
-			Type:        "app_launch",
-			Description: "Launched application",
-			App:         "Chrome",
-			Duration:    120,
-			Timestamp:   time.Now(),
+			DeviceID:     sampleUUID,
+			ActivityType: "app_launch",
+			Description:  "Launched application",
+			App:          "Chrome",
+			Duration:     120,
+			Timestamp:    time.Now(),
 		}
 		b, _ := json.Marshal(activity)
 		c.Request, _ = http.NewRequest("POST", "/activity", bytes.NewReader(b))
@@ -311,7 +311,7 @@ func TestActivityFullScenarios(t *testing.T) {
 		// Verify activity was stored
 		var storedActivity models.DeviceActivity
 		db.Where("device_id = ?", sampleUUID.String()).First(&storedActivity)
-		assert.Equal(t, "app_launch", storedActivity.Type)
+		assert.Equal(t, "app_launch", storedActivity.ActivityType)
 		assert.Equal(t, "Chrome", storedActivity.App)
 	})
 
@@ -324,9 +324,9 @@ func TestActivityFullScenarios(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			activity := models.DeviceActivity{
-				DeviceID:    sampleUUID,
-				Type:        actType,
-				Description: "Activity of type " + actType,
+				DeviceID:     sampleUUID,
+				ActivityType: actType,
+				Description:  "Activity of type " + actType,
 			}
 			b, _ := json.Marshal(activity)
 			c.Request, _ = http.NewRequest("POST", "/activity", bytes.NewReader(b))
@@ -359,7 +359,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 		alert := models.DeviceAlert{
 			DeviceID:  sampleUUID,
 			Level:     "critical",
-			Type:      "disk_full",
+			AlertType: "disk_full",
 			Message:   "Disk usage at 98%",
 			Value:     98.0,
 			Threshold: 90.0,
@@ -388,11 +388,11 @@ func TestReportAlertFullScenarios(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			alert := models.DeviceAlert{
-				DeviceID: sampleUUID,
-				Level:    "warning",
-				Type:     alertType,
-				Message:  "Alert for " + alertType,
-				Value:    float64(80 + i),
+				DeviceID:  sampleUUID,
+				Level:     "warning",
+				AlertType: alertType,
+				Message:   "Alert for " + alertType,
+				Value:     float64(80 + i),
 			}
 			b, _ := json.Marshal(alert)
 			c.Request, _ = http.NewRequest("POST", "/alerts", bytes.NewReader(b))

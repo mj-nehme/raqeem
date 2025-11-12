@@ -166,12 +166,12 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 	assert.NoError(t, db.Create(&process).Error)
 
 	activityLog := models.DeviceActivity{
-		DeviceID:    device.DeviceID,
-		Type:        "app_launch",
-		Description: "Test activity",
-		App:         "TestApp",
-		Duration:    3600,
-		Timestamp:   time.Now(),
+		DeviceID:     device.DeviceID,
+		ActivityType: "app_launch",
+		Description:  "Test activity",
+		App:          "TestApp",
+		Duration:     3600,
+		Timestamp:    time.Now(),
 	}
 	assert.NoError(t, db.Create(&activityLog).Error)
 
@@ -194,7 +194,7 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 
 	alert := models.DeviceAlert{
 		DeviceID:  device.DeviceID,
-		Type:      "security",
+		AlertType: "security",
 		Level:     "critical",
 		Message:   "Test alert",
 		Value:     95.0,
@@ -384,7 +384,7 @@ func TestDatabaseQueryOperations(t *testing.T) {
 	assert.Equal(t, "Query Test", foundDevice.DeviceName)
 
 	// Update
-	err = db.Model(&foundDevice).Update("devicename", "Updated Name").Error
+	err = db.Model(&foundDevice).Update("device_name", "Updated Name").Error
 	assert.NoError(t, err)
 
 	// Verify update
@@ -494,12 +494,12 @@ func TestAddActivityLogAndCheckExistence(t *testing.T) {
 	defer CleanupTestDB(t, db)
 
 	activity := models.DeviceActivity{
-		DeviceID:    sampleUUID,
-		Type:        "app_launch",
-		Description: "User launched Chrome",
-		App:         "chrome",
-		Duration:    120,
-		Timestamp:   time.Now(),
+		DeviceID:     sampleUUID,
+		ActivityType: "app_launch",
+		Description:  "User launched Chrome",
+		App:          "chrome",
+		Duration:     120,
+		Timestamp:    time.Now(),
 	}
 
 	// Add activity to database

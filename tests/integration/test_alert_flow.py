@@ -50,7 +50,7 @@ def register_device():
     payload = {
         "id": TEST_DEVICE_ID,
         "name": f"E2E Test Device {TEST_DEVICE_ID}",
-        "type": "laptop",
+        "device_type": "laptop",
         "os": "macOS",
         "current_user": "e2e-test",
         "location": "Test Lab",
@@ -76,7 +76,7 @@ def send_alert():
     log("Sending alert...")
     alerts = [{
         "level": "warning",
-        "type": "cpu_high",
+        "alert_type": "cpu_high",
         "message": "E2E test alert - CPU usage high",
         "value": 95.5,
         "threshold": 80.0
@@ -131,7 +131,7 @@ def verify_alert_in_mentor():
             
             # Verify alert fields
             checks = [
-                (test_alert.get("device_id") == TEST_DEVICE_ID, "device_id matches"),
+                (test_alert.get("deviceid") == TEST_DEVICE_ID, "device_id matches"),
                 (test_alert.get("level") == "warning", "level is warning"),
                 (test_alert.get("type") == "cpu_high", "type is cpu_high"),
                 (test_alert.get("value") == 95.5, "value is 95.5"),

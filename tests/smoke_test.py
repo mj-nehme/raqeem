@@ -44,7 +44,7 @@ def test_alert_flow(devices_url, mentor_url):
             json={
                 "id": device_id,
                 "name": "Smoke Test Device",
-                "type": "laptop",
+                "device_type": "laptop",
                 "os": "Test OS"
             },
             timeout=5
@@ -62,7 +62,7 @@ def test_alert_flow(devices_url, mentor_url):
             f"{devices_url}/api/v1/devices/{device_id}/alerts",
             json=[{
                 "level": "info",
-                "type": "smoke_test",
+                "alert_type": "smoke_test",
                 "message": "Smoke test alert",
                 "value": 50,
                 "threshold": 80

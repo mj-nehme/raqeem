@@ -45,7 +45,7 @@ async def test_post_alerts_is_saved_and_forwarded():
         payload = [
             {
                 "level": "warning",
-                "type": "cpu_high",
+                "alert_type": "cpu_high",
                 "message": "CPU usage high",
                 "value": 95,
                 "threshold": 80,

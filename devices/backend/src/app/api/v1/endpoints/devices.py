@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/register", status_code=200)
 async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     # payload expected to contain id and optional fields
-    device_id = payload.get("id") or payload.get("device_id")
+    device_id = payload.get("id") or payload.get("deviceid")
     if not device_id:
         raise HTTPException(status_code=400, detail="missing device id")
 
@@ -27,7 +27,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     if existing:
         # update fields
         existing.name = payload.get("name") or existing.name
-        existing.type = payload.get("type") or existing.type
+        existing.type = payload.get("device_type") or existing.type
         existing.os = payload.get("os") or existing.os
         existing.last_seen = now
         existing.is_online = True
@@ -37,12 +37,12 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         existing.current_user_text = payload.get("current_user") or existing.current_user_text
         db.add(existing)
         await db.commit()
-        result = {"device_id": device_id, "updated": True}
+        result = {"deviceid": device_id, "updated": True}
     else:
         obj = dev_models.Device(
             id=device_id,
             name=payload.get("name"),
-            type=payload.get("type"),
+            type=payload.get("device_type"),
             os=payload.get("os"),
             last_seen=now,
             is_online=True,
@@ -53,7 +53,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         )
         db.add(obj)
         await db.commit()
-        result = {"device_id": device_id, "created": True}
+        result = {"deviceid": device_id, "created": True}
     
     # Forward device registration to mentor backend if configured
     # Note: Input is already validated by this endpoint, and mentor backend
@@ -90,7 +90,7 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 forward = {
-                    "device_id": device_id,
+                    "deviceid": device_id,
                     "cpu_usage": payload.get("cpu_usage"),
                     "cpu_temp": payload.get("cpu_temp"),
                     "memory_total": payload.get("memory_total"),
@@ -116,7 +116,7 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
     now = datetime.datetime.utcnow()
     for p in processes:
         to_add.append({
-            "device_id": device_id,
+            "deviceid": device_id,
             "pid": p.get("pid"),
             "name": p.get("name"),
             "cpu": p.get("cpu"),
@@ -133,7 +133,7 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     forward = [
                         {
-                            "device_id": device_id,
+                            "deviceid": device_id,
                             "pid": p.get("pid"),
                             "name": p.get("name"),
                             "cpu": p.get("cpu"),
@@ -154,7 +154,7 @@ async def post_activity(device_id: str, activities: List[dict], db: AsyncSession
     now = datetime.datetime.utcnow()
     for a in activities:
         to_add.append({
-            "device_id": device_id,
+            "deviceid": device_id,
             "type": a.get("type"),
             "description": a.get("description"),
             "app": a.get("app"),
@@ -170,7 +170,7 @@ async def post_activity(device_id: str, activities: List[dict], db: AsyncSession
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     for a in activities:
                         forward = {
-                            "device_id": device_id,
+                            "deviceid": device_id,
                             "type": a.get("type"),
                             "description": a.get("description"),
                             "app": a.get("app"),
@@ -188,7 +188,7 @@ async def post_alerts(device_id: str, alerts: List[dict], db: AsyncSession = Dep
     now = datetime.datetime.utcnow()
     for a in alerts:
         to_add.append({
-            "device_id": device_id,
+            "deviceid": device_id,
             "level": a.get("level"),
             "type": a.get("type"),
             "message": a.get("message"),
@@ -205,7 +205,7 @@ async def post_alerts(device_id: str, alerts: List[dict], db: AsyncSession = Dep
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     for a in alerts:
                         payload = {
-                            "device_id": device_id,
+                            "deviceid": device_id,
                             "level": a.get("level"),
                             "type": a.get("type"),
                             "message": a.get("message"),
@@ -230,7 +230,7 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
         devices.append({
             "id": device.id,
             "name": device.name,
-            "type": device.type,
+            "device_type": device.type,
             "os": device.os,
             "last_seen": device.last_seen.isoformat() if device.last_seen else None,
             "is_online": device.is_online,
@@ -258,7 +258,7 @@ async def list_all_processes(db: AsyncSession = Depends(get_db)):
     for process in processes_list:
         processes.append({
             "id": str(process.id),
-            "device_id": process.device_id,
+            "deviceid": process.device_id,
             "timestamp": process.timestamp.isoformat() if process.timestamp else None,
             "pid": process.pid,
             "name": process.name,
@@ -285,7 +285,7 @@ async def list_all_activities(db: AsyncSession = Depends(get_db)):
     for activity in activities_list:
         activities.append({
             "id": str(activity.id),
-            "device_id": activity.device_id,
+            "deviceid": activity.device_id,
             "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
             "type": activity.type,
             "description": activity.description,
@@ -311,7 +311,7 @@ async def list_all_alerts(db: AsyncSession = Depends(get_db)):
     for alert in alerts_list:
         alerts.append({
             "id": str(alert.id),
-            "device_id": alert.device_id,
+            "deviceid": alert.device_id,
             "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
             "level": alert.level,
             "type": alert.type,
@@ -372,7 +372,7 @@ async def submit_command_result(
             # Don't fail if forwarding fails
             pass
     
-    return {"status": "ok", "command_id": command_id}
+    return {"status": "ok", "commandid": command_id}
 
 
 @router.post("/{device_id}/commands", response_model=CommandOut)
@@ -409,7 +409,7 @@ async def get_all_processes(db: AsyncSession = Depends(get_db)):
     return [
         {
             "id": str(process.id),
-            "device_id": process.device_id,
+            "deviceid": process.device_id,
             "pid": process.pid,
             "name": process.name,
             "cpu": process.cpu,
@@ -429,7 +429,7 @@ async def get_all_activities(db: AsyncSession = Depends(get_db)):
     return [
         {
             "id": str(activity.id),
-            "device_id": activity.device_id,
+            "deviceid": activity.device_id,
             "type": activity.type,
             "description": activity.description,
             "app": activity.app,
@@ -448,7 +448,7 @@ async def get_all_alerts(db: AsyncSession = Depends(get_db)):
     return [
         {
             "id": str(alert.id),
-            "device_id": alert.device_id,
+            "deviceid": alert.device_id,
             "level": alert.level,
             "type": alert.type,
             "message": alert.message,

@@ -115,12 +115,12 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 
 	// 3. Log activity
 	activity := models.DeviceActivity{
-		DeviceID:    sampleUUID,
-		Type:        "app_launch",
-		Description: "User opened Firefox browser",
-		App:         "Firefox",
-		Duration:    3600,
-		Timestamp:   time.Now(),
+		DeviceID:     sampleUUID,
+		ActivityType: "app_launch",
+		Description:  "User opened Firefox browser",
+		App:          "Firefox",
+		Duration:     3600,
+		Timestamp:    time.Now(),
 	}
 
 	activityJSON, _ := json.Marshal(activity)
@@ -186,7 +186,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	// 6. Report an alert
 	alert := models.DeviceAlert{
 		DeviceID:  sampleUUID,
-		Type:      "security",
+		AlertType: "security",
 		Level:     "critical",
 		Message:   "Suspicious network activity detected",
 		Value:     95.0,
@@ -405,7 +405,7 @@ func TestAlertFlowIntegration(t *testing.T) {
 	for _, alertTest := range alertTests {
 		alert := models.DeviceAlert{
 			DeviceID:  sampleUUID,
-			Type:      alertTest.alertType,
+			AlertType: alertTest.alertType,
 			Level:     alertTest.level,
 			Message:   alertTest.message,
 			Value:     85.0,

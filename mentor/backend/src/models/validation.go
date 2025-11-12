@@ -81,7 +81,7 @@ func (alert *DeviceAlert) ValidateAlert() []string {
 		"security": true,
 	}
 
-	if !validTypes[strings.ToLower(alert.Type)] {
+	if !validTypes[strings.ToLower(alert.AlertType)] {
 		errors = append(errors, "invalid alert type")
 	}
 

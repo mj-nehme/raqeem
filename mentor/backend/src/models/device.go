@@ -33,7 +33,6 @@ type Device struct {
 type DeviceMetric struct {
 	MetricID    uuid.UUID `json:"metricid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceID    uuid.UUID `json:"deviceid"`
-	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
 	CPUUsage    float64   `json:"cpu_usage"`
 	CPUTemp     float64   `json:"cpu_temp"`
@@ -44,75 +43,83 @@ type DeviceMetric struct {
 	DiskUsed    uint64    `json:"disk_used"`
 	NetBytesIn  uint64    `json:"net_bytes_in"`
 	NetBytesOut uint64    `json:"net_bytes_out"`
+
+	Device Device `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 }
 
 // DeviceProcess represents a running process.
 type DeviceProcess struct {
 	ProcessID   uuid.UUID `json:"processid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceID    uuid.UUID `json:"deviceid"`
-	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
 	PID         int       `json:"pid"`
 	ProcessName string    `json:"process_name"`
 	CPU         float64   `json:"cpu"`
 	Memory      uint64    `json:"memory"`
 	CommandText string    `json:"command_text"`
+
+	Device Device `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 }
 
 // DeviceActivity tracks user activity on the device.
 type DeviceActivity struct {
-	ActivityID  uuid.UUID `json:"activityid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID    uuid.UUID `json:"deviceid"`
-	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
-	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
-	Type        string    `json:"type"`
-	Description string    `json:"description"`
-	App         string    `json:"app"`
-	Duration    int       `json:"duration"`
+	ActivityID   uuid.UUID `json:"activityid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID     uuid.UUID `json:"deviceid"`
+	Timestamp    time.Time `json:"timestamp" gorm:"default:now()"`
+	ActivityType string    `json:"activity_type"`
+	Description  string    `json:"description"`
+	App          string    `json:"app"`
+	Duration     int       `json:"duration"`
+
+	Device Device `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 }
 
 // DeviceAlert represents alerts raised by monitoring.
 type DeviceAlert struct {
 	AlertID   uuid.UUID `json:"alertid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceID  uuid.UUID `json:"deviceid"`
-	Device    Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 	Timestamp time.Time `json:"timestamp" gorm:"default:now()"`
 	Level     string    `json:"level"`
-	Type      string    `json:"type"`
+	AlertType string    `json:"alert_type"`
 	Message   string    `json:"message"`
 	Value     float64   `json:"value"`
 	Threshold float64   `json:"threshold"`
+
+	Device Device `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 }
 
 // DeviceRemoteCommand represents a command sent remotely.
 type DeviceRemoteCommand struct {
 	CommandID   uuid.UUID `json:"commandid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceID    uuid.UUID `json:"deviceid"`
-	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 	CommandText string    `json:"command_text"`
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at" gorm:"default:now()"`
 	CompletedAt time.Time `json:"completed_at"`
 	Result      string    `json:"result"`
 	ExitCode    int       `json:"exit_code"`
+
+	Device Device `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 }
 
 // DeviceScreenshot stores screen captures.
 type DeviceScreenshot struct {
 	ScreenshotID uuid.UUID `json:"screenshotid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceID     uuid.UUID `json:"deviceid"`
-	Device       Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 	Timestamp    time.Time `json:"timestamp" gorm:"default:now()"`
 	Path         string    `json:"path"`
 	Resolution   string    `json:"resolution"`
 	Size         int64     `json:"size"`
+
+	Device Device `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 }
 
 // User represents a user linked to a device.
 type User struct {
 	UserID    uuid.UUID `json:"userid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceID  uuid.UUID `json:"deviceid"`
-	Device    Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
-	Name      string    `json:"name"`
+	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at" gorm:"default:now()"`
+
+	Device Device `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
 }

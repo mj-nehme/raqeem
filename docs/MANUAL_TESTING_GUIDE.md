@@ -42,7 +42,7 @@ curl -X POST http://localhost:8081/api/v1/devices/register \
   -d '{
     "id": "test-device-001",
     "name": "Test Laptop",
-    "type": "laptop",
+    "device_type": "laptop",
     "os": "macOS",
     "current_user": "test-user"
   }'
@@ -135,7 +135,7 @@ curl http://localhost:8080/devices/test-device-001/screenshots
 # - "url" field with presigned MinIO URL
 # - "screenshot_url" field with presigned MinIO URL
 # - "path" field with the filename
-# - "device_id" matching "test-device-001"
+# - "deviceid" matching "test-device-001"
 ```
 
 ## Dashboard Verification

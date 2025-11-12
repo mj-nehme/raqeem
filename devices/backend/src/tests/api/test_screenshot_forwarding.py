@@ -50,7 +50,7 @@ async def test_post_screenshot_is_saved_and_forwarded():
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         response = await client.post(
             "/api/v1/screenshots/",
-            data={"device_id": device_id},
+            data={"deviceid": device_id},
             files={"file": ("screenshot.png", fake_image, "image/png")}
         )
         assert response.status_code == status.HTTP_201_CREATED
@@ -65,7 +65,7 @@ async def test_post_screenshot_is_saved_and_forwarded():
     # Verify the forwarded payload contains correct fields
     forwarded_request = route.calls[0].request
     forwarded_data = forwarded_request.json()
-    assert forwarded_data["device_id"] == device_id
+    assert forwarded_data["deviceid"] == device_id
     assert "path" in forwarded_data
     assert "size" in forwarded_data
     assert "resolution" in forwarded_data

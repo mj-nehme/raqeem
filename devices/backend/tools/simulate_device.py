@@ -62,7 +62,7 @@ def register_device(base_url, device_id, name=None):
     payload = {
         "id": device_id,
         "name": name or f"Sim {device_id}",
-        "type": "simulator",
+        "device_type": "simulator",
         "os": "linux",
         "ip_address": f"10.0.{random.randint(0,255)}.{random.randint(1,254)}",
         "current_user": random.choice(["alice","bob","jaafar","guest"]),

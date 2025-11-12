@@ -811,7 +811,7 @@ kubectl logs <devices-backend-pod> -n default | grep error
 # Register a device manually
 curl -X POST http://localhost:30080/api/v1/devices/register \
   -H "Content-Type: application/json" \
-  -d '{"id": "test-001", "name": "Test Device", "type": "laptop"}'
+  -d '{"id": "test-001", "name": "Test Device", "device_type": "laptop"}'
 
 # Check device simulator is running
 # Open http://localhost:<auto-detected-port>
@@ -837,7 +837,7 @@ kubectl exec -it <postgres-pod> -n default -- \
 curl -X POST http://localhost:30080/api/v1/metrics \
   -H "Content-Type: application/json" \
   -d '{
-    "device_id": "test-001",
+    "deviceid": "test-001",
     "cpu_usage": 45.5,
     "memory_used": 8589934592,
     "disk_used": 107374182400

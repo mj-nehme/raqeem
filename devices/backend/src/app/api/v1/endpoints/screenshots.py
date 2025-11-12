@@ -64,7 +64,7 @@ async def create_screenshot(
             try:
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     payload = {
-                        "device_id": device_id,
+                        "deviceid": device_id,
                         "path": filename,
                         "resolution": DEFAULT_SCREENSHOT_RESOLUTION,
                         "size": file_size
@@ -82,7 +82,7 @@ async def create_screenshot(
         
         return {
             "id": str(obj.id),
-            "user_id": str(obj.user_id),
+            "userid": str(obj.user_id),
             "image_url": obj.image_path,
             "status": "success"
         }
@@ -97,7 +97,7 @@ async def create_screenshot_json(screenshot: ScreenshotCreate, db: AsyncSession 
         db.add(obj)
     return {
         "id": str(obj.id),
-        "user_id": str(obj.user_id),
+        "userid": str(obj.user_id),
         "image_url": obj.image_path,
         "timestamp": screenshot.timestamp,
     }
@@ -107,6 +107,6 @@ async def get_screenshots(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(ScreenshotModel))
     items = result.scalars().all()
     return [
-        {"id": str(x.id), "user_id": str(x.user_id), "image_url": x.image_path, "timestamp": None}
+        {"id": str(x.id), "userid": str(x.user_id), "image_url": x.image_path, "timestamp": None}
         for x in items
     ]

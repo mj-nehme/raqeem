@@ -54,7 +54,7 @@ def test_device_registration():
     payload = {
         "id": TEST_DEVICE_ID,
         "name": f"DB/S3 Test Device {TEST_DEVICE_ID}",
-        "type": "laptop",
+        "device_type": "laptop",
         "os": "Ubuntu 22.04",
         "current_user": "test-user",
         "location": "Integration Test Lab",
@@ -71,7 +71,7 @@ def test_device_registration():
         response.raise_for_status()
         result = response.json()
         
-        if result.get("device_id") == TEST_DEVICE_ID:
+        if result.get("deviceid") == TEST_DEVICE_ID:
             log(f"✓ Device registered successfully: {result}", "SUCCESS")
             return True
         else:
@@ -126,13 +126,13 @@ def test_activity_storage():
     
     activities = [
         {
-            "type": "app_launch",
+            "activity_type": "app_launch",
             "app": "Chrome Browser",
             "description": "Launched web browser",
             "duration": 120
         },
         {
-            "type": "file_access",
+            "activity_type": "file_access",
             "app": "File Manager",
             "description": "Accessed document folder",
             "duration": 30
@@ -167,14 +167,14 @@ def test_alert_storage():
     alerts = [
         {
             "level": "warning",
-            "type": "cpu_high",
+            "alert_type": "cpu_high",
             "message": "CPU usage above threshold",
             "value": 85.5,
             "threshold": 80.0
         },
         {
             "level": "critical",
-            "type": "memory_critical",
+            "alert_type": "memory_critical",
             "message": "Memory usage critically high",
             "value": 95.0,
             "threshold": 90.0
@@ -212,7 +212,7 @@ def test_screenshot_upload_to_s3():
     try:
         response = requests.post(
             f"{DEVICES_BACKEND_URL}/api/v1/screenshots/",
-            data={"device_id": TEST_DEVICE_ID},
+            data={"deviceid": TEST_DEVICE_ID},
             files={"file": ("integration-test.png", fake_image, "image/png")},
             timeout=10
         )

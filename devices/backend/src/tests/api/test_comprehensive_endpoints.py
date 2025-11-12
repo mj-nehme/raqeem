@@ -41,7 +41,7 @@ class TestDeviceEndpoints:
         """Test device registration with invalid data."""
         invalid_data = {
             "name": "",  # Invalid empty name
-            "type": "invalid_type"
+            "device_type": "invalid_type"
         }
         
         response = client.post("/api/v1/devices/", json=invalid_data)
@@ -67,7 +67,7 @@ class TestDeviceEndpoints:
         mock_database.fetch_one.return_value = {
             "deviceid": sample_uuid,
             "device_name": "Test Device",
-            "type": "laptop"
+            "device_type": "laptop"
         }
         
         response = client.get("/api/v1/devices/device-1")
@@ -102,7 +102,7 @@ class TestActivityEndpoints:
     def test_log_activity_success(self, client, mock_database):
         """Test successful activity logging."""
         activity_data = {
-            "type": "app_launch",
+            "activity_type": "app_launch",
             "app": "chrome",
             "description": "User launched Chrome browser",
             "duration": 3600
@@ -116,7 +116,7 @@ class TestActivityEndpoints:
         mock_database.fetch_all.return_value = [
             {
                 "activityid": 1,
-                "type": "app_launch",
+                "activity_type": "app_launch",
                 "app": "chrome",
                 "description": "User launched Chrome"
             }
@@ -128,7 +128,7 @@ class TestActivityEndpoints:
     def test_log_activity_invalid_type(self, client):
         """Test activity logging with invalid type."""
         invalid_activity = {
-            "type": "",  # Invalid empty type
+            "activity_type": "",  # Invalid empty type
             "app": "test-app"
         }
 
@@ -345,7 +345,7 @@ class TestPerformanceEdgeCases:
         response = client.post(
             "/api/v1/devices/{sample_uuid}/activities",
             json={
-                "type": "app_launch",
+                "activity_type": "app_launch",
                 "description": large_description
             }
         )
@@ -361,7 +361,7 @@ class TestPerformanceEdgeCases:
                 json={
                     "id": f"device-{i}",
                     "name": f"Device {i}",
-                    "type": "laptop"
+                    "device_type": "laptop"
                 }
             )
             responses.append(response.status_code)

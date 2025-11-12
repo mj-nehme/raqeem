@@ -14,21 +14,21 @@ async def async_client():
 @pytest.mark.asyncio
 async def test_create_user(async_client):
     payload = {
-        "device_id": "test-device-001",
+        "deviceid": "test-device-001",
         "name": "Test User"
     }
     response = await async_client.post("/api/v1/users/", json=payload)
     assert response.status_code == 201
     data = response.json()
     assert "id" in data
-    assert data["device_id"] == payload["device_id"]
+    assert data["deviceid"] == payload["deviceid"]
     assert data["name"] == payload["name"]
 
 @pytest.mark.asyncio
 async def test_get_user_list(async_client):
     # Create user first so list is not empty
     payload = {
-        "device_id": "test-device-002",
+        "deviceid": "test-device-002",
         "name": "Test User 2"
     }
     create_resp = await async_client.post("/api/v1/users/", json=payload)
@@ -40,4 +40,4 @@ async def test_get_user_list(async_client):
     data = response.json()
     assert isinstance(data, list)
     # Check the user we created is in the list by device_id
-    assert any(user["device_id"] == payload["device_id"] for user in data)
+    assert any(user["deviceid"] == payload["deviceid"] for user in data)

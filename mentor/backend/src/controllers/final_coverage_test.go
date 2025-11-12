@@ -113,10 +113,10 @@ func TestActivityEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		activity := models.DeviceActivity{
-			DeviceID:    sampleUUID,
-			Type:        "app_launch",
-			Description: "Launched Chrome",
-			App:         "Chrome",
+			DeviceID:     sampleUUID,
+			ActivityType: "app_launch",
+			Description:  "Launched Chrome",
+			App:          "Chrome",
 		}
 		b, _ := json.Marshal(activity)
 		c.Request, _ = http.NewRequest("POST", "/activity", bytes.NewReader(b))
@@ -333,10 +333,10 @@ func TestGetDeviceActivityEdgeCases(t *testing.T) {
 	// Create test activities
 	for i := 0; i < 3; i++ {
 		activity := models.DeviceActivity{
-			DeviceID:    sampleUUID,
-			Type:        "test",
-			Description: "Test activity",
-			Timestamp:   time.Now().Add(time.Duration(-i) * time.Hour),
+			DeviceID:     sampleUUID,
+			ActivityType: "test",
+			Description:  "Test activity",
+			Timestamp:    time.Now().Add(time.Duration(-i) * time.Hour),
 		}
 		db.Create(&activity)
 	}
@@ -368,7 +368,7 @@ func TestGetDeviceAlertEdgeCases(t *testing.T) {
 		alert := models.DeviceAlert{
 			DeviceID:  sampleUUID,
 			Level:     "info",
-			Type:      "test",
+			AlertType: "test",
 			Message:   "Test alert",
 			Timestamp: time.Now().Add(time.Duration(-i) * time.Hour),
 		}
@@ -469,10 +469,10 @@ func TestReportAlertEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		alert := models.DeviceAlert{
-			DeviceID: sampleUUID,
-			Level:    "warning",
-			Type:     "cpu_high",
-			Message:  "CPU usage high",
+			DeviceID:  sampleUUID,
+			Level:     "warning",
+			AlertType: "cpu_high",
+			Message:   "CPU usage high",
 		}
 		b, _ := json.Marshal(alert)
 		c.Request, _ = http.NewRequest("POST", "/alerts", bytes.NewReader(b))

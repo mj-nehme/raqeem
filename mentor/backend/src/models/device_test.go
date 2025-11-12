@@ -193,13 +193,13 @@ func TestProcess_Fields(t *testing.T) {
 func TestActivityLog_Fields(t *testing.T) {
 	now := time.Now()
 	activity := DeviceActivity{
-		ActivityID:  sampleUUID,
-		DeviceID:    sampleUUID,
-		Timestamp:   now,
-		Type:        "app_launch",
-		Description: "User launched Chrome browser",
-		App:         "chrome",
-		Duration:    3600, // 1 hour
+		ActivityID:   sampleUUID,
+		DeviceID:     sampleUUID,
+		Timestamp:    now,
+		ActivityType: "app_launch",
+		Description:  "User launched Chrome browser",
+		App:          "chrome",
+		Duration:     3600, // 1 hour
 	}
 
 	if activity.ActivityID != sampleUUID {
@@ -208,8 +208,8 @@ func TestActivityLog_Fields(t *testing.T) {
 	if activity.DeviceID != sampleUUID {
 		t.Errorf("Expected DeviceID to be %s, got '%s'", sampleUUID, activity.DeviceID)
 	}
-	if activity.Type != "app_launch" {
-		t.Errorf("Expected Type to be 'app_launch', got '%s'", activity.Type)
+	if activity.ActivityType != "app_launch" {
+		t.Errorf("Expected ActivityType to be 'app_launch', got '%s'", activity.ActivityType)
 	}
 	if activity.Description != "User launched Chrome browser" {
 		t.Errorf("Expected Description to be 'User launched Chrome browser', got '%s'", activity.Description)
@@ -291,7 +291,7 @@ func TestAlert_Fields(t *testing.T) {
 		DeviceID:  sampleUUID,
 		Timestamp: now,
 		Level:     "warning",
-		Type:      "cpu",
+		AlertType: "cpu",
 		Message:   "High CPU usage detected",
 		Value:     85.5,
 		Threshold: 80.0,
@@ -306,8 +306,8 @@ func TestAlert_Fields(t *testing.T) {
 	if alert.Level != "warning" {
 		t.Errorf("Expected Level to be 'warning', got '%s'", alert.Level)
 	}
-	if alert.Type != "cpu" {
-		t.Errorf("Expected Type to be 'cpu', got '%s'", alert.Type)
+	if alert.AlertType != "cpu" {
+		t.Errorf("Expected AlertType to be 'cpu', got '%s'", alert.AlertType)
 	}
 	if alert.Message != "High CPU usage detected" {
 		t.Errorf("Expected Message to be 'High CPU usage detected', got '%s'", alert.Message)
@@ -328,7 +328,7 @@ func TestAlert_Levels(t *testing.T) {
 			AlertID:   sampleUUID,
 			DeviceID:  sampleUUID,
 			Level:     level,
-			Type:      "cpu",
+			AlertType: "cpu",
 			Message:   "Test alert",
 			Value:     50.0,
 			Threshold: 40.0,
@@ -348,14 +348,14 @@ func TestAlert_Types(t *testing.T) {
 			AlertID:   sampleUUID,
 			DeviceID:  sampleUUID,
 			Level:     "warning",
-			Type:      alertType,
+			AlertType: alertType,
 			Message:   "Test alert",
 			Value:     50.0,
 			Threshold: 40.0,
 		}
 
-		if alert.Type != alertType {
-			t.Errorf("Expected Type to be '%s', got '%s'", alertType, alert.Type)
+		if alert.AlertType != alertType {
+			t.Errorf("Expected AlertType to be '%s', got '%s'", alertType, alert.AlertType)
 		}
 	}
 }

@@ -303,7 +303,7 @@ func GetDeviceScreenshot(c *gin.Context) {
 
 		resp = append(resp, gin.H{
 			"id":             s.ScreenshotID,
-			"device_id":      s.DeviceID,
+			"deviceid":       s.DeviceID,
 			"timestamp":      s.Timestamp,
 			"path":           s.Path,
 			"resolution":     s.Resolution,

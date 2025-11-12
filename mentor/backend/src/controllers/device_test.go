@@ -49,7 +49,7 @@ func TestReportAndGetAlerts(t *testing.T) {
 		DeviceID:  sampleUUID,
 		Timestamp: time.Now(),
 		Level:     "warning",
-		Type:      "cpu_high",
+		AlertType: "cpu_high",
 		Message:   "CPU high",
 		Value:     95,
 		Threshold: 80,

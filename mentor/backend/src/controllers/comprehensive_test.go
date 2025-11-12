@@ -38,7 +38,7 @@ func TestRegisterDevice_ErrorCases(t *testing.T) {
 
 	// Test missing required fields
 	device := map[string]interface{}{
-		"devicename": "Test Device",
+		"device_name": "Test Device",
 		// Missing ID
 	}
 	deviceJSON, _ := json.Marshal(device)
@@ -75,7 +75,7 @@ func TestUpdateDeviceMetric_ErrorCases(t *testing.T) {
 
 	// Test metrics with invalid data types
 	invalidMetrics := map[string]interface{}{
-		"device_id":    deviceID,
+		"deviceid":     deviceID,
 		"cpu_usage":    "not_a_number", // Should be float64
 		"memory_total": true,           // Should be uint64
 	}
@@ -525,9 +525,9 @@ func TestActivityLogTimestampHandling(t *testing.T) {
 
 	// Test activity without timestamp (should be auto-set)
 	activity := models.DeviceActivity{
-		DeviceID:    sampleUUID,
-		Type:        "test",
-		Description: "Test activity",
+		DeviceID:     sampleUUID,
+		ActivityType: "test",
+		Description:  "Test activity",
 		// Timestamp will be auto-set by controller
 	}
 
@@ -700,7 +700,7 @@ func TestAlertTimestampHandling(t *testing.T) {
 	// Test alert without timestamp (should be auto-set)
 	alert := models.DeviceAlert{
 		DeviceID:  sampleUUID,
-		Type:      "test",
+		AlertType: "test",
 		Level:     "info",
 		Message:   "Test alert",
 		Value:     50.0,
