@@ -35,15 +35,15 @@ func setupTestRouterWithDB(t *testing.T) (*gin.Engine, func()) {
 
 	// Register all routes
 	router.POST("/devices", RegisterDevice)
-	router.POST("/devices/:id/metrics", UpdateDeviceMetrics)
+	router.POST("/devices/:id/metrics", UpdateDeviceMetric)
 	router.POST("/devices/:id/activity", Activity)
 	router.POST("/devices/:id/processes", UpdateProcessList)
 	router.GET("/devices", ListDevices)
-	router.GET("/devices/:id/metrics", GetDeviceMetrics)
-	router.GET("/devices/:id/processes", GetDeviceProcesseses)
-	router.GET("/devices/:id/activities", GetDeviceActivities)
-	router.GET("/devices/:id/alerts", GetDeviceAlerts)
-	router.GET("/devices/:id/screenshots", GetDeviceScreenshots)
+	router.GET("/devices/:id/metrics", GetDeviceMetric)
+	router.GET("/devices/:id/processes", GetDeviceProcesses)
+	router.GET("/devices/:id/activities", GetDeviceActivity)
+	router.GET("/devices/:id/alerts", GetDeviceAlert)
+	router.GET("/devices/:id/screenshots", GetDeviceScreenshot)
 	router.POST("/devices/:id/commands", CreateRemoteCommand)
 	router.GET("/devices/:id/commands/pending", GetPendingCommands)
 	router.PUT("/commands/:id/status", UpdateCommandStatus)
@@ -65,16 +65,16 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 
 	// 1. Register a new device
 	device := models.Device{
-		ID:          deviceID,
-		Name:        "Integration Test Device",
-		Type:        "laptop",
-		OS:          "Ubuntu",
-		IPAddress:   "192.168.1.100",
-		MacAddress:  "aa:bb:cc:dd:ee:ff",
-		Location:    "Test Lab",
-		IsOnline:    true,
-		CurrentUser: "testuser",
-		LastSeen:    time.Now(),
+		DeviceID:       sampleUUID,
+		DeviceName:     "Integration Test Device",
+		DeviceType:     "laptop",
+		OS:             "Ubuntu",
+		IPAddress:      "192.168.1.100",
+		MacAddress:     "aa:bb:cc:dd:ee:ff",
+		DeviceLocation: "Test Lab",
+		IsOnline:       true,
+		CurrentUser:    "testuser",
+		LastSeen:       time.Now(),
 	}
 
 	deviceJSON, _ := json.Marshal(device)
@@ -88,11 +88,11 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	var registerResponse models.Device
 	err := json.Unmarshal(w.Body.Bytes(), &registerResponse)
 	require.NoError(t, err)
-	assert.Equal(t, deviceID, registerResponse.ID)
+	assert.Equal(t, deviceID, registerResponse.DeviceID)
 
 	// 2. Update device metrics
-	metrics := models.DeviceMetrics{
-		DeviceID:    deviceID,
+	metrics := models.DeviceMetric{
+		DeviceID:    sampleUUID,
 		CPUUsage:    75.5,
 		CPUTemp:     65.0,
 		MemoryTotal: 16777216000, // 16GB
@@ -114,8 +114,8 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// 3. Log activity
-	activity := models.DeviceActivities{
-		DeviceID:    deviceID,
+	activity := models.DeviceActivity{
+		DeviceID:    sampleUUID,
 		Type:        "app_launch",
 		Description: "User opened Firefox browser",
 		App:         "Firefox",
@@ -132,24 +132,24 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// 4. Update process list
-	processes := []models.DeviceProcesses{
+	processes := []models.DeviceProcess{
 		{
-			DeviceID:  deviceID,
-			PID:       1234,
-			Name:      "firefox",
-			CPU:       15.5,
-			Memory:    536870912, // 512MB in bytes
-			Command:   "/usr/bin/firefox",
-			Timestamp: time.Now(),
+			DeviceID:    sampleUUID,
+			PID:         1234,
+			ProcessName: "firefox",
+			CPU:         15.5,
+			Memory:      536870912, // 512MB in bytes
+			CommandText: "/usr/bin/firefox",
+			Timestamp:   time.Now(),
 		},
 		{
-			DeviceID:  deviceID,
-			PID:       5678,
-			Name:      "code",
-			CPU:       8.2,
-			Memory:    268435456, // 256MB in bytes
-			Command:   "/usr/bin/code",
-			Timestamp: time.Now(),
+			DeviceID:    sampleUUID,
+			PID:         5678,
+			ProcessName: "code",
+			CPU:         8.2,
+			Memory:      268435456, // 256MB in bytes
+			CommandText: "/usr/bin/code",
+			Timestamp:   time.Now(),
 		},
 	}
 
@@ -162,11 +162,11 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// 5. Create a remote command
-	command := models.DeviceRemoteCommands{
-		DeviceID:  deviceID,
-		Command:   "ls -la /home",
-		Status:    "pending",
-		CreatedAt: time.Now(),
+	command := models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "ls -la /home",
+		Status:      "pending",
+		CreatedAt:   time.Now(),
 	}
 
 	commandJSON, _ := json.Marshal(command)
@@ -177,15 +177,15 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var commandResponse models.DeviceRemoteCommands
+	var commandResponse models.DeviceRemoteCommand
 	err = json.Unmarshal(w.Body.Bytes(), &commandResponse)
 	require.NoError(t, err)
-	assert.NotZero(t, commandResponse.ID)
-	commandID := commandResponse.ID
+	assert.NotZero(t, commandResponse.CommandID)
+	commandID := commandResponse.CommandID
 
 	// 6. Report an alert
-	alert := models.DeviceAlerts{
-		DeviceID:  deviceID,
+	alert := models.DeviceAlert{
+		DeviceID:  sampleUUID,
 		Type:      "security",
 		Level:     "critical",
 		Message:   "Suspicious network activity detected",
@@ -222,7 +222,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var metricsResponse []models.DeviceMetrics
+	var metricsResponse []models.DeviceMetric
 	err = json.Unmarshal(w.Body.Bytes(), &metricsResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(metricsResponse), 1)
@@ -234,7 +234,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var processesResponse []models.DeviceProcesses
+	var processesResponse []models.DeviceProcess
 	err = json.Unmarshal(w.Body.Bytes(), &processesResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(processesResponse), 2)
@@ -246,7 +246,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var activitiesResponse []models.DeviceActivities
+	var activitiesResponse []models.DeviceActivity
 	err = json.Unmarshal(w.Body.Bytes(), &activitiesResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(activitiesResponse), 1)
@@ -258,7 +258,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var alertsResponse []models.DeviceAlerts
+	var alertsResponse []models.DeviceAlert
 	err = json.Unmarshal(w.Body.Bytes(), &alertsResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(alertsResponse), 1)
@@ -270,16 +270,16 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var commandsResponse []models.DeviceRemoteCommands
+	var commandsResponse []models.DeviceRemoteCommand
 	err = json.Unmarshal(w.Body.Bytes(), &commandsResponse)
 	require.NoError(t, err)
 	assert.GreaterOrEqual(t, len(commandsResponse), 1)
 
 	// 13. Update command status
-	statusUpdate := models.DeviceRemoteCommands{
-		ID:     commandID,
-		Status: "completed",
-		Result: "total 24\ndrwxr-xr-x 3 user user 4096 Nov  3 10:00 .",
+	statusUpdate := models.DeviceRemoteCommand{
+		CommandID: commandID,
+		Status:    "completed",
+		Result:    "total 24\ndrwxr-xr-x 3 user user 4096 Nov  3 10:00 .",
 	}
 
 	statusJSON, _ := json.Marshal(statusUpdate)
@@ -290,13 +290,13 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var updateResponse models.DeviceRemoteCommands
+	var updateResponse models.DeviceRemoteCommand
 	err = json.Unmarshal(w.Body.Bytes(), &updateResponse)
 	require.NoError(t, err)
 	assert.Equal(t, "completed", updateResponse.Status)
 }
 
-func TestDeviceMetricsIntegration(t *testing.T) {
+func TestDeviceMetricIntegration(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -304,12 +304,12 @@ func TestDeviceMetricsIntegration(t *testing.T) {
 
 	// Register device first
 	device := models.Device{
-		ID:       deviceID,
-		Name:     "Metrics Test Device",
-		Type:     "server",
-		OS:       "Linux",
-		IsOnline: true,
-		LastSeen: time.Now(),
+		DeviceID:   sampleUUID,
+		DeviceName: "Metrics Test Device",
+		DeviceType: "server",
+		OS:         "Linux",
+		IsOnline:   true,
+		LastSeen:   time.Now(),
 	}
 
 	deviceJSON, _ := json.Marshal(device)
@@ -321,8 +321,8 @@ func TestDeviceMetricsIntegration(t *testing.T) {
 
 	// Add multiple metrics entries
 	for i := 0; i < 5; i++ {
-		metrics := models.DeviceMetrics{
-			DeviceID:    deviceID,
+		metrics := models.DeviceMetric{
+			DeviceID:    sampleUUID,
 			CPUUsage:    float64(50 + i*10),
 			CPUTemp:     float64(55 + i*5),
 			MemoryTotal: 16777216000,
@@ -360,7 +360,7 @@ func TestDeviceMetricsIntegration(t *testing.T) {
 		router.ServeHTTP(w, req)
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var metricsResponse []models.DeviceMetrics
+		var metricsResponse []models.DeviceMetric
 		err := json.Unmarshal(w.Body.Bytes(), &metricsResponse)
 		require.NoError(t, err)
 		assert.Equal(t, tc.expected, len(metricsResponse))
@@ -375,12 +375,12 @@ func TestAlertFlowIntegration(t *testing.T) {
 
 	// Register device
 	device := models.Device{
-		ID:       deviceID,
-		Name:     "Alert Test Device",
-		Type:     "workstation",
-		OS:       "Windows",
-		IsOnline: true,
-		LastSeen: time.Now(),
+		DeviceID:   sampleUUID,
+		DeviceName: "Alert Test Device",
+		DeviceType: "workstation",
+		OS:         "Windows",
+		IsOnline:   true,
+		LastSeen:   time.Now(),
 	}
 
 	deviceJSON, _ := json.Marshal(device)
@@ -403,8 +403,8 @@ func TestAlertFlowIntegration(t *testing.T) {
 	}
 
 	for _, alertTest := range alertTests {
-		alert := models.DeviceAlerts{
-			DeviceID:  deviceID,
+		alert := models.DeviceAlert{
+			DeviceID:  sampleUUID,
 			Type:      alertTest.alertType,
 			Level:     alertTest.level,
 			Message:   alertTest.message,
@@ -429,7 +429,7 @@ func TestAlertFlowIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var alertsResponse []models.DeviceAlerts
+	var alertsResponse []models.DeviceAlert
 	err := json.Unmarshal(w.Body.Bytes(), &alertsResponse)
 	require.NoError(t, err)
 	assert.Equal(t, len(alertTests), len(alertsResponse))
@@ -452,10 +452,10 @@ func TestErrorHandlingIntegration(t *testing.T) {
 
 	// Test duplicate device registration
 	device := models.Device{
-		ID:   "duplicate-test",
-		Name: "Duplicate Test Device",
-		Type: "laptop",
-		OS:   "macOS",
+		DeviceID:   sampleUUID,
+		DeviceName: "Duplicate Test Device",
+		DeviceType: "laptop",
+		OS:         "macOS",
 	}
 
 	deviceJSON, _ := json.Marshal(device)
@@ -489,7 +489,7 @@ func TestErrorHandlingIntegration(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code) // Should return empty array
 
-	var metricsResponse []models.DeviceMetrics
+	var metricsResponse []models.DeviceMetric
 	err := json.Unmarshal(w.Body.Bytes(), &metricsResponse)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(metricsResponse))

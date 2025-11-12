@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import insert
-from app.models.screenshots import Screenshot
+from app.models.devices import DeviceScreenshot as Screenshot
 from app.schemas.screenshots import ScreenshotCreate
 
 async def create_screenshot(db: AsyncSession, screenshot: ScreenshotCreate):

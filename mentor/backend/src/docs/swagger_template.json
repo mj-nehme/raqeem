@@ -184,7 +184,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.DeviceAlerts"
+                                "$ref": "#/definitions/models.DeviceAlert"
                             }
                         }
                     },
@@ -241,7 +241,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/models.DeviceMetrics"
+                                "$ref": "#/definitions/models.DeviceMetric"
                             }
                         }
                     },
@@ -268,7 +268,7 @@
         }
     },
     "definitions": {
-        "models.DeviceAlerts": {
+        "models.DeviceAlert": {
             "type": "object",
             "properties": {
                 "device_id": {
@@ -337,7 +337,7 @@
                 }
             }
         },
-        "models.DeviceMetrics": {
+        "models.DeviceMetric": {
             "type": "object",
             "properties": {
                 "cpu_temp": {

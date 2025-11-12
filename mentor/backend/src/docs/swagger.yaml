@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  models.DeviceAlerts:
+  models.DeviceAlert:
     properties:
       device_id:
         type: string
@@ -47,7 +47,7 @@ definitions:
         description: laptop, desktop, mobile, etc.
         type: string
     type: object
-  models.DeviceMetrics:
+  models.DeviceMetric:
     properties:
       cpu_temp:
         description: celsius
@@ -175,7 +175,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: "#/definitions/models.DeviceAlerts"
+              $ref: "#/definitions/models.DeviceAlert"
             type: array
         "400":
           description: Bad Request
@@ -213,7 +213,7 @@ paths:
           description: OK
           schema:
             items:
-              $ref: "#/definitions/models.DeviceMetrics"
+              $ref: "#/definitions/models.DeviceMetric"
             type: array
         "400":
           description: Bad Request

@@ -8,19 +8,16 @@ import (
 	"golang.org/x/text/language"
 )
 
-// ValidateDevice validates device fields
-func (d *Device) ValidateDevice() []string {
+// -------------------- DEVICE --------------------
+
+func (device *Device) ValidateDevice() []string {
 	var errors []string
 
-	if strings.TrimSpace(d.ID) == "" {
-		errors = append(errors, "device ID cannot be empty")
-	}
-
-	if strings.TrimSpace(d.Name) == "" {
+	if strings.TrimSpace(device.DeviceName) == "" {
 		errors = append(errors, "device name cannot be empty")
 	}
 
-	if len(d.Name) > 255 {
+	if len(device.DeviceName) > 255 {
 		errors = append(errors, "device name cannot exceed 255 characters")
 	}
 
@@ -33,36 +30,35 @@ func (d *Device) ValidateDevice() []string {
 		"iot":     true,
 	}
 
-	if d.Type != "" && !validTypes[strings.ToLower(d.Type)] {
+	if device.DeviceType != "" && !validTypes[strings.ToLower(device.DeviceType)] {
 		errors = append(errors, "invalid device type")
 	}
 
 	return errors
 }
 
-// IsOnlineRecently checks if device was online in the last N minutes
-func (d *Device) IsOnlineRecently(minutes int) bool {
+func (device *Device) IsOnlineRecently(minutes int) bool {
 	if minutes <= 0 {
-		return d.IsOnline
+		return device.IsOnline
 	}
 	threshold := time.Now().Add(-time.Duration(minutes) * time.Minute)
-	return d.LastSeen.After(threshold)
+	return device.LastSeen.After(threshold)
 }
 
-// GetFormattedType returns the device type in proper case
-func (d *Device) GetFormattedType() string {
-	if d.Type == "" {
+func (device *Device) GetFormattedType() string {
+	if device.DeviceType == "" {
 		return "Unknown"
 	}
 	caser := cases.Title(language.English)
-	return caser.String(strings.ToLower(d.Type))
+	return caser.String(strings.ToLower(device.DeviceType))
 }
 
-// ValidateAlert validates alert fields
-func (a *DeviceAlerts) ValidateAlert() []string {
+// -------------------- ALERTS --------------------
+
+func (alert *DeviceAlert) ValidateAlert() []string {
 	var errors []string
 
-	if strings.TrimSpace(a.DeviceID) == "" {
+	if strings.TrimSpace(alert.AlertID.String()) == "" {
 		errors = append(errors, "device ID cannot be empty")
 	}
 
@@ -73,7 +69,7 @@ func (a *DeviceAlerts) ValidateAlert() []string {
 		"critical": true,
 	}
 
-	if !validLevels[strings.ToLower(a.Level)] {
+	if !validLevels[strings.ToLower(alert.Level)] {
 		errors = append(errors, "invalid alert level")
 	}
 
@@ -85,74 +81,73 @@ func (a *DeviceAlerts) ValidateAlert() []string {
 		"security": true,
 	}
 
-	if !validTypes[strings.ToLower(a.Type)] {
+	if !validTypes[strings.ToLower(alert.Type)] {
 		errors = append(errors, "invalid alert type")
 	}
 
-	if strings.TrimSpace(a.Message) == "" {
+	if strings.TrimSpace(alert.Message) == "" {
 		errors = append(errors, "alert message cannot be empty")
 	}
 
 	return errors
 }
 
-// IsCritical checks if alert is critical level
-func (a *DeviceAlerts) IsCritical() bool {
-	return strings.ToLower(a.Level) == "critical"
+func (alert *DeviceAlert) IsCritical() bool {
+	return strings.ToLower(alert.Level) == "critical"
 }
 
-// ValidateDeviceMetrics validates device metrics
-func (dm *DeviceMetrics) ValidateDeviceMetrics() []string {
+// -------------------- METRICS --------------------
+
+func (metric *DeviceMetric) ValidateDeviceMetric() []string {
 	var errors []string
 
-	if strings.TrimSpace(dm.DeviceID) == "" {
+	if strings.TrimSpace(metric.MetricID.String()) == "" {
 		errors = append(errors, "device ID cannot be empty")
 	}
 
-	if dm.CPUUsage < 0 || dm.CPUUsage > 100 {
+	if metric.CPUUsage < 0 || metric.CPUUsage > 100 {
 		errors = append(errors, "CPU usage must be between 0 and 100")
 	}
 
-	if dm.CPUTemp < -50 || dm.CPUTemp > 150 {
+	if metric.CPUTemp < -50 || metric.CPUTemp > 150 {
 		errors = append(errors, "CPU temperature must be between -50 and 150 celsius")
 	}
 
-	if dm.MemoryUsed > dm.MemoryTotal && dm.MemoryTotal > 0 {
+	if metric.MemoryUsed > metric.MemoryTotal && metric.MemoryTotal > 0 {
 		errors = append(errors, "memory used cannot exceed memory total")
 	}
 
-	if dm.DiskUsed > dm.DiskTotal && dm.DiskTotal > 0 {
+	if metric.DiskUsed > metric.DiskTotal && metric.DiskTotal > 0 {
 		errors = append(errors, "disk used cannot exceed disk total")
 	}
 
 	return errors
 }
 
-// GetMemoryUsagePercent returns memory usage as percentage
-func (dm *DeviceMetrics) GetMemoryUsagePercent() float64 {
-	if dm.MemoryTotal == 0 {
+func (metric *DeviceMetric) GetMemoryUsagePercent() float64 {
+	if metric.MemoryTotal == 0 {
 		return 0
 	}
-	return float64(dm.MemoryUsed) / float64(dm.MemoryTotal) * 100
+	return float64(metric.MemoryUsed) / float64(metric.MemoryTotal) * 100
 }
 
-// GetDiskUsagePercent returns disk usage as percentage
-func (dm *DeviceMetrics) GetDiskUsagePercent() float64 {
-	if dm.DiskTotal == 0 {
+func (metric *DeviceMetric) GetDiskUsagePercent() float64 {
+	if metric.DiskTotal == 0 {
 		return 0
 	}
-	return float64(dm.DiskUsed) / float64(dm.DiskTotal) * 100
+	return float64(metric.DiskUsed) / float64(metric.DiskTotal) * 100
 }
 
-// ValidateRemoteCommand validates remote command fields
-func (rc *DeviceRemoteCommands) ValidateRemoteCommand() []string {
+// -------------------- REMOTE COMMANDS --------------------
+
+func (command *DeviceRemoteCommand) ValidateRemoteCommand() []string {
 	var errors []string
 
-	if strings.TrimSpace(rc.DeviceID) == "" {
+	if strings.TrimSpace(command.DeviceID.String()) == "" {
 		errors = append(errors, "device ID cannot be empty")
 	}
 
-	if strings.TrimSpace(rc.Command) == "" {
+	if strings.TrimSpace(command.CommandText) == "" {
 		errors = append(errors, "command cannot be empty")
 	}
 
@@ -163,20 +158,18 @@ func (rc *DeviceRemoteCommands) ValidateRemoteCommand() []string {
 		"failed":    true,
 	}
 
-	if rc.Status != "" && !validStatuses[strings.ToLower(rc.Status)] {
+	if command.Status != "" && !validStatuses[strings.ToLower(command.Status)] {
 		errors = append(errors, "invalid command status")
 	}
 
 	return errors
 }
 
-// IsCompleted checks if command is completed (either successfully or failed)
-func (rc *DeviceRemoteCommands) IsCompleted() bool {
-	status := strings.ToLower(rc.Status)
+func (command *DeviceRemoteCommand) IsCompleted() bool {
+	status := strings.ToLower(command.Status)
 	return status == "completed" || status == "failed"
 }
 
-// IsSuccessful checks if command completed successfully
-func (rc *DeviceRemoteCommands) IsSuccessful() bool {
-	return strings.ToLower(rc.Status) == "completed" && rc.ExitCode == 0
+func (command *DeviceRemoteCommand) IsSuccessful() bool {
+	return strings.ToLower(command.Status) == "completed" && command.ExitCode == 0
 }

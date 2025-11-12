@@ -2,99 +2,117 @@ package models
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
-// Device represents a monitored device
+// Device represents a monitored device.
 type Device struct {
-	ID          string    `json:"id" gorm:"primaryKey"`
-	Name        string    `json:"name"`
-	Type        string    `json:"type"` // laptop, desktop, mobile, etc.
-	OS          string    `json:"os"`
-	LastSeen    time.Time `json:"last_seen"`
-	IsOnline    bool      `json:"is_online"`
-	Location    string    `json:"location"`
-	IPAddress   string    `json:"ip_address"`
-	MacAddress  string    `json:"mac_address"`
-	CurrentUser string    `json:"current_user"`
+	DeviceID       uuid.UUID `json:"deviceid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceName     string    `json:"device_name"`
+	DeviceType     string    `json:"device_type"`
+	OS             string    `json:"os"`
+	LastSeen       time.Time `json:"last_seen" gorm:"default:now()"`
+	IsOnline       bool      `json:"is_online"`
+	DeviceLocation string    `json:"device_location"`
+	IPAddress      string    `json:"ip_address"`
+	MacAddress     string    `json:"mac_address"`
+	CurrentUser    string    `json:"current_user"`
+
+	// Relationships
+	Metrics     []DeviceMetric        `gorm:"constraint:OnDelete:CASCADE;"`
+	Processes   []DeviceProcess       `gorm:"constraint:OnDelete:CASCADE;"`
+	Activities  []DeviceActivity      `gorm:"constraint:OnDelete:CASCADE;"`
+	Alerts      []DeviceAlert         `gorm:"constraint:OnDelete:CASCADE;"`
+	Commands    []DeviceRemoteCommand `gorm:"constraint:OnDelete:CASCADE;"`
+	Screenshots []DeviceScreenshot    `gorm:"constraint:OnDelete:CASCADE;"`
+	Users       []User                `gorm:"constraint:OnDelete:CASCADE;"`
 }
 
-// DeviceMetrics stores the current system metrics
-type DeviceMetrics struct {
-	ID        string    `json:"id" gorm:"primaryKey;type:uuid"`
-	DeviceID  string    `json:"device_id"`
-	Timestamp time.Time `json:"timestamp"`
-
-	// CPU metrics
-	CPUUsage float64 `json:"cpu_usage"` // percentage
-	CPUTemp  float64 `json:"cpu_temp"`  // celsius
-
-	// Memory metrics
-	MemoryTotal uint64 `json:"memory_total"` // bytes
-	MemoryUsed  uint64 `json:"memory_used"`  // bytes
-	SwapUsed    uint64 `json:"swap_used"`    // bytes
-
-	// Disk metrics
-	DiskTotal uint64 `json:"disk_total"` // bytes
-	DiskUsed  uint64 `json:"disk_used"`  // bytes
-
-	// Network metrics
-	NetBytesIn  uint64 `json:"net_bytes_in"`  // bytes/sec
-	NetBytesOut uint64 `json:"net_bytes_out"` // bytes/sec
+// DeviceMetric stores system metrics.
+type DeviceMetric struct {
+	MetricID    uuid.UUID `json:"metricid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID    uuid.UUID `json:"deviceid"`
+	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
+	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
+	CPUUsage    float64   `json:"cpu_usage"`
+	CPUTemp     float64   `json:"cpu_temp"`
+	MemoryTotal uint64    `json:"memory_total"`
+	MemoryUsed  uint64    `json:"memory_used"`
+	SwapUsed    uint64    `json:"swap_used"`
+	DiskTotal   uint64    `json:"disk_total"`
+	DiskUsed    uint64    `json:"disk_used"`
+	NetBytesIn  uint64    `json:"net_bytes_in"`
+	NetBytesOut uint64    `json:"net_bytes_out"`
 }
 
-// Process represents a running process on the device
-type DeviceProcesses struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	DeviceID  string    `json:"device_id"`
-	Timestamp time.Time `json:"timestamp"`
-	PID       int       `json:"pid"`
-	Name      string    `json:"name"`
-	CPU       float64   `json:"cpu"`    // percentage
-	Memory    uint64    `json:"memory"` // bytes
-	Command   string    `json:"command"`
+// DeviceProcess represents a running process.
+type DeviceProcess struct {
+	ProcessID   uuid.UUID `json:"processid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID    uuid.UUID `json:"deviceid"`
+	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
+	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
+	PID         int       `json:"pid"`
+	ProcessName string    `json:"process_name"`
+	CPU         float64   `json:"cpu"`
+	Memory      uint64    `json:"memory"`
+	CommandText string    `json:"command_text"`
 }
 
-// ActivityLog tracks user activity
-type DeviceActivities struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	DeviceID    string    `json:"device_id"`
-	Timestamp   time.Time `json:"timestamp"`
-	Type        string    `json:"type"` // app_launch, file_access, browser, etc.
+// DeviceActivity tracks user activity on the device.
+type DeviceActivity struct {
+	ActivityID  uuid.UUID `json:"activityid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID    uuid.UUID `json:"deviceid"`
+	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
+	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
+	Type        string    `json:"type"`
 	Description string    `json:"description"`
 	App         string    `json:"app"`
-	Duration    int       `json:"duration"` // seconds
+	Duration    int       `json:"duration"`
 }
 
-// RemoteCommand represents a command to be executed on the device
-type DeviceRemoteCommands struct {
-	ID          uint      `json:"id" gorm:"primaryKey"`
-	DeviceID    string    `json:"device_id"`
-	Command     string    `json:"command"`
-	Status      string    `json:"status"` // pending, running, completed, failed
-	CreatedAt   time.Time `json:"created_at"`
+// DeviceAlert represents alerts raised by monitoring.
+type DeviceAlert struct {
+	AlertID   uuid.UUID `json:"alertid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID  uuid.UUID `json:"deviceid"`
+	Device    Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
+	Timestamp time.Time `json:"timestamp" gorm:"default:now()"`
+	Level     string    `json:"level"`
+	Type      string    `json:"type"`
+	Message   string    `json:"message"`
+	Value     float64   `json:"value"`
+	Threshold float64   `json:"threshold"`
+}
+
+// DeviceRemoteCommand represents a command sent remotely.
+type DeviceRemoteCommand struct {
+	CommandID   uuid.UUID `json:"commandid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID    uuid.UUID `json:"deviceid"`
+	Device      Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
+	CommandText string    `json:"command_text"`
+	Status      string    `json:"status"`
+	CreatedAt   time.Time `json:"created_at" gorm:"default:now()"`
 	CompletedAt time.Time `json:"completed_at"`
 	Result      string    `json:"result"`
 	ExitCode    int       `json:"exit_code"`
 }
 
-// Screenshot stores device screen captures
-type DeviceScreenshots struct {
-	ID         uint      `json:"id" gorm:"primaryKey"`
-	DeviceID   string    `json:"device_id"`
-	Timestamp  time.Time `json:"timestamp"`
-	Path       string    `json:"path"` // path in MinIO
-	Resolution string    `json:"resolution"`
-	Size       int64     `json:"size"` // bytes
+// DeviceScreenshot stores screen captures.
+type DeviceScreenshot struct {
+	ScreenshotID uuid.UUID `json:"screenshotid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID     uuid.UUID `json:"deviceid"`
+	Device       Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
+	Timestamp    time.Time `json:"timestamp" gorm:"default:now()"`
+	Path         string    `json:"path"`
+	Resolution   string    `json:"resolution"`
+	Size         int64     `json:"size"`
 }
 
-// Alert represents device monitoring alerts
-type DeviceAlerts struct {
-	ID        uint      `json:"id" gorm:"primaryKey"`
-	DeviceID  string    `json:"device_id"`
-	Timestamp time.Time `json:"timestamp"`
-	Level     string    `json:"level"` // info, warning, error, critical
-	Type      string    `json:"type"`  // cpu, memory, disk, network, security
-	Message   string    `json:"message"`
-	Value     float64   `json:"value"`     // measured value that triggered alert
-	Threshold float64   `json:"threshold"` // threshold that was exceeded
+// User represents a user linked to a device.
+type User struct {
+	UserID    uuid.UUID `json:"userid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID  uuid.UUID `json:"deviceid"`
+	Device    Device    `gorm:"foreignKey:DeviceID;constraint:OnDelete:CASCADE;"`
+	Name      string    `json:"name"`
+	CreatedAt time.Time `json:"created_at" gorm:"default:now()"`
 }

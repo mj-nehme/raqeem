@@ -20,7 +20,7 @@ class Device(Base):
     current_user_text = Column(Text, nullable=True)  # Match database schema column name
 
 
-class DeviceMetrics(Base):
+class DeviceMetric(Base):
     __tablename__ = "device_metrics"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -41,7 +41,7 @@ class DeviceMetrics(Base):
     net_bytes_out = Column(BigInteger, nullable=True)
 
 
-class DeviceProcesses(Base):
+class DeviceProcess(Base):
     __tablename__ = "device_processes"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -54,7 +54,7 @@ class DeviceProcesses(Base):
     command = Column(Text, nullable=True)
 
 
-class DeviceActivities(Base):
+class DeviceActivity(Base):
     __tablename__ = "device_activities"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -66,7 +66,7 @@ class DeviceActivities(Base):
     duration = Column(Integer, nullable=True)
 
 
-class DeviceAlerts(Base):
+class DeviceAlert(Base):
     __tablename__ = "device_alerts"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -79,7 +79,7 @@ class DeviceAlerts(Base):
     threshold = Column(Float, nullable=True)
 
 
-class DeviceRemoteCommands(Base):
+class DeviceRemoteCommand(Base):
     __tablename__ = "device_remote_commands"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -92,8 +92,9 @@ class DeviceRemoteCommands(Base):
     exit_code = Column(Integer, nullable=True)
 
 
-class DeviceScreenshots(Base):
+class DeviceScreenshot(Base):
     __tablename__ = "device_screenshots"
+    __table_args__ = {'extend_existing': True}
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     device_id = Column(String, nullable=False)

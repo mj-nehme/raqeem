@@ -30,15 +30,15 @@ This document provides a comprehensive overview of test coverage across all comp
 
 **controllers/device.go:**
 - RegisterDevice: 81.8%
-- UpdateDeviceMetrics: 83.3%
+- UpdateDeviceMetric: 83.3%
 - UpdateProcessList: 61.9%
 - Activity: 77.8%
 - ListDevices: 66.7%
-- GetDeviceMetrics: 100% ✅
-- GetDeviceProcesseses: 81.8%
-- GetDeviceActivities: 100% ✅
-- GetDeviceAlerts: 81.8%
-- GetDeviceScreenshots: 86.7%
+- GetDeviceMetric: 100% ✅
+- GetDeviceProcesses: 81.8%
+- GetDeviceActivity: 100% ✅
+- GetDeviceAlert: 81.8%
+- GetDeviceScreenshot: 86.7%
 - CreateRemoteCommand: Improved with new tests ✅
 - GetPendingCommands: 66.7%
 - GetDeviceCommands: 81.8% ✅

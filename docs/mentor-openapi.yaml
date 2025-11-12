@@ -5,7 +5,7 @@ info:
   description: |
     OpenAPI specification for the Mentor backend. Covers device management, telemetry retrieval,
     remote commands, and alerts. This backend serves the monitoring dashboard.
-    
+
     ## Features
     - Device listing and status monitoring
     - Metrics retrieval and aggregation
@@ -14,19 +14,19 @@ info:
     - Screenshot retrieval with presigned URLs
     - Activity log access
     - Process information
-    
+
     ## Base URL
     Local: `http://localhost:30081`
     Production: `https://dashboard-api.raqeem.example.com`
-    
+
     ## Authentication
     Currently no authentication required (MVP). For production deployment,
     implement JWT bearer tokens or API key authentication.
-    
+
     ## CORS
     Configured via FRONTEND_ORIGIN environment variable. Set to your
     dashboard URL (e.g., `http://localhost:5001`).
-    
+
     ## Docs
     - GitHub: https://github.com/mj-nehme/raqeem
     - Full documentation: /docs in repository
@@ -51,7 +51,7 @@ servers:
 # Currently, no authentication is required for MVP release.
 # For production, consider implementing:
 # - JWT Bearer tokens for user authentication
-# - API keys for device-to-backend communication  
+# - API keys for device-to-backend communication
 # - Rate limiting per API key or IP address
 #
 # security:
@@ -136,7 +136,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/DeviceMetrics"
+              $ref: "#/components/schemas/DeviceMetric"
       responses:
         "200":
           description: Metrics accepted
@@ -164,7 +164,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/DeviceMetrics"
+                  $ref: "#/components/schemas/DeviceMetric"
 
   /devices/{id}/processes:
     post:
@@ -322,7 +322,7 @@ components:
       allOf:
         - $ref: "#/components/schemas/Device"
 
-    DeviceMetrics:
+    DeviceMetric:
       type: object
       properties:
         id:

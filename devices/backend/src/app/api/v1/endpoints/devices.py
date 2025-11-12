@@ -71,7 +71,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
 
 @router.post("/{device_id}/metrics")
 async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends(get_db)):
-    obj = dev_models.DeviceMetrics(
+    obj = dev_models.DeviceMetric(
         device_id=device_id,
         cpu_usage=payload.get("cpu_usage"),
         cpu_temp=payload.get("cpu_temp"),
@@ -111,7 +111,7 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
 @router.post("/{device_id}/processes")
 async def post_processes(device_id: str, processes: List[dict], db: AsyncSession = Depends(get_db)):
     # delete existing processes for device, then insert new ones
-    await db.execute(dev_models.DeviceProcesses.__table__.delete().where(dev_models.DeviceProcesses.device_id == device_id))
+    await db.execute(dev_models.DeviceProcess.__table__.delete().where(dev_models.DeviceProcess.device_id == device_id))
     to_add = []
     now = datetime.datetime.utcnow()
     for p in processes:
@@ -125,7 +125,7 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
             "timestamp": now,
         })
     if to_add:
-        await db.execute(dev_models.DeviceProcesses.__table__.insert(), to_add)
+        await db.execute(dev_models.DeviceProcess.__table__.insert(), to_add)
         await db.commit()
         # Optionally forward processes to mentor backend if configured
         if settings.mentor_api_url:
@@ -162,7 +162,7 @@ async def post_activity(device_id: str, activities: List[dict], db: AsyncSession
             "timestamp": now,
         })
     if to_add:
-        await db.execute(dev_models.DeviceActivities.__table__.insert(), to_add)
+        await db.execute(dev_models.DeviceActivity.__table__.insert(), to_add)
         await db.commit()
         # Optionally forward activities to mentor backend if configured
         if settings.mentor_api_url:
@@ -197,7 +197,7 @@ async def post_alerts(device_id: str, alerts: List[dict], db: AsyncSession = Dep
             "timestamp": now,
         })
     if to_add:
-        await db.execute(dev_models.DeviceAlerts.__table__.insert(), to_add)
+        await db.execute(dev_models.DeviceAlert.__table__.insert(), to_add)
         await db.commit()
         # Optionally forward alerts to mentor backend if configured
         if settings.mentor_api_url:
@@ -249,8 +249,8 @@ async def list_all_processes(db: AsyncSession = Depends(get_db)):
     Returns up to 1000 most recent processes ordered by timestamp descending.
     """
     res = await db.execute(
-        select(dev_models.DeviceProcesses)
-        .order_by(dev_models.DeviceProcesses.timestamp.desc())
+        select(dev_models.DeviceProcess)
+        .order_by(dev_models.DeviceProcess.timestamp.desc())
         .limit(1000)  # Limit to prevent overwhelming the API
     )
     processes_list = res.scalars().all()
@@ -276,8 +276,8 @@ async def list_all_activities(db: AsyncSession = Depends(get_db)):
     Returns up to 1000 most recent activities ordered by timestamp descending.
     """
     res = await db.execute(
-        select(dev_models.DeviceActivities)
-        .order_by(dev_models.DeviceActivities.timestamp.desc())
+        select(dev_models.DeviceActivity)
+        .order_by(dev_models.DeviceActivity.timestamp.desc())
         .limit(1000)  # Limit to prevent overwhelming the API
     )
     activities_list = res.scalars().all()
@@ -302,8 +302,8 @@ async def list_all_alerts(db: AsyncSession = Depends(get_db)):
     Returns up to 1000 most recent alerts ordered by timestamp descending.
     """
     res = await db.execute(
-        select(dev_models.DeviceAlerts)
-        .order_by(dev_models.DeviceAlerts.timestamp.desc())
+        select(dev_models.DeviceAlert)
+        .order_by(dev_models.DeviceAlert.timestamp.desc())
         .limit(1000)  # Limit to prevent overwhelming the API
     )
     alerts_list = res.scalars().all()
@@ -326,10 +326,10 @@ async def list_all_alerts(db: AsyncSession = Depends(get_db)):
 async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db)):
     """Get pending commands for a device"""
     res = await db.execute(
-        select(dev_models.DeviceRemoteCommands)
-        .where(dev_models.DeviceRemoteCommands.device_id == device_id)
-        .where(dev_models.DeviceRemoteCommands.status == "pending")
-        .order_by(dev_models.DeviceRemoteCommands.created_at.asc())
+        select(dev_models.DeviceRemoteCommand)
+        .where(dev_models.DeviceRemoteCommand.device_id == device_id)
+        .where(dev_models.DeviceRemoteCommand.status == "pending")
+        .order_by(dev_models.DeviceRemoteCommand.created_at.asc())
     )
     commands = res.scalars().all()
     return commands
@@ -343,7 +343,7 @@ async def submit_command_result(
 ):
     """Submit command execution result"""
     res = await db.execute(
-        select(dev_models.DeviceRemoteCommands).where(dev_models.DeviceRemoteCommands.id == command_id)
+        select(dev_models.DeviceRemoteCommand).where(dev_models.DeviceRemoteCommand.id == command_id)
     )
     command = res.scalars().first()
     if not command:
@@ -388,7 +388,7 @@ async def create_command(
     if command_base not in allowed_commands:
         raise HTTPException(status_code=400, detail=f"Command not allowed. Allowed commands: {', '.join(allowed_commands)}")
     
-    command = dev_models.DeviceRemoteCommands(
+    command = dev_models.DeviceRemoteCommand(
         device_id=device_id,
         command=payload.command,
         status="pending",
@@ -404,7 +404,7 @@ async def create_command(
 @router.get("/processes")
 async def get_all_processes(db: AsyncSession = Depends(get_db)):
     """Get all processes from all devices"""
-    res = await db.execute(select(dev_models.DeviceProcesses).order_by(dev_models.DeviceProcesses.timestamp.desc()).limit(100))
+    res = await db.execute(select(dev_models.DeviceProcess).order_by(dev_models.DeviceProcess.timestamp.desc()).limit(100))
     processes = res.scalars().all()
     return [
         {
@@ -424,7 +424,7 @@ async def get_all_processes(db: AsyncSession = Depends(get_db)):
 @router.get("/activities")
 async def get_all_activities(db: AsyncSession = Depends(get_db)):
     """Get all activities from all devices"""
-    res = await db.execute(select(dev_models.DeviceActivities).order_by(dev_models.DeviceActivities.timestamp.desc()).limit(100))
+    res = await db.execute(select(dev_models.DeviceActivity).order_by(dev_models.DeviceActivity.timestamp.desc()).limit(100))
     activities = res.scalars().all()
     return [
         {
@@ -443,7 +443,7 @@ async def get_all_activities(db: AsyncSession = Depends(get_db)):
 @router.get("/alerts")
 async def get_all_alerts(db: AsyncSession = Depends(get_db)):
     """Get all alerts from all devices"""
-    res = await db.execute(select(dev_models.DeviceAlerts).order_by(dev_models.DeviceAlerts.timestamp.desc()).limit(100))
+    res = await db.execute(select(dev_models.DeviceAlert).order_by(dev_models.DeviceAlert.timestamp.desc()).limit(100))
     alerts = res.scalars().all()
     return [
         {

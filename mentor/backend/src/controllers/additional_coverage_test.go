@@ -14,8 +14,11 @@ import (
 	"mentor-backend/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
+
+var sampleUUID, _ = uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
 
 // TestCreateRemoteCommandWithForwarding tests CreateRemoteCommand with DEVICES_API_URL set
 func TestCreateRemoteCommandWithForwarding(t *testing.T) {
@@ -25,7 +28,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
@@ -46,9 +49,10 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-forward"}}
 
-		cmd := models.DeviceRemoteCommands{
-			DeviceID: "test-device-forward",
-			Command:  "get_info",
+		cmd := models.DeviceRemoteCommand{
+			DeviceID:    sampleUUID,
+			CommandText: "get_info",
+			Status:      "pending",
 		}
 		b, _ := json.Marshal(cmd)
 		c.Request, _ = http.NewRequest("POST", "/devices/test-device-forward/commands", bytes.NewReader(b))
@@ -58,11 +62,11 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.DeviceRemoteCommands
+		var result models.DeviceRemoteCommand
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "pending", result.Status)
-		assert.Equal(t, "get_info", result.Command)
+		assert.Equal(t, "get_info", result.CommandText)
 
 		// Note: Goroutine forwarding is fire-and-forget, no synchronization needed
 		// The command is already saved successfully to the database
@@ -89,9 +93,10 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-fail"}}
 
-		cmd := models.DeviceRemoteCommands{
-			DeviceID: "test-device-fail",
-			Command:  "get_info",
+		cmd := models.DeviceRemoteCommand{
+			DeviceID:    sampleUUID,
+			CommandText: "get_info",
+			Status:      "pending",
 		}
 		b, _ := json.Marshal(cmd)
 		c.Request, _ = http.NewRequest("POST", "/devices/test-device-fail/commands", bytes.NewReader(b))
@@ -118,22 +123,22 @@ func TestGetDeviceCommandsWithLimit(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommands{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
 		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
 	}
 
-	deviceID := "test-device-limit-" + time.Now().Format("20060102150405")
+	deviceID := sampleUUID.String()
 
 	// Clean up any existing commands for this device
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommands{})
+	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
 
 	// Create multiple commands
 	for i := 0; i < 5; i++ {
-		cmd := models.DeviceRemoteCommands{
-			DeviceID:  deviceID,
-			Command:   "test_cmd",
-			Status:    "pending",
-			CreatedAt: time.Now(),
+		cmd := models.DeviceRemoteCommand{
+			DeviceID:    sampleUUID,
+			CommandText: "test_cmd",
+			Status:      "pending",
+			CreatedAt:   time.Now(),
 		}
 		database.DB.Create(&cmd)
 	}
@@ -170,7 +175,7 @@ func TestGetDeviceCommandsWithLimit(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var commands []models.DeviceRemoteCommands
+		var commands []models.DeviceRemoteCommand
 		err := json.Unmarshal(w.Body.Bytes(), &commands)
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, len(commands), 5)
@@ -185,7 +190,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceScreenshots{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceScreenshot{}); err != nil {
 		t.Fatalf("AutoMigrate Screenshot failed: %v", err)
 	}
 
@@ -193,8 +198,8 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		screenshot := models.DeviceScreenshots{
-			DeviceID: "test-device-screenshot",
+		screenshot := models.DeviceScreenshot{
+			DeviceID: sampleUUID,
 			Path:     "https://example.com/screenshot.png",
 		}
 		b, _ := json.Marshal(screenshot)
@@ -205,7 +210,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result models.DeviceScreenshots
+		var result models.DeviceScreenshot
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, "test-device-screenshot", result.DeviceID)
@@ -240,8 +245,8 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		screenshot := models.DeviceScreenshots{
-			DeviceID: "minimal-device",
+		screenshot := models.DeviceScreenshot{
+			DeviceID: sampleUUID,
 		}
 		b, _ := json.Marshal(screenshot)
 		c.Request, _ = http.NewRequest("POST", "/screenshots", bytes.NewReader(b))
@@ -261,7 +266,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceProcesses{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceProcess{}); err != nil {
 		t.Fatalf("AutoMigrate Process failed: %v", err)
 	}
 
@@ -270,7 +275,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-empty"}}
 
-		processes := []models.DeviceProcesses{}
+		processes := []models.DeviceProcess{}
 		b, _ := json.Marshal(processes)
 		c.Request, _ = http.NewRequest("POST", "/devices/test-device-empty/processes", bytes.NewReader(b))
 		c.Request.Header.Set("Content-Type", "application/json")
@@ -298,14 +303,14 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-many"}}
 
-		processes := make([]models.DeviceProcesses, 50)
+		processes := make([]models.DeviceProcess, 50)
 		for i := 0; i < 50; i++ {
-			processes[i] = models.DeviceProcesses{
-				DeviceID: "test-device-many",
-				Name:     fmt.Sprintf("process%d", i),
-				PID:      i + 1,
-				CPU:      1.0,
-				Memory:   1024,
+			processes[i] = models.DeviceProcess{
+				DeviceID:    sampleUUID,
+				ProcessName: fmt.Sprintf("process%d", i),
+				PID:         i + 1,
+				CPU:         1.0,
+				Memory:      1024,
 			}
 		}
 
@@ -333,9 +338,9 @@ func TestListDevicesWithQuery(t *testing.T) {
 
 	// Create test devices
 	devices := []models.Device{
-		{ID: "device1", Name: "Device 1", Type: "laptop", IsOnline: true},
-		{ID: "device2", Name: "Device 2", Type: "desktop", IsOnline: false},
-		{ID: "device3", Name: "Device 3", Type: "server", IsOnline: true},
+		{DeviceID: sampleUUID, DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true},
+		{DeviceID: sampleUUID, DeviceName: "Device 2", DeviceType: "desktop", IsOnline: false},
+		{DeviceID: sampleUUID, DeviceName: "Device 3", DeviceType: "server", IsOnline: true},
 	}
 	for _, d := range devices {
 		database.DB.Create(&d)

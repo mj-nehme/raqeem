@@ -13,7 +13,6 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/models"
 
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -71,7 +70,7 @@ func TestDataValidationAndSanitization(t *testing.T) {
 		{
 			name: "Device with special characters in fields",
 			device: map[string]interface{}{
-				"id":       "special-device-@#$%",
+				"id":       sampleUUID,
 				"name":     "Device with @#$%^&*() characters",
 				"location": "Floor 1 - Section A/B (Test)",
 				"command":  "echo 'test with quotes and special chars'",
@@ -94,8 +93,8 @@ func TestDataValidationAndSanitization(t *testing.T) {
 				var response models.Device
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				require.NoError(t, err)
-				assert.Equal(t, tc.device["id"], response.ID)
-				assert.Equal(t, tc.device["name"], response.Name)
+				assert.Equal(t, tc.device["id"], response.DeviceID)
+				assert.Equal(t, tc.device["name"], response.DeviceName)
 			}
 		})
 	}
@@ -109,19 +108,19 @@ func TestComplexQueryParameters(t *testing.T) {
 
 	// Register device and add test data
 	device := models.Device{
-		ID:       deviceID,
-		Name:     "Query Test Device",
-		IsOnline: true,
-		LastSeen: time.Now(),
+		DeviceID:   sampleUUID,
+		DeviceName: "Query Test Device",
+		IsOnline:   true,
+		LastSeen:   time.Now(),
 	}
 	database.DB.Create(&device)
 
 	// Add metrics with different timestamps
 	baseTime := time.Now()
 	for i := 0; i < 20; i++ {
-		metrics := models.DeviceMetrics{
-			ID:        uuid.New().String(),
-			DeviceID:  deviceID,
+		metrics := models.DeviceMetric{
+			MetricID:  sampleUUID,
+			DeviceID:  sampleUUID,
 			CPUUsage:  float64(10 + i*5),
 			Timestamp: baseTime.Add(time.Duration(i) * time.Minute),
 		}
@@ -149,7 +148,7 @@ func TestComplexQueryParameters(t *testing.T) {
 			router.ServeHTTP(w, req)
 			assert.Equal(t, http.StatusOK, w.Code)
 
-			var metrics []models.DeviceMetrics
+			var metrics []models.DeviceMetric
 			err := json.Unmarshal(w.Body.Bytes(), &metrics)
 			require.NoError(t, err)
 			assert.Equal(t, test.expected, len(metrics))
@@ -203,8 +202,8 @@ func TestHTTPHeaderHandling(t *testing.T) {
 	}
 
 	device := models.Device{
-		ID:   "header-test-device",
-		Name: "Header Test Device",
+		DeviceID:   sampleUUID,
+		DeviceName: "Header Test Device",
 	}
 	deviceJSON, _ := json.Marshal(device)
 
@@ -231,16 +230,16 @@ func TestJSONMarshalling(t *testing.T) {
 
 	// Register device
 	device := models.Device{
-		ID:          deviceID,
-		Name:        "JSON Test Device",
-		Type:        "laptop",
-		OS:          "Linux",
-		IPAddress:   "192.168.1.200",
-		MacAddress:  "bb:cc:dd:ee:ff:00",
-		Location:    "Lab",
-		IsOnline:    true,
-		CurrentUser: "jsonuser",
-		LastSeen:    time.Now(),
+		DeviceID:       sampleUUID,
+		DeviceName:     "JSON Test Device",
+		DeviceType:     "laptop",
+		OS:             "Linux",
+		IPAddress:      "192.168.1.200",
+		MacAddress:     "bb:cc:dd:ee:ff:00",
+		DeviceLocation: "Lab",
+		IsOnline:       true,
+		CurrentUser:    "jsonuser",
+		LastSeen:       time.Now(),
 	}
 
 	deviceJSON, _ := json.Marshal(device)
@@ -255,18 +254,18 @@ func TestJSONMarshalling(t *testing.T) {
 	var deviceResponse models.Device
 	err := json.Unmarshal(w.Body.Bytes(), &deviceResponse)
 	require.NoError(t, err)
-	assert.Equal(t, device.ID, deviceResponse.ID)
-	assert.Equal(t, device.Name, deviceResponse.Name)
-	assert.Equal(t, device.Type, deviceResponse.Type)
+	assert.Equal(t, device.DeviceID, deviceResponse.DeviceID)
+	assert.Equal(t, device.DeviceName, deviceResponse.DeviceName)
+	assert.Equal(t, device.DeviceType, deviceResponse.DeviceType)
 	assert.Equal(t, device.OS, deviceResponse.OS)
 	assert.Equal(t, device.IPAddress, deviceResponse.IPAddress)
 	assert.Equal(t, device.MacAddress, deviceResponse.MacAddress)
-	assert.Equal(t, device.Location, deviceResponse.Location)
+	assert.Equal(t, device.DeviceLocation, deviceResponse.DeviceLocation)
 	assert.Equal(t, device.CurrentUser, deviceResponse.CurrentUser)
 
 	// Test metrics JSON structure
-	metrics := models.DeviceMetrics{
-		DeviceID:    deviceID,
+	metrics := models.DeviceMetric{
+		DeviceID:    sampleUUID,
 		CPUUsage:    85.5,
 		CPUTemp:     72.3,
 		MemoryTotal: 32000000000,
@@ -286,7 +285,7 @@ func TestJSONMarshalling(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var metricsResponse models.DeviceMetrics
+	var metricsResponse models.DeviceMetric
 	err = json.Unmarshal(w.Body.Bytes(), &metricsResponse)
 	require.NoError(t, err)
 	assert.Equal(t, metrics.DeviceID, metricsResponse.DeviceID)
@@ -306,14 +305,14 @@ func TestDatabaseErrorHandling(t *testing.T) {
 	veryLongString := strings.Repeat("x", 10000)
 
 	device := models.Device{
-		ID:          "db-error-test",
-		Name:        veryLongString,
-		Type:        veryLongString,
-		OS:          veryLongString,
-		IPAddress:   veryLongString,
-		MacAddress:  veryLongString,
-		Location:    veryLongString,
-		CurrentUser: veryLongString,
+		DeviceID:       sampleUUID,
+		DeviceName:     veryLongString,
+		DeviceType:     veryLongString,
+		OS:             veryLongString,
+		IPAddress:      veryLongString,
+		MacAddress:     veryLongString,
+		DeviceLocation: veryLongString,
+		CurrentUser:    veryLongString,
 	}
 
 	deviceJSON, _ := json.Marshal(device)
@@ -334,10 +333,10 @@ func TestAllEndpointsResponseFormat(t *testing.T) {
 
 	// Register device first
 	device := models.Device{
-		ID:       deviceID,
-		Name:     "Format Test Device",
-		IsOnline: true,
-		LastSeen: time.Now(),
+		DeviceID:   sampleUUID,
+		DeviceName: "Format Test Device",
+		IsOnline:   true,
+		LastSeen:   time.Now(),
 	}
 	database.DB.Create(&device)
 
@@ -382,11 +381,11 @@ func TestDeviceUpsertBehavior(t *testing.T) {
 
 	// First registration
 	device1 := models.Device{
-		ID:       deviceID,
-		Name:     "Original Device",
-		Type:     "laptop",
-		OS:       "Windows",
-		Location: "Office A",
+		DeviceID:       sampleUUID,
+		DeviceName:     "Original Device",
+		DeviceType:     "laptop",
+		OS:             "Windows",
+		DeviceLocation: "Office A",
 	}
 
 	deviceJSON, _ := json.Marshal(device1)
@@ -399,11 +398,11 @@ func TestDeviceUpsertBehavior(t *testing.T) {
 
 	// Second registration with same ID but different data (should update)
 	device2 := models.Device{
-		ID:       deviceID,
-		Name:     "Updated Device",
-		Type:     "desktop",
-		OS:       "Linux",
-		Location: "Office B",
+		DeviceID:       sampleUUID,
+		DeviceName:     "Updated Device",
+		DeviceType:     "desktop",
+		OS:             "Linux",
+		DeviceLocation: "Office B",
 	}
 
 	deviceJSON, _ = json.Marshal(device2)
@@ -419,10 +418,10 @@ func TestDeviceUpsertBehavior(t *testing.T) {
 	require.NoError(t, err)
 
 	// Should have updated values
-	assert.Equal(t, device2.Name, response.Name)
-	assert.Equal(t, device2.Type, response.Type)
+	assert.Equal(t, device2.DeviceName, response.DeviceName)
+	assert.Equal(t, device2.DeviceType, response.DeviceType)
 	assert.Equal(t, device2.OS, response.OS)
-	assert.Equal(t, device2.Location, response.Location)
+	assert.Equal(t, device2.DeviceLocation, response.DeviceLocation)
 	assert.True(t, response.IsOnline)    // Should be set to true
 	assert.NotZero(t, response.LastSeen) // Should be updated
 

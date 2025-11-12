@@ -86,7 +86,7 @@ func TestGetPendingCommandsDatabaseError(t *testing.T) {
 		database.DB = db
 
 		// Ensure the table is migrated
-		err := db.AutoMigrate(&models.DeviceRemoteCommands{})
+		err := db.AutoMigrate(&models.DeviceRemoteCommand{})
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()

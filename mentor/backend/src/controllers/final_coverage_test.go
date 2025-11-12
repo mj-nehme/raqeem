@@ -29,8 +29,8 @@ func TestRegisterDeviceEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 
 		device := models.Device{
-			ID:   "test-device-register",
-			Name: "Test Device",
+			DeviceID:   sampleUUID,
+			DeviceName: "Test Device",
 		}
 		b, _ := json.Marshal(device)
 		c.Request, _ = http.NewRequest("POST", "/devices", bytes.NewReader(b))
@@ -43,7 +43,7 @@ func TestRegisterDeviceEdgeCases(t *testing.T) {
 		var result models.Device
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
-		assert.Equal(t, "test-device-register", result.ID)
+		assert.Equal(t, sampleUUID, result.DeviceID)
 		assert.True(t, result.IsOnline)
 	})
 
@@ -60,8 +60,8 @@ func TestRegisterDeviceEdgeCases(t *testing.T) {
 	})
 }
 
-// TestUpdateDeviceMetricsEdgeCases tests UpdateDeviceMetrics thoroughly
-func TestUpdateDeviceMetricsEdgeCases(t *testing.T) {
+// TestUpdateDeviceMetricEdgeCases tests UpdateDeviceMetric thoroughly
+func TestUpdateDeviceMetricEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -72,8 +72,8 @@ func TestUpdateDeviceMetricsEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		metrics := models.DeviceMetrics{
-			DeviceID:   "test-device-metrics",
+		metrics := models.DeviceMetric{
+			DeviceID:   sampleUUID,
 			CPUUsage:   45.5,
 			MemoryUsed: 8192,
 			DiskUsed:   102400,
@@ -82,7 +82,7 @@ func TestUpdateDeviceMetricsEdgeCases(t *testing.T) {
 		c.Request, _ = http.NewRequest("POST", "/metrics", bytes.NewReader(b))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		UpdateDeviceMetrics(c)
+		UpdateDeviceMetric(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
@@ -94,7 +94,7 @@ func TestUpdateDeviceMetricsEdgeCases(t *testing.T) {
 		c.Request, _ = http.NewRequest("POST", "/metrics", bytes.NewBufferString("invalid"))
 		c.Request.Header.Set("Content-Type", "application/json")
 
-		UpdateDeviceMetrics(c)
+		UpdateDeviceMetric(c)
 
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
@@ -112,8 +112,8 @@ func TestActivityEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		activity := models.DeviceActivities{
-			DeviceID:    "test-device-activity",
+		activity := models.DeviceActivity{
+			DeviceID:    sampleUUID,
 			Type:        "app_launch",
 			Description: "Launched Chrome",
 			App:         "Chrome",
@@ -155,9 +155,9 @@ func TestUpdateProcessListAdditionalEdgeCases(t *testing.T) {
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 
-		processes := []models.DeviceProcesses{
-			{DeviceID: deviceID, PID: 1234, Name: "process1"},
-			{DeviceID: deviceID, PID: 5678, Name: "process2"},
+		processes := []models.DeviceProcess{
+			{DeviceID: sampleUUID, PID: 1234, ProcessName: "process1"},
+			{DeviceID: sampleUUID, PID: 5678, ProcessName: "process2"},
 		}
 		b, _ := json.Marshal(processes)
 		c.Request, _ = http.NewRequest("POST", "/devices/"+deviceID+"/processes", bytes.NewReader(b))
@@ -192,9 +192,9 @@ func TestListDevicesAdditionalFilters(t *testing.T) {
 
 	// Create test devices
 	devices := []models.Device{
-		{ID: "device-1", Name: "Device 1", IsOnline: true, Location: "lab1"},
-		{ID: "device-2", Name: "Device 2", IsOnline: false, Location: "lab2"},
-		{ID: "device-3", Name: "Device 3", IsOnline: true, Location: "lab1"},
+		{DeviceID: sampleUUID, DeviceName: "Device 1", IsOnline: true, DeviceLocation: "lab1"},
+		{DeviceID: sampleUUID, DeviceName: "Device 2", IsOnline: false, DeviceLocation: "lab2"},
+		{DeviceID: sampleUUID, DeviceName: "Device 3", IsOnline: true, DeviceLocation: "lab1"},
 	}
 	for _, d := range devices {
 		db.Create(&d)
@@ -236,8 +236,8 @@ func TestListDevicesAdditionalFilters(t *testing.T) {
 	})
 }
 
-// TestGetDeviceMetricsEdgeCases tests GetDeviceMetrics with edge cases
-func TestGetDeviceMetricsEdgeCases(t *testing.T) {
+// TestGetDeviceMetricEdgeCases tests GetDeviceMetric with edge cases
+func TestGetDeviceMetricEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -248,8 +248,8 @@ func TestGetDeviceMetricsEdgeCases(t *testing.T) {
 
 	// Create test metrics
 	for i := 0; i < 3; i++ {
-		metrics := models.DeviceMetrics{
-			DeviceID:  deviceID,
+		metrics := models.DeviceMetric{
+			DeviceID:  sampleUUID,
 			CPUUsage:  float64(i * 10),
 			Timestamp: time.Now().Add(time.Duration(-i) * time.Hour),
 		}
@@ -262,7 +262,7 @@ func TestGetDeviceMetricsEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/metrics", nil)
 
-		GetDeviceMetrics(c)
+		GetDeviceMetric(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
@@ -273,19 +273,19 @@ func TestGetDeviceMetricsEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/metrics?limit=2", nil)
 
-		GetDeviceMetrics(c)
+		GetDeviceMetric(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result []models.DeviceMetrics
+		var result []models.DeviceMetric
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.LessOrEqual(t, len(result), 2)
 	})
 }
 
-// TestGetDeviceProcessesesEdgeCases tests GetDeviceProcesseses with edge cases
-func TestGetDeviceProcessesesEdgeCases(t *testing.T) {
+// TestGetDeviceProcessesEdgeCases tests GetDeviceProcesses with edge cases
+func TestGetDeviceProcessesEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -295,9 +295,9 @@ func TestGetDeviceProcessesesEdgeCases(t *testing.T) {
 	deviceID := "test-device-get-processes"
 
 	// Create test processes
-	processes := []models.DeviceProcesses{
-		{DeviceID: deviceID, PID: 1000, Name: "proc1"},
-		{DeviceID: deviceID, PID: 2000, Name: "proc2"},
+	processes := []models.DeviceProcess{
+		{DeviceID: sampleUUID, PID: 1000, ProcessName: "proc1"},
+		{DeviceID: sampleUUID, PID: 2000, ProcessName: "proc2"},
 	}
 	for _, p := range processes {
 		db.Create(&p)
@@ -309,19 +309,19 @@ func TestGetDeviceProcessesesEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/processes", nil)
 
-		GetDeviceProcesseses(c)
+		GetDeviceProcesses(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result []models.DeviceProcesses
+		var result []models.DeviceProcess
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.GreaterOrEqual(t, len(result), 2)
 	})
 }
 
-// TestGetDeviceActivitiesEdgeCases tests GetDeviceActivities
-func TestGetDeviceActivitiesEdgeCases(t *testing.T) {
+// TestGetDeviceActivityEdgeCases tests GetDeviceActivity
+func TestGetDeviceActivityEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -332,8 +332,8 @@ func TestGetDeviceActivitiesEdgeCases(t *testing.T) {
 
 	// Create test activities
 	for i := 0; i < 3; i++ {
-		activity := models.DeviceActivities{
-			DeviceID:    deviceID,
+		activity := models.DeviceActivity{
+			DeviceID:    sampleUUID,
 			Type:        "test",
 			Description: "Test activity",
 			Timestamp:   time.Now().Add(time.Duration(-i) * time.Hour),
@@ -347,14 +347,14 @@ func TestGetDeviceActivitiesEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/activities?limit=2", nil)
 
-		GetDeviceActivities(c)
+		GetDeviceActivity(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
 
-// TestGetDeviceAlertsEdgeCases tests GetDeviceAlerts
-func TestGetDeviceAlertsEdgeCases(t *testing.T) {
+// TestGetDeviceAlertEdgeCases tests GetDeviceAlert
+func TestGetDeviceAlertEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -365,8 +365,8 @@ func TestGetDeviceAlertsEdgeCases(t *testing.T) {
 
 	// Create test alerts
 	for i := 0; i < 3; i++ {
-		alert := models.DeviceAlerts{
-			DeviceID:  deviceID,
+		alert := models.DeviceAlert{
+			DeviceID:  sampleUUID,
 			Level:     "info",
 			Type:      "test",
 			Message:   "Test alert",
@@ -381,14 +381,14 @@ func TestGetDeviceAlertsEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts?limit=2", nil)
 
-		GetDeviceAlerts(c)
+		GetDeviceAlert(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
 
-// TestGetDeviceScreenshotsEdgeCases tests GetDeviceScreenshots
-func TestGetDeviceScreenshotsEdgeCases(t *testing.T) {
+// TestGetDeviceScreenshotEdgeCases tests GetDeviceScreenshot
+func TestGetDeviceScreenshotEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db := database.SetupTestDB(t)
 	require.NotNil(t, db)
@@ -399,8 +399,8 @@ func TestGetDeviceScreenshotsEdgeCases(t *testing.T) {
 
 	// Create test screenshots
 	for i := 0; i < 3; i++ {
-		screenshot := models.DeviceScreenshots{
-			DeviceID:  deviceID,
+		screenshot := models.DeviceScreenshot{
+			DeviceID:  sampleUUID,
 			Path:      "/path/to/screenshot",
 			Timestamp: time.Now().Add(time.Duration(-i) * time.Hour),
 		}
@@ -413,7 +413,7 @@ func TestGetDeviceScreenshotsEdgeCases(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/screenshots?limit=2", nil)
 
-		GetDeviceScreenshots(c)
+		GetDeviceScreenshot(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
@@ -430,10 +430,10 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 	deviceID := "test-device-pending"
 
 	// Create test commands
-	commands := []models.DeviceRemoteCommands{
-		{DeviceID: deviceID, Command: "cmd1", Status: "pending"},
-		{DeviceID: deviceID, Command: "cmd2", Status: "completed"},
-		{DeviceID: deviceID, Command: "cmd3", Status: "pending"},
+	commands := []models.DeviceRemoteCommand{
+		{DeviceID: sampleUUID, CommandText: "cmd1", Status: "pending"},
+		{DeviceID: sampleUUID, CommandText: "cmd2", Status: "completed"},
+		{DeviceID: sampleUUID, CommandText: "cmd3", Status: "pending"},
 	}
 	for _, cmd := range commands {
 		db.Create(&cmd)
@@ -449,7 +449,7 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 
-		var result []models.DeviceRemoteCommands
+		var result []models.DeviceRemoteCommand
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
 		assert.Equal(t, 2, len(result))
@@ -468,8 +468,8 @@ func TestReportAlertEdgeCases(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
-		alert := models.DeviceAlerts{
-			DeviceID: "test-device-alert",
+		alert := models.DeviceAlert{
+			DeviceID: sampleUUID,
 			Level:    "warning",
 			Type:     "cpu_high",
 			Message:  "CPU usage high",

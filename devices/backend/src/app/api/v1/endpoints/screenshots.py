@@ -9,7 +9,7 @@ import httpx
 import logging
 
 from app.db.session import get_db
-from app.models.screenshots import Screenshot as ScreenshotModel
+from app.models.devices import DeviceScreenshot as ScreenshotModel
 from app.models import devices as dev_models
 from app.core.config import settings
 
@@ -50,7 +50,7 @@ async def create_screenshot(
         db.add(obj)
         
         # Also store in device_screenshots table with proper schema
-        device_screenshot = dev_models.DeviceScreenshots(
+        device_screenshot = dev_models.DeviceScreenshot(
             device_id=device_id,
             path=filename,
             resolution=DEFAULT_SCREENSHOT_RESOLUTION,

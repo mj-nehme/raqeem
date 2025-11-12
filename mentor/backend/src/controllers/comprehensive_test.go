@@ -38,7 +38,7 @@ func TestRegisterDevice_ErrorCases(t *testing.T) {
 
 	// Test missing required fields
 	device := map[string]interface{}{
-		"name": "Test Device",
+		"devicename": "Test Device",
 		// Missing ID
 	}
 	deviceJSON, _ := json.Marshal(device)
@@ -51,11 +51,11 @@ func TestRegisterDevice_ErrorCases(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestUpdateDeviceMetrics_ErrorCases(t *testing.T) {
+func TestUpdateDeviceMetric_ErrorCases(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-device-metrics-error"
+	deviceID := sampleUUID.String()
 
 	// Test invalid JSON
 	req, _ := http.NewRequest("POST", fmt.Sprintf("/devices/%s/metrics", deviceID), bytes.NewBufferString(`{"invalid": json}`))
@@ -134,7 +134,7 @@ func TestUpdateProcessList_ErrorCases(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	// Test empty process list (should succeed)
-	emptyProcesses := []models.DeviceProcesses{}
+	emptyProcesses := []models.DeviceProcess{}
 	processesJSON, _ := json.Marshal(emptyProcesses)
 	req, _ = http.NewRequest("POST", fmt.Sprintf("/devices/%s/processes", deviceID), bytes.NewBuffer(processesJSON))
 	req.Header.Set("Content-Type", "application/json")
@@ -167,9 +167,9 @@ func TestCreateRemoteCommand_ErrorCases(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	// Test command with empty command string
-	command := models.DeviceRemoteCommands{
-		DeviceID: deviceID,
-		Command:  "", // Empty command
+	command := models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "", // Empty command
 	}
 	commandJSON, _ := json.Marshal(command)
 	req, _ = http.NewRequest("POST", fmt.Sprintf("/devices/%s/commands", deviceID), bytes.NewBuffer(commandJSON))
@@ -201,12 +201,12 @@ func TestUpdateCommandStatus_ErrorCases(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	// Test updating non-existent command
-	statusUpdate := models.DeviceRemoteCommands{
-		ID:     999999, // Non-existent ID
-		Status: "completed",
+	statusUpdate := models.DeviceRemoteCommand{
+		CommandID: sampleUUID, // Non-existent ID
+		Status:    "completed",
 	}
 	statusJSON, _ := json.Marshal(statusUpdate)
-	req, _ = http.NewRequest("PUT", "/commands/999999/status", bytes.NewBuffer(statusJSON))
+	req, _ = http.NewRequest("PUT", fmt.Sprintf("/commands/%s/status", statusUpdate.CommandID), bytes.NewBuffer(statusJSON))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 
@@ -237,7 +237,7 @@ func TestReportAlert_ErrorCases(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
-func TestGetDeviceMetrics_QueryParameters(t *testing.T) {
+func TestGetDeviceMetric_QueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -245,17 +245,17 @@ func TestGetDeviceMetrics_QueryParameters(t *testing.T) {
 
 	// Register device and add some metrics first
 	device := models.Device{
-		ID:       deviceID,
-		Name:     "Test Device",
-		IsOnline: true,
-		LastSeen: time.Now(),
+		DeviceID:   sampleUUID,
+		DeviceName: "Test Device",
+		IsOnline:   true,
+		LastSeen:   time.Now(),
 	}
 	database.DB.Create(&device)
 
 	// Add multiple metrics
 	for i := 0; i < 5; i++ {
-		metrics := models.DeviceMetrics{
-			DeviceID:  deviceID,
+		metrics := models.DeviceMetric{
+			DeviceID:  sampleUUID,
 			CPUUsage:  float64(10 + i*10),
 			Timestamp: time.Now().Add(time.Duration(i) * time.Minute),
 		}
@@ -276,7 +276,7 @@ func TestGetDeviceMetrics_QueryParameters(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var metrics []models.DeviceMetrics
+	var metrics []models.DeviceMetric
 	err := json.Unmarshal(w.Body.Bytes(), &metrics)
 	require.NoError(t, err)
 	assert.LessOrEqual(t, len(metrics), 3)
@@ -289,7 +289,7 @@ func TestGetDeviceMetrics_QueryParameters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestGetDeviceProcesseses_QueryParameters(t *testing.T) {
+func TestGetDeviceProcesses_QueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -310,7 +310,7 @@ func TestGetDeviceProcesseses_QueryParameters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestGetDeviceActivities_QueryParameters(t *testing.T) {
+func TestGetDeviceActivity_QueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -331,7 +331,7 @@ func TestGetDeviceActivities_QueryParameters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestGetDeviceAlerts_QueryParameters(t *testing.T) {
+func TestGetDeviceAlert_QueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -352,7 +352,7 @@ func TestGetDeviceAlerts_QueryParameters(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestGetDeviceScreenshots_QueryParameters(t *testing.T) {
+func TestGetDeviceScreenshot_QueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -391,26 +391,27 @@ func TestGetPendingCommands_EdgeCases(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var commands []models.DeviceRemoteCommands
+	var commands []models.DeviceRemoteCommand
 	err := json.Unmarshal(w.Body.Bytes(), &commands)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(commands))
 
 	// Create some commands with different statuses
-	pendingCmd := models.DeviceRemoteCommands{
-		DeviceID:  deviceID,
-		Command:   "echo pending",
-		Status:    "pending",
-		CreatedAt: time.Now(),
+	pendingCmd := models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "echo pending",
+		Status:      "pending",
+		CreatedAt:   time.Now(),
 	}
 	database.DB.Create(&pendingCmd)
 
-	completedCmd := models.DeviceRemoteCommands{
-		DeviceID:    deviceID,
-		Command:     "echo completed",
+	now := time.Now()
+	completedCmd := models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "echo completed",
 		Status:      "completed",
-		CreatedAt:   time.Now(),
-		CompletedAt: time.Now(),
+		CreatedAt:   now,
+		CompletedAt: now,
 	}
 	database.DB.Create(&completedCmd)
 
@@ -433,18 +434,18 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 
 	// Create devices with different last seen times
 	oldDevice := models.Device{
-		ID:       "old-device",
-		Name:     "Old Device",
-		IsOnline: true,
-		LastSeen: time.Now().Add(-10 * time.Minute), // 10 minutes ago
+		DeviceID:   sampleUUID,
+		DeviceName: "Old Device",
+		IsOnline:   true,
+		LastSeen:   time.Now().Add(-10 * time.Minute), // 10 minutes ago
 	}
 	database.DB.Create(&oldDevice)
 
 	recentDevice := models.Device{
-		ID:       "recent-device",
-		Name:     "Recent Device",
-		IsOnline: true,
-		LastSeen: time.Now().Add(-2 * time.Minute), // 2 minutes ago
+		DeviceID:   sampleUUID,
+		DeviceName: "Recent Device",
+		IsOnline:   true,
+		LastSeen:   time.Now().Add(-2 * time.Minute), // 2 minutes ago
 	}
 	database.DB.Create(&recentDevice)
 
@@ -462,10 +463,10 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	// Find our test devices in the response
 	var oldDeviceResponse, recentDeviceResponse *models.Device
 	for i := range devices {
-		if devices[i].ID == "old-device" {
+		if devices[i].DeviceID == sampleUUID {
 			oldDeviceResponse = &devices[i]
 		}
-		if devices[i].ID == "recent-device" {
+		if devices[i].DeviceID == sampleUUID {
 			recentDeviceResponse = &devices[i]
 		}
 	}
@@ -479,7 +480,7 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	assert.True(t, recentDeviceResponse.IsOnline)
 }
 
-func TestDeviceMetricsTimestampHandling(t *testing.T) {
+func TestDeviceMetricTimestampHandling(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
@@ -487,16 +488,16 @@ func TestDeviceMetricsTimestampHandling(t *testing.T) {
 
 	// Register device first
 	device := models.Device{
-		ID:       deviceID,
-		Name:     "Timestamp Test Device",
-		IsOnline: true,
-		LastSeen: time.Now(),
+		DeviceID:   sampleUUID,
+		DeviceName: "Timestamp Test Device",
+		IsOnline:   true,
+		LastSeen:   time.Now(),
 	}
 	database.DB.Create(&device)
 
 	// Test metrics without timestamp (should be auto-set)
-	metrics := models.DeviceMetrics{
-		DeviceID: deviceID,
+	metrics := models.DeviceMetric{
+		DeviceID: sampleUUID,
 		CPUUsage: 50.0,
 		// Timestamp will be auto-set by controller
 	}
@@ -509,7 +510,7 @@ func TestDeviceMetricsTimestampHandling(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var response models.DeviceMetrics
+	var response models.DeviceMetric
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	require.NoError(t, err)
 	assert.NotZero(t, response.Timestamp)
@@ -523,8 +524,8 @@ func TestActivityLogTimestampHandling(t *testing.T) {
 	deviceID := "test-device-activity-timestamp"
 
 	// Test activity without timestamp (should be auto-set)
-	activity := models.DeviceActivities{
-		DeviceID:    deviceID,
+	activity := models.DeviceActivity{
+		DeviceID:    sampleUUID,
 		Type:        "test",
 		Description: "Test activity",
 		// Timestamp will be auto-set by controller
@@ -538,7 +539,7 @@ func TestActivityLogTimestampHandling(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var response models.DeviceActivities
+	var response models.DeviceActivity
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	require.NoError(t, err)
 	assert.NotZero(t, response.Timestamp)
@@ -552,14 +553,14 @@ func TestProcessListTransaction(t *testing.T) {
 	deviceID := "test-device-process-transaction"
 
 	// Create initial processes
-	initialProcesses := []models.DeviceProcesses{
+	initialProcesses := []models.DeviceProcess{
 		{
-			DeviceID: deviceID,
-			PID:      100,
-			Name:     "initial-process",
-			CPU:      10.0,
-			Memory:   1000,
-			Command:  "initial",
+			DeviceID:    sampleUUID,
+			PID:         100,
+			ProcessName: "initial-process",
+			CPU:         10.0,
+			Memory:      1000,
+			CommandText: "initial",
 		},
 	}
 
@@ -572,22 +573,22 @@ func TestProcessListTransaction(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 
 	// Update with new processes (should replace old ones)
-	newProcesses := []models.DeviceProcesses{
+	newProcesses := []models.DeviceProcess{
 		{
-			DeviceID: deviceID,
-			PID:      200,
-			Name:     "new-process-1",
-			CPU:      20.0,
-			Memory:   2000,
-			Command:  "new1",
+			DeviceID:    sampleUUID,
+			PID:         200,
+			ProcessName: "new-process-1",
+			CPU:         20.0,
+			Memory:      2000,
+			CommandText: "new1",
 		},
 		{
-			DeviceID: deviceID,
-			PID:      300,
-			Name:     "new-process-2",
-			CPU:      30.0,
-			Memory:   3000,
-			Command:  "new2",
+			DeviceID:    sampleUUID,
+			PID:         300,
+			ProcessName: "new-process-2",
+			CPU:         30.0,
+			Memory:      3000,
+			CommandText: "new2",
 		},
 	}
 
@@ -606,7 +607,7 @@ func TestProcessListTransaction(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var retrievedProcesses []models.DeviceProcesses
+	var retrievedProcesses []models.DeviceProcess
 	err := json.Unmarshal(w.Body.Bytes(), &retrievedProcesses)
 	require.NoError(t, err)
 
@@ -616,7 +617,7 @@ func TestProcessListTransaction(t *testing.T) {
 	// Check that initial process is not in the results
 	for _, p := range retrievedProcesses {
 		assert.NotEqual(t, 100, p.PID)
-		assert.NotEqual(t, "initial-process", p.Name)
+		assert.NotEqual(t, "initial-process", p.ProcessName)
 	}
 }
 
@@ -627,9 +628,17 @@ func TestRemoteCommandStatusTransitions(t *testing.T) {
 	deviceID := "test-device-command-status"
 
 	// Create a command
-	command := models.DeviceRemoteCommands{
-		DeviceID: deviceID,
-		Command:  "test command",
+	command := models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "test command",
+	}
+
+	defer cleanup()
+
+	// Create a command
+	command = models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "test command",
 	}
 
 	commandJSON, _ := json.Marshal(command)
@@ -640,19 +649,19 @@ func TestRemoteCommandStatusTransitions(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var createdCommand models.DeviceRemoteCommands
+	var createdCommand models.DeviceRemoteCommand
 	err := json.Unmarshal(w.Body.Bytes(), &createdCommand)
 	require.NoError(t, err)
 	assert.Equal(t, "pending", createdCommand.Status)
-	assert.NotZero(t, createdCommand.ID)
+	assert.NotZero(t, createdCommand.CommandID)
 
-	commandID := createdCommand.ID
+	commandID := createdCommand.CommandID
 
 	// Test status update to "completed"
-	statusUpdate := models.DeviceRemoteCommands{
-		ID:     commandID,
-		Status: "completed",
-		Result: "Command executed successfully",
+	statusUpdate := models.DeviceRemoteCommand{
+		CommandID: commandID,
+		Status:    "completed",
+		Result:    "Command executed successfully",
 	}
 
 	statusJSON, _ := json.Marshal(statusUpdate)
@@ -663,18 +672,18 @@ func TestRemoteCommandStatusTransitions(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var updatedCommand models.DeviceRemoteCommands
+	var updatedCommand models.DeviceRemoteCommand
 	err = json.Unmarshal(w.Body.Bytes(), &updatedCommand)
 	require.NoError(t, err)
 	assert.Equal(t, "completed", updatedCommand.Status)
 	assert.Equal(t, "Command executed successfully", updatedCommand.Result)
 
 	// Test status update to "failed"
-	failedUpdate := models.DeviceRemoteCommands{
-		ID:       commandID,
-		Status:   "failed",
-		Result:   "Command failed",
-		ExitCode: 1,
+	failedUpdate := models.DeviceRemoteCommand{
+		CommandID: commandID,
+		Status:    "failed",
+		Result:    "Command failed",
+		ExitCode:  1,
 	}
 
 	failedJSON, _ := json.Marshal(failedUpdate)
@@ -699,8 +708,8 @@ func TestAlertTimestampHandling(t *testing.T) {
 	deviceID := "test-device-alert-timestamp"
 
 	// Test alert without timestamp (should be auto-set)
-	alert := models.DeviceAlerts{
-		DeviceID:  deviceID,
+	alert := models.DeviceAlert{
+		DeviceID:  sampleUUID,
 		Type:      "test",
 		Level:     "info",
 		Message:   "Test alert",
@@ -717,7 +726,7 @@ func TestAlertTimestampHandling(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var response models.DeviceAlerts
+	var response models.DeviceAlert
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	require.NoError(t, err)
 	assert.NotZero(t, response.Timestamp)
@@ -732,16 +741,16 @@ func TestDeviceLastSeenUpdate(t *testing.T) {
 
 	// Register device
 	device := models.Device{
-		ID:       deviceID,
-		Name:     "Last Seen Test Device",
-		IsOnline: true,
-		LastSeen: time.Now().Add(-1 * time.Hour), // 1 hour ago
+		DeviceID:   sampleUUID,
+		DeviceName: "Last Seen Test Device",
+		IsOnline:   true,
+		LastSeen:   time.Now().Add(-1 * time.Hour), // 1 hour ago
 	}
 	database.DB.Create(&device)
 
 	// Update metrics (should update last seen)
-	metrics := models.DeviceMetrics{
-		DeviceID: deviceID,
+	metrics := models.DeviceMetric{
+		DeviceID: sampleUUID,
 		CPUUsage: 25.0,
 	}
 
@@ -768,15 +777,15 @@ func TestLargeDataHandling(t *testing.T) {
 	deviceID := "test-device-large-data"
 
 	// Test with large process list
-	largeProcessList := make([]models.DeviceProcesses, 100)
+	largeProcessList := make([]models.DeviceProcess, 100)
 	for i := 0; i < 100; i++ {
-		largeProcessList[i] = models.DeviceProcesses{
-			DeviceID: deviceID,
-			PID:      1000 + i,
-			Name:     fmt.Sprintf("process-%d", i),
-			CPU:      float64(i % 100),
-			Memory:   uint64(1000000 + i*1000),
-			Command:  fmt.Sprintf("/usr/bin/process-%d --option=%d", i, i),
+		largeProcessList[i] = models.DeviceProcess{
+			DeviceID:    sampleUUID,
+			PID:         1000 + i,
+			ProcessName: fmt.Sprintf("process-%d", i),
+			CPU:         float64(i % 100),
+			Memory:      uint64(1000000 + i*1000),
+			CommandText: fmt.Sprintf("/usr/bin/process-%d --option=%d", i, i),
 		}
 	}
 
@@ -795,7 +804,7 @@ func TestLargeDataHandling(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	var retrievedProcesses []models.DeviceProcesses
+	var retrievedProcesses []models.DeviceProcess
 	err := json.Unmarshal(w.Body.Bytes(), &retrievedProcesses)
 	require.NoError(t, err)
 	assert.Equal(t, 100, len(retrievedProcesses))

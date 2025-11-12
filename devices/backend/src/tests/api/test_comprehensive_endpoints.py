@@ -13,7 +13,7 @@ def client():
 @pytest.fixture
 def mock_database():
     """Mock database operations."""
-    with patch('app.db.database.database') as mock_db:
+    with patch('app.db.session.get_db') as mock_db:
         mock_db.execute = AsyncMock()
         mock_db.fetch_all = AsyncMock(return_value=[])
         mock_db.fetch_one = AsyncMock(return_value=None)
@@ -32,7 +32,7 @@ class TestDeviceEndpoints:
             "location": "Office"
         }
         
-        response = client.post("/api/v1/devices/", json=device_data)
+        response = client.post("/api/v1/devices/register", json=device_data)
         assert response.status_code in [200, 201, 422]  # Handle potential validation
         
     def test_register_device_invalid_data(self, client):

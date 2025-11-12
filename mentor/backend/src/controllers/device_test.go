@@ -25,7 +25,7 @@ func setupTestDB(t *testing.T) {
 	require.NoError(t, os.Setenv("POSTGRES_PORT", os.Getenv("POSTGRES_PORT")))
 	database.Connect()
 	// Auto-migrate tables
-	if err := database.DB.AutoMigrate(&models.DeviceAlerts{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceAlert{}); err != nil {
 		t.Fatalf("AutoMigrate Alert failed: %v", err)
 	}
 }
@@ -38,15 +38,15 @@ func TestReportAndGetAlerts(t *testing.T) {
 
 	// Ensure clean slate for test device
 	deviceID := "test-device-go"
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceAlerts{})
+	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceAlert{})
 
 	// Prepare gin context for ReportAlert
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
 	c.Request, _ = http.NewRequest("POST", "/devices/"+deviceID+"/alerts", nil)
 
-	alert := models.DeviceAlerts{
-		DeviceID:  deviceID,
+	alert := models.DeviceAlert{
+		DeviceID:  sampleUUID,
 		Timestamp: time.Now(),
 		Level:     "warning",
 		Type:      "cpu_high",
@@ -63,13 +63,13 @@ func TestReportAndGetAlerts(t *testing.T) {
 		t.Fatalf("expected status 200, got %d", w.Code)
 	}
 
-	// Prepare gin context for GetDeviceAlerts
+	// Prepare gin context for GetDeviceAlert
 	w2 := httptest.NewRecorder()
 	c2, _ := gin.CreateTestContext(w2)
 	c2.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 	c2.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts", nil)
 
-	GetDeviceAlerts(c2)
+	GetDeviceAlert(c2)
 	if w2.Code != http.StatusOK {
 		t.Fatalf("expected status 200, got %d", w2.Code)
 	}
@@ -84,8 +84,8 @@ func TestEmptyArraySerialization(t *testing.T) {
 	// Create a mock device ID that doesn't exist in the database
 	deviceID := "non-existent-device"
 
-	// Test GetDeviceProcesseses
-	t.Run("GetDeviceProcesseses returns empty array", func(t *testing.T) {
+	// Test GetDeviceProcesses
+	t.Run("GetDeviceProcesses returns empty array", func(t *testing.T) {
 		if os.Getenv("POSTGRES_HOST") == "" {
 			t.Skip("POSTGRES_* env vars not set; skipping integration test")
 		}
@@ -96,7 +96,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/processes", nil)
 
-		GetDeviceProcesseses(c)
+		GetDeviceProcesses(c)
 
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected status 200, got %d", w.Code)
@@ -105,11 +105,11 @@ func TestEmptyArraySerialization(t *testing.T) {
 		// Verify response is not null
 		body := w.Body.String()
 		if body == "null" {
-			t.Errorf("GetDeviceProcesseses returned null instead of empty array")
+			t.Errorf("GetDeviceProcesses returned null instead of empty array")
 		}
 
 		// Verify it's a valid JSON array
-		var processes []models.DeviceProcesses
+		var processes []models.DeviceProcess
 		if err := json.Unmarshal(w.Body.Bytes(), &processes); err != nil {
 			t.Fatalf("failed to unmarshal response: %v, body: %s", err, body)
 		}
@@ -123,8 +123,8 @@ func TestEmptyArraySerialization(t *testing.T) {
 		}
 	})
 
-	// Test GetDeviceMetrics
-	t.Run("GetDeviceMetrics returns empty array", func(t *testing.T) {
+	// Test GetDeviceMetric
+	t.Run("GetDeviceMetric returns empty array", func(t *testing.T) {
 		if os.Getenv("POSTGRES_HOST") == "" {
 			t.Skip("POSTGRES_* env vars not set; skipping integration test")
 		}
@@ -135,7 +135,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/metrics", nil)
 
-		GetDeviceMetrics(c)
+		GetDeviceMetric(c)
 
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected status 200, got %d", w.Code)
@@ -143,12 +143,12 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 		body := w.Body.String()
 		if body == "null" {
-			t.Errorf("GetDeviceMetrics returned null instead of empty array")
+			t.Errorf("GetDeviceMetric returned null instead of empty array")
 		}
 	})
 
-	// Test GetDeviceActivities
-	t.Run("GetDeviceActivities returns empty array", func(t *testing.T) {
+	// Test GetDeviceActivity
+	t.Run("GetDeviceActivity returns empty array", func(t *testing.T) {
 		if os.Getenv("POSTGRES_HOST") == "" {
 			t.Skip("POSTGRES_* env vars not set; skipping integration test")
 		}
@@ -159,7 +159,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/activities", nil)
 
-		GetDeviceActivities(c)
+		GetDeviceActivity(c)
 
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected status 200, got %d", w.Code)
@@ -167,12 +167,12 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 		body := w.Body.String()
 		if body == "null" {
-			t.Errorf("GetDeviceActivities returned null instead of empty array")
+			t.Errorf("GetDeviceActivity returned null instead of empty array")
 		}
 	})
 
-	// Test GetDeviceAlerts
-	t.Run("GetDeviceAlerts returns empty array", func(t *testing.T) {
+	// Test GetDeviceAlert
+	t.Run("GetDeviceAlert returns empty array", func(t *testing.T) {
 		if os.Getenv("POSTGRES_HOST") == "" {
 			t.Skip("POSTGRES_* env vars not set; skipping integration test")
 		}
@@ -183,7 +183,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
 		c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts", nil)
 
-		GetDeviceAlerts(c)
+		GetDeviceAlert(c)
 
 		if w.Code != http.StatusOK {
 			t.Fatalf("expected status 200, got %d", w.Code)
@@ -191,7 +191,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 		body := w.Body.String()
 		if body == "null" {
-			t.Errorf("GetDeviceAlerts returned null instead of empty array")
+			t.Errorf("GetDeviceAlert returned null instead of empty array")
 		}
 	})
 
@@ -315,18 +315,18 @@ func TestStoreScreenshot(t *testing.T) {
 	setupTestDB(t)
 
 	// Ensure tables are migrated
-	if err := database.DB.AutoMigrate(&models.DeviceScreenshots{}); err != nil {
+	if err := database.DB.AutoMigrate(&models.DeviceScreenshot{}); err != nil {
 		t.Fatalf("AutoMigrate Screenshot failed: %v", err)
 	}
 
 	deviceID := "test-device-screenshot"
 
 	// Clean up any existing screenshots for this device
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceScreenshots{})
+	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceScreenshot{})
 
 	// Prepare request
-	screenshot := models.DeviceScreenshots{
-		DeviceID:   deviceID,
+	screenshot := models.DeviceScreenshot{
+		DeviceID:   sampleUUID,
 		Path:       "screenshots/test-screenshot.png",
 		Resolution: "1920x1080",
 		Size:       1024000,
@@ -345,13 +345,13 @@ func TestStoreScreenshot(t *testing.T) {
 	}
 
 	// Verify screenshot was stored
-	var storedScreenshot models.DeviceScreenshots
+	var storedScreenshot models.DeviceScreenshot
 	result := database.DB.Where("device_id = ?", deviceID).First(&storedScreenshot)
 	if result.Error != nil {
 		t.Fatalf("failed to retrieve stored screenshot: %v", result.Error)
 	}
 
-	if storedScreenshot.DeviceID != deviceID {
+	if storedScreenshot.DeviceID != sampleUUID {
 		t.Errorf("expected device_id %s, got %s", deviceID, storedScreenshot.DeviceID)
 	}
 	if storedScreenshot.Path != screenshot.Path {

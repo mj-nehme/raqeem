@@ -1,5 +1,5 @@
 """Test data models functionality without database connection."""
-from app.models.devices import Device, DeviceMetrics, Process, ActivityLog, Alert
+from app.models.devices import Device, DeviceMetric, DeviceAlert as Alert
 
 
 class TestDevice:
@@ -50,16 +50,16 @@ class TestDevice:
         assert device.current_user == "testuser"
 
 
-class TestDeviceMetrics:
-    """Test DeviceMetrics model structure and methods."""
+class TestDeviceMetric:
+    """Test DeviceMetric model structure and methods."""
     
     def test_device_metrics_table_name(self):
-        """Test that DeviceMetrics model has correct table name."""
-        assert DeviceMetrics.__tablename__ == "device_metrics"
+        """Test that DeviceMetric model has correct table name."""
+        assert DeviceMetric.__tablename__ == "device_metrics"
     
     def test_device_metrics_columns(self):
-        """Test that DeviceMetrics model has all expected columns."""
-        metrics = DeviceMetrics()
+        """Test that DeviceMetric model has all expected columns."""
+        metrics = DeviceMetric()
         
         # Check that all expected attributes exist
         assert hasattr(metrics, 'id')
@@ -76,8 +76,8 @@ class TestDeviceMetrics:
         assert hasattr(metrics, 'net_bytes_out')
     
     def test_device_metrics_instantiation(self):
-        """Test creating DeviceMetrics instance with data."""
-        metrics = DeviceMetrics(
+        """Test creating DeviceMetric instance with data."""
+        metrics = DeviceMetric(
             device_id="test-device-123",
             cpu_usage=50.5,
             cpu_temp=65.2,
@@ -102,8 +102,8 @@ class TestDeviceMetrics:
         assert metrics.net_bytes_out == 2048
     
     def test_device_metrics_auto_uuid(self):
-        """Test that DeviceMetrics generates UUID for id if not provided."""
-        metrics = DeviceMetrics(device_id="test-device")
+        """Test that DeviceMetric generates UUID for id if not provided."""
+        metrics = DeviceMetric(device_id="test-device")
         
         # The id should be automatically generated as UUID
         # Note: This tests the default value setup, actual UUID generation 
@@ -263,7 +263,7 @@ class TestModelRelationships:
     
     def test_all_models_have_device_id(self):
         """Test that related models have device_id field."""
-        models_with_device_id = [DeviceMetrics, Process, ActivityLog, Alert]
+        models_with_device_id = [DeviceMetric, Process, ActivityLog, Alert]
         
         for model_class in models_with_device_id:
             instance = model_class()
@@ -271,7 +271,7 @@ class TestModelRelationships:
     
     def test_all_models_have_timestamp(self):
         """Test that models have timestamp fields."""
-        models_with_timestamp = [Device, DeviceMetrics, Process, ActivityLog, Alert]
+        models_with_timestamp = [Device, DeviceMetric, Process, ActivityLog, Alert]
         
         for model_class in models_with_timestamp:
             instance = model_class()
@@ -280,7 +280,7 @@ class TestModelRelationships:
     
     def test_all_models_have_uuid_primary_key_except_device(self):
         """Test that all models except Device use UUID primary keys."""
-        models_with_uuid_pk = [DeviceMetrics, Process, ActivityLog, Alert]
+        models_with_uuid_pk = [DeviceMetric, Process, ActivityLog, Alert]
         
         for model_class in models_with_uuid_pk:
             instance = model_class()
@@ -311,7 +311,7 @@ class TestModelPerformance:
     def test_numeric_edge_cases(self):
         """Test numeric edge cases."""
         # Test very large numbers for disk/memory
-        metrics = DeviceMetrics(
+        metrics = DeviceMetric(
             device_id="test-device",
             memory_total=18446744073709551615,  # Max uint64
             cpu_usage=100.0,

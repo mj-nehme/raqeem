@@ -6,11 +6,14 @@ import (
 
 	"mentor-backend/models"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
+
+var sampleUUID, _ = uuid.Parse("db0e8400-e29b-41d4-a716-446655440000")
 
 // TestConnectWithValidPostgresEnv tests Connect function with PostgreSQL environment
 func TestConnectWithValidPostgresEnv(t *testing.T) {
@@ -61,13 +64,13 @@ func TestSetupTestDBWithPostgresEnv(t *testing.T) {
 	// Verify all tables exist
 	tables := []interface{}{
 		&models.Device{},
-		&models.DeviceMetrics{},
-		&models.DeviceProcesses{},
-		&models.DeviceActivities{},
-		&models.DeviceActivities{},
-		&models.DeviceRemoteCommands{},
-		&models.DeviceScreenshots{},
-		&models.DeviceAlerts{},
+		&models.DeviceMetric{},
+		&models.DeviceProcess{},
+		&models.DeviceActivity{},
+		&models.DeviceActivity{},
+		&models.DeviceRemoteCommand{},
+		&models.DeviceScreenshot{},
+		&models.DeviceAlert{},
 	}
 
 	for _, table := range tables {
@@ -198,47 +201,47 @@ func TestCleanupTestDBRemovesAllData(t *testing.T) {
 
 	// Insert test data for all models
 	device := models.Device{
-		ID:       "cleanup-test-device",
-		Name:     "Test Device",
-		IsOnline: true,
+		DeviceID:   sampleUUID,
+		DeviceName: "Test Device",
+		IsOnline:   true,
 	}
 	db.Create(&device)
 
-	metrics := models.DeviceMetrics{
-		DeviceID: "cleanup-test-device",
+	metrics := models.DeviceMetric{
+		DeviceID: sampleUUID,
 		CPUUsage: 50.0,
 	}
 	db.Create(&metrics)
 
-	process := models.DeviceProcesses{
-		DeviceID: "cleanup-test-device",
-		PID:      1234,
-		Name:     "test-process",
+	process := models.DeviceProcess{
+		DeviceID:    sampleUUID,
+		PID:         1234,
+		ProcessName: "test-process",
 	}
 	db.Create(&process)
 
-	activity := models.DeviceActivities{
-		DeviceID:    "cleanup-test-device",
+	activity := models.DeviceActivity{
+		DeviceID:    sampleUUID,
 		Type:        "test-type",
 		Description: "test activity",
 	}
 	db.Create(&activity)
 
-	remoteCmd := models.DeviceRemoteCommands{
-		DeviceID: "cleanup-test-device",
-		Command:  "test-command",
-		Status:   "pending",
+	remoteCmd := models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "test-command",
+		Status:      "pending",
 	}
 	db.Create(&remoteCmd)
 
-	screenshot := models.DeviceScreenshots{
-		DeviceID: "cleanup-test-device",
+	screenshot := models.DeviceScreenshot{
+		DeviceID: sampleUUID,
 		Path:     "/test/path",
 	}
 	db.Create(&screenshot)
 
-	alert := models.DeviceAlerts{
-		DeviceID: "cleanup-test-device",
+	alert := models.DeviceAlert{
+		DeviceID: sampleUUID,
 		Level:    "info",
 		Type:     "test",
 		Message:  "test alert",
@@ -257,25 +260,25 @@ func TestCleanupTestDBRemovesAllData(t *testing.T) {
 	db.Model(&models.Device{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.DeviceMetrics{}).Count(&count)
+	db.Model(&models.DeviceMetric{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.DeviceProcesses{}).Count(&count)
+	db.Model(&models.DeviceProcess{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.DeviceActivities{}).Count(&count)
+	db.Model(&models.DeviceActivity{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.DeviceActivities{}).Count(&count)
+	db.Model(&models.DeviceActivity{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.DeviceRemoteCommands{}).Count(&count)
+	db.Model(&models.DeviceRemoteCommand{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.DeviceScreenshots{}).Count(&count)
+	db.Model(&models.DeviceScreenshot{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 
-	db.Model(&models.DeviceAlerts{}).Count(&count)
+	db.Model(&models.DeviceAlert{}).Count(&count)
 	assert.Equal(t, int64(0), count)
 }
 

@@ -233,13 +233,13 @@ raqeem/
 from typing import Optional
 from pydantic import BaseModel
 
-class DeviceMetrics(BaseModel):
+class DeviceMetric(BaseModel):
     """Device metrics data model."""
     device_id: str
     cpu_usage: Optional[float] = None
     memory_used: Optional[int] = None
 
-async def get_device_metrics(device_id: str) -> list[DeviceMetrics]:
+async def get_device_metrics(device_id: str) -> list[DeviceMetric]:
     """
     Retrieve metrics for a specific device.
     
@@ -278,15 +278,15 @@ mypy devices/backend/src
 
 **Example**:
 ```go
-// DeviceMetrics represents system performance metrics
-type DeviceMetrics struct {
+// DeviceMetric represents system performance metrics
+type DeviceMetric struct {
     DeviceID  string    `json:"device_id"`
     CPUUsage  float64   `json:"cpu_usage"`
     Timestamp time.Time `json:"timestamp"`
 }
 
-// GetDeviceMetrics retrieves metrics for a device
-func GetDeviceMetrics(c *gin.Context) {
+// GetDeviceMetric retrieves metrics for a device
+func GetDeviceMetric(c *gin.Context) {
     deviceID := c.Param("id")
     // Implementation
 }
@@ -318,7 +318,7 @@ go vet ./...
 ```jsx
 import React, { useState, useEffect } from 'react';
 
-function DeviceMetrics({ deviceId }) {
+function DeviceMetric({ deviceId }) {
   const [metrics, setMetrics] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -349,7 +349,7 @@ function DeviceMetrics({ deviceId }) {
   );
 }
 
-export default DeviceMetrics;
+export default DeviceMetric;
 ```
 
 **Tools**:
@@ -466,7 +466,7 @@ go test -v ./...
 
 **Writing Tests**:
 ```go
-func TestGetDeviceMetrics(t *testing.T) {
+func TestGetDeviceMetric(t *testing.T) {
     // Setup
     w := httptest.NewRecorder()
     c, _ := gin.CreateTestContext(w)
@@ -475,7 +475,7 @@ func TestGetDeviceMetrics(t *testing.T) {
     }
 
     // Execute
-    GetDeviceMetrics(c)
+    GetDeviceMetric(c)
 
     // Assert
     if w.Code != http.StatusOK {

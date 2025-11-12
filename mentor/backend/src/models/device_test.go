@@ -5,30 +5,33 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
+var sampleUUID, _ = uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
+
 func TestDevice_Fields(t *testing.T) {
 	device := Device{
-		ID:          "test-device-123",
-		Name:        "Test Device",
-		Type:        "laptop",
-		OS:          "macOS",
-		LastSeen:    time.Now(),
-		IsOnline:    true,
-		Location:    "Office",
-		IPAddress:   "192.168.1.100",
-		MacAddress:  "00:11:22:33:44:55",
-		CurrentUser: "testuser",
+		DeviceID:       sampleUUID,
+		DeviceName:     "Test Device",
+		DeviceType:     "laptop",
+		OS:             "macOS",
+		LastSeen:       time.Now(),
+		IsOnline:       true,
+		DeviceLocation: "Office",
+		IPAddress:      "192.168.1.100",
+		MacAddress:     "00:11:22:33:44:55",
+		CurrentUser:    "testuser",
 	}
 
 	// Test basic fields using assert for cleaner tests
-	assert.Equal(t, "test-device-123", device.ID)
-	assert.Equal(t, "Test Device", device.Name)
-	assert.Equal(t, "laptop", device.Type)
+	assert.Equal(t, sampleUUID, device.DeviceID)
+	assert.Equal(t, "Test Device", device.DeviceName)
+	assert.Equal(t, "laptop", device.DeviceType)
 	assert.Equal(t, "macOS", device.OS)
 	assert.True(t, device.IsOnline)
-	assert.Equal(t, "Office", device.Location)
+	assert.Equal(t, "Office", device.DeviceLocation)
 	assert.Equal(t, "192.168.1.100", device.IPAddress)
 	assert.Equal(t, "00:11:22:33:44:55", device.MacAddress)
 	assert.Equal(t, "testuser", device.CurrentUser)
@@ -41,33 +44,25 @@ func TestDevice_EdgeCases(t *testing.T) {
 		expected bool
 	}{
 		{
-			name: "Empty device ID",
-			device: Device{
-				ID:   "",
-				Name: "Test Device",
-			},
-			expected: true,
-		},
-		{
 			name: "Very long device name",
 			device: Device{
-				ID:   "test-device",
-				Name: strings.Repeat("A", 1000),
+				DeviceID:   sampleUUID,
+				DeviceName: strings.Repeat("A", 1000),
 			},
 			expected: true,
 		},
 		{
 			name: "Special characters in name",
 			device: Device{
-				ID:   "test-device",
-				Name: "Test-Device_123 (Production) [v2.0]",
+				DeviceID:   sampleUUID,
+				DeviceName: "Test-Device_123 (Production) [v2.0]",
 			},
 			expected: true,
 		},
 		{
 			name: "Invalid IP address",
 			device: Device{
-				ID:        "test-device",
+				DeviceID:  sampleUUID,
 				IPAddress: "999.999.999.999",
 			},
 			expected: true,
@@ -75,7 +70,7 @@ func TestDevice_EdgeCases(t *testing.T) {
 		{
 			name: "Invalid MAC address",
 			device: Device{
-				ID:         "test-device",
+				DeviceID:   sampleUUID,
 				MacAddress: "invalid-mac",
 			},
 			expected: true,
@@ -97,10 +92,10 @@ func TestDevice_Types(t *testing.T) {
 	for _, deviceType := range validTypes {
 		t.Run("type_"+deviceType, func(t *testing.T) {
 			device := Device{
-				ID:   "test-device",
-				Type: deviceType,
+				DeviceID:   sampleUUID,
+				DeviceType: deviceType,
 			}
-			assert.Equal(t, deviceType, device.Type)
+			assert.Equal(t, deviceType, device.DeviceType)
 		})
 	}
 }
@@ -111,19 +106,19 @@ func TestDevice_OSTypes(t *testing.T) {
 	for _, os := range validOS {
 		t.Run("os_"+os, func(t *testing.T) {
 			device := Device{
-				ID: "test-device",
-				OS: os,
+				DeviceID: sampleUUID,
+				OS:       os,
 			}
 			assert.Equal(t, os, device.OS)
 		})
 	}
 }
 
-func TestDeviceMetrics_Fields(t *testing.T) {
+func TestDeviceMetric_Fields(t *testing.T) {
 	now := time.Now()
-	metrics := DeviceMetrics{
-		ID:          "550e8400-e29b-41d4-a716-446655440000",
-		DeviceID:    "test-device-123",
+	metrics := DeviceMetric{
+		MetricID:    sampleUUID,
+		DeviceID:    sampleUUID,
 		Timestamp:   now,
 		CPUUsage:    50.5,
 		CPUTemp:     65.2,
@@ -136,10 +131,10 @@ func TestDeviceMetrics_Fields(t *testing.T) {
 		NetBytesOut: 2048,
 	}
 
-	if metrics.ID != "550e8400-e29b-41d4-a716-446655440000" {
-		t.Errorf("Expected ID to be '550e8400-e29b-41d4-a716-446655440000', got %s", metrics.ID)
+	if metrics.MetricID != sampleUUID {
+		t.Errorf("Expected ID to be '550e8400-e29b-41d4-a716-446655440000', got %s", metrics.MetricID)
 	}
-	if metrics.DeviceID != "test-device-123" {
+	if metrics.DeviceID != sampleUUID {
 		t.Errorf("Expected DeviceID to be 'test-device-123', got '%s'", metrics.DeviceID)
 	}
 	if !metrics.Timestamp.Equal(now) {
@@ -161,28 +156,28 @@ func TestDeviceMetrics_Fields(t *testing.T) {
 
 func TestProcess_Fields(t *testing.T) {
 	now := time.Now()
-	process := DeviceProcesses{
-		ID:        1,
-		DeviceID:  "test-device-123",
-		Timestamp: now,
-		PID:       1234,
-		Name:      "chrome",
-		CPU:       25.5,
-		Memory:    536870912, // 512MB
-		Command:   "/usr/bin/chrome --enable-features=test",
+	process := DeviceProcess{
+		ProcessID:   sampleUUID,
+		DeviceID:    sampleUUID,
+		Timestamp:   now,
+		PID:         1234,
+		ProcessName: "chrome",
+		CPU:         25.5,
+		Memory:      536870912, // 512MB
+		CommandText: "/usr/bin/chrome --enable-features=test",
 	}
 
-	if process.ID != 1 {
-		t.Errorf("Expected ID to be 1, got %d", process.ID)
+	if process.ProcessID != sampleUUID {
+		t.Errorf("Expected ProcessID to be %s, got %s", sampleUUID, process.ProcessID)
 	}
-	if process.DeviceID != "test-device-123" {
-		t.Errorf("Expected DeviceID to be 'test-device-123', got '%s'", process.DeviceID)
+	if process.DeviceID != sampleUUID {
+		t.Errorf("Expected DeviceID to be %s, got '%s'", sampleUUID, process.DeviceID)
 	}
 	if process.PID != 1234 {
 		t.Errorf("Expected PID to be 1234, got %d", process.PID)
 	}
-	if process.Name != "chrome" {
-		t.Errorf("Expected Name to be 'chrome', got '%s'", process.Name)
+	if process.ProcessName != "chrome" {
+		t.Errorf("Expected ProcessName to be 'chrome', got '%s'", process.ProcessName)
 	}
 	if process.CPU != 25.5 {
 		t.Errorf("Expected CPU to be 25.5, got %f", process.CPU)
@@ -190,16 +185,16 @@ func TestProcess_Fields(t *testing.T) {
 	if process.Memory != 536870912 {
 		t.Errorf("Expected Memory to be 536870912, got %d", process.Memory)
 	}
-	if process.Command != "/usr/bin/chrome --enable-features=test" {
-		t.Errorf("Expected Command to be '/usr/bin/chrome --enable-features=test', got '%s'", process.Command)
+	if process.CommandText != "/usr/bin/chrome --enable-features=test" {
+		t.Errorf("Expected Command to be '/usr/bin/chrome --enable-features=test', got '%s'", process.CommandText)
 	}
 }
 
 func TestActivityLog_Fields(t *testing.T) {
 	now := time.Now()
-	activity := DeviceActivities{
-		ID:          1,
-		DeviceID:    "test-device-123",
+	activity := DeviceActivity{
+		ActivityID:  sampleUUID,
+		DeviceID:    sampleUUID,
 		Timestamp:   now,
 		Type:        "app_launch",
 		Description: "User launched Chrome browser",
@@ -207,11 +202,11 @@ func TestActivityLog_Fields(t *testing.T) {
 		Duration:    3600, // 1 hour
 	}
 
-	if activity.ID != 1 {
-		t.Errorf("Expected ID to be 1, got %d", activity.ID)
+	if activity.ActivityID != sampleUUID {
+		t.Errorf("Expected ActivityID to be %s, got %s", sampleUUID, activity.ActivityID)
 	}
-	if activity.DeviceID != "test-device-123" {
-		t.Errorf("Expected DeviceID to be 'test-device-123', got '%s'", activity.DeviceID)
+	if activity.DeviceID != sampleUUID {
+		t.Errorf("Expected DeviceID to be %s, got '%s'", sampleUUID, activity.DeviceID)
 	}
 	if activity.Type != "app_launch" {
 		t.Errorf("Expected Type to be 'app_launch', got '%s'", activity.Type)
@@ -229,10 +224,11 @@ func TestActivityLog_Fields(t *testing.T) {
 
 func TestRemoteCommand_Fields(t *testing.T) {
 	now := time.Now()
-	cmd := DeviceRemoteCommands{
-		ID:          1,
-		DeviceID:    "test-device-123",
-		Command:     "ls -la",
+
+	cmd := DeviceRemoteCommand{
+		CommandID:   sampleUUID,
+		DeviceID:    sampleUUID,
+		CommandText: "ls -la",
 		Status:      "pending",
 		CreatedAt:   now,
 		CompletedAt: now.Add(5 * time.Second),
@@ -240,14 +236,14 @@ func TestRemoteCommand_Fields(t *testing.T) {
 		ExitCode:    0,
 	}
 
-	if cmd.ID != 1 {
-		t.Errorf("Expected ID to be 1, got %d", cmd.ID)
+	if cmd.CommandID != sampleUUID {
+		t.Errorf("Expected CommandID to be %s, got %s", sampleUUID, cmd.CommandID)
 	}
-	if cmd.DeviceID != "test-device-123" {
-		t.Errorf("Expected DeviceID to be 'test-device-123', got '%s'", cmd.DeviceID)
+	if cmd.DeviceID != sampleUUID {
+		t.Errorf("Expected DeviceID to be '%s', got '%s'", sampleUUID, cmd.DeviceID)
 	}
-	if cmd.Command != "ls -la" {
-		t.Errorf("Expected Command to be 'ls -la', got '%s'", cmd.Command)
+	if cmd.CommandText != "ls -la" {
+		t.Errorf("Expected Command to be 'ls -la', got '%s'", cmd.CommandText)
 	}
 	if cmd.Status != "pending" {
 		t.Errorf("Expected Status to be 'pending', got '%s'", cmd.Status)
@@ -262,20 +258,20 @@ func TestRemoteCommand_Fields(t *testing.T) {
 
 func TestScreenshot_Fields(t *testing.T) {
 	now := time.Now()
-	screenshot := DeviceScreenshots{
-		ID:         1,
-		DeviceID:   "test-device-123",
-		Timestamp:  now,
-		Path:       "screenshots/2024/01/15/device123_20240115_120000.png",
-		Resolution: "1920x1080",
-		Size:       2097152, // 2MB
+	screenshot := DeviceScreenshot{
+		ScreenshotID: sampleUUID,
+		DeviceID:     sampleUUID,
+		Timestamp:    now,
+		Path:         "screenshots/2024/01/15/device123_20240115_120000.png",
+		Resolution:   "1920x1080",
+		Size:         2097152, // 2MB
 	}
 
-	if screenshot.ID != 1 {
-		t.Errorf("Expected ID to be 1, got %d", screenshot.ID)
+	if screenshot.ScreenshotID != sampleUUID {
+		t.Errorf("Expected ScreenshotID to be %s, got %s", sampleUUID, screenshot.ScreenshotID)
 	}
-	if screenshot.DeviceID != "test-device-123" {
-		t.Errorf("Expected DeviceID to be 'test-device-123', got '%s'", screenshot.DeviceID)
+	if screenshot.DeviceID != sampleUUID {
+		t.Errorf("Expected DeviceID to be %s, got %s", sampleUUID, screenshot.DeviceID)
 	}
 	if screenshot.Path != "screenshots/2024/01/15/device123_20240115_120000.png" {
 		t.Errorf("Expected Path to be 'screenshots/2024/01/15/device123_20240115_120000.png', got '%s'", screenshot.Path)
@@ -290,9 +286,9 @@ func TestScreenshot_Fields(t *testing.T) {
 
 func TestAlert_Fields(t *testing.T) {
 	now := time.Now()
-	alert := DeviceAlerts{
-		ID:        1,
-		DeviceID:  "test-device-123",
+	alert := DeviceAlert{
+		AlertID:   sampleUUID,
+		DeviceID:  sampleUUID,
 		Timestamp: now,
 		Level:     "warning",
 		Type:      "cpu",
@@ -301,11 +297,11 @@ func TestAlert_Fields(t *testing.T) {
 		Threshold: 80.0,
 	}
 
-	if alert.ID != 1 {
-		t.Errorf("Expected ID to be 1, got %d", alert.ID)
+	if alert.AlertID != sampleUUID {
+		t.Errorf("Expected AlertID to be %s, got %s", sampleUUID, alert.AlertID)
 	}
-	if alert.DeviceID != "test-device-123" {
-		t.Errorf("Expected DeviceID to be 'test-device-123', got '%s'", alert.DeviceID)
+	if alert.DeviceID != sampleUUID {
+		t.Errorf("Expected DeviceID to be %s, got %s", sampleUUID, alert.DeviceID)
 	}
 	if alert.Level != "warning" {
 		t.Errorf("Expected Level to be 'warning', got '%s'", alert.Level)
@@ -328,9 +324,9 @@ func TestAlert_Levels(t *testing.T) {
 	validLevels := []string{"info", "warning", "error", "critical"}
 
 	for _, level := range validLevels {
-		alert := DeviceAlerts{
-			ID:        1,
-			DeviceID:  "test-device",
+		alert := DeviceAlert{
+			AlertID:   sampleUUID,
+			DeviceID:  sampleUUID,
 			Level:     level,
 			Type:      "cpu",
 			Message:   "Test alert",
@@ -348,9 +344,9 @@ func TestAlert_Types(t *testing.T) {
 	validTypes := []string{"cpu", "memory", "disk", "network", "security"}
 
 	for _, alertType := range validTypes {
-		alert := DeviceAlerts{
-			ID:        1,
-			DeviceID:  "test-device",
+		alert := DeviceAlert{
+			AlertID:   sampleUUID,
+			DeviceID:  sampleUUID,
 			Level:     "warning",
 			Type:      alertType,
 			Message:   "Test alert",

@@ -82,7 +82,7 @@ func (r *Router) setupActivityRoutes() {
 func (r *Router) setupDeviceRoutes() {
 	// Device ingestion endpoints (devices will POST data here)
 	r.engine.POST("/devices/register", controllers.RegisterDevice)
-	r.engine.POST("/devices/metrics", controllers.UpdateDeviceMetrics)
+	r.engine.POST("/devices/metrics", controllers.UpdateDeviceMetric)
 	r.engine.POST("/devices/processes", controllers.UpdateProcessList)
 	r.engine.POST("/devices/activity", controllers.Activity)
 	r.engine.POST("/devices/commands", controllers.CreateRemoteCommand)
@@ -90,11 +90,11 @@ func (r *Router) setupDeviceRoutes() {
 
 	// Device query endpoints
 	r.engine.GET("/devices", controllers.ListDevices)
-	r.engine.GET("/devices/:id/metrics", controllers.GetDeviceMetrics)
-	r.engine.GET("/devices/:id/processes", controllers.GetDeviceProcesseses)
-	r.engine.GET("/devices/:id/activities", controllers.GetDeviceActivities)
-	r.engine.GET("/devices/:id/alerts", controllers.GetDeviceAlerts)
-	r.engine.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshots)
+	r.engine.GET("/devices/:id/metrics", controllers.GetDeviceMetric)
+	r.engine.GET("/devices/:id/processes", controllers.GetDeviceProcesses)
+	r.engine.GET("/devices/:id/activities", controllers.GetDeviceActivity)
+	r.engine.GET("/devices/:id/alerts", controllers.GetDeviceAlert)
+	r.engine.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshot)
 	r.engine.GET("/devices/:id/commands/pending", controllers.GetPendingCommands)
 	r.engine.GET("/devices/:id/commands", controllers.GetDeviceCommands)
 

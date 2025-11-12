@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -16,54 +17,54 @@ func TestDeviceValidation(t *testing.T) {
 		{
 			name: "valid device",
 			device: Device{
-				ID:   "device1",
-				Name: "Test Device",
-				Type: "laptop",
+				DeviceID:   sampleUUID,
+				DeviceName: "Test Device",
+				DeviceType: "laptop",
 			},
 			wantErrs: 0,
 		},
 		{
 			name: "empty ID",
 			device: Device{
-				ID:   "",
-				Name: "Test Device",
-				Type: "laptop",
+				DeviceID:   uuid.UUID{},
+				DeviceName: "Test Device",
+				DeviceType: "laptop",
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "empty name",
 			device: Device{
-				ID:   "device1",
-				Name: "",
-				Type: "laptop",
+				DeviceID:   sampleUUID,
+				DeviceName: "",
+				DeviceType: "laptop",
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "invalid type",
 			device: Device{
-				ID:   "device1",
-				Name: "Test Device",
-				Type: "invalid",
+				DeviceID:   sampleUUID,
+				DeviceName: "Test Device",
+				DeviceType: "invalid",
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "name too long",
 			device: Device{
-				ID:   "device1",
-				Name: string(make([]byte, 256)), // 256 characters
-				Type: "laptop",
+				DeviceID:   sampleUUID,
+				DeviceName: string(make([]byte, 256)), // 256 characters
+				DeviceType: "laptop",
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "multiple errors",
 			device: Device{
-				ID:   "",
-				Name: "",
-				Type: "invalid",
+				DeviceID:   uuid.UUID{},
+				DeviceName: "",
+				DeviceType: "invalid",
 			},
 			wantErrs: 3,
 		},
@@ -138,10 +139,10 @@ func TestDeviceGetFormattedType(t *testing.T) {
 		device   Device
 		expected string
 	}{
-		{"laptop", Device{Type: "laptop"}, "Laptop"},
-		{"DESKTOP", Device{Type: "DESKTOP"}, "Desktop"},
-		{"MoBiLe", Device{Type: "MoBiLe"}, "Mobile"},
-		{"empty", Device{Type: ""}, "Unknown"},
+		{"laptop", Device{DeviceType: "laptop"}, "Laptop"},
+		{"DESKTOP", Device{DeviceType: "DESKTOP"}, "Desktop"},
+		{"MoBiLe", Device{DeviceType: "MoBiLe"}, "Mobile"},
+		{"empty", Device{DeviceType: ""}, "Unknown"},
 	}
 
 	for _, tt := range tests {
@@ -155,13 +156,13 @@ func TestDeviceGetFormattedType(t *testing.T) {
 func TestAlertValidation(t *testing.T) {
 	tests := []struct {
 		name     string
-		alert    DeviceAlerts
+		alert    DeviceAlert
 		wantErrs int
 	}{
 		{
 			name: "valid alert",
-			alert: DeviceAlerts{
-				DeviceID: "device1",
+			alert: DeviceAlert{
+				DeviceID: sampleUUID,
 				Level:    "warning",
 				Type:     "cpu",
 				Message:  "High CPU usage",
@@ -170,8 +171,8 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "empty device ID",
-			alert: DeviceAlerts{
-				DeviceID: "",
+			alert: DeviceAlert{
+				DeviceID: uuid.UUID{},
 				Level:    "warning",
 				Type:     "cpu",
 				Message:  "High CPU usage",
@@ -180,8 +181,8 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "invalid level",
-			alert: DeviceAlerts{
-				DeviceID: "device1",
+			alert: DeviceAlert{
+				DeviceID: sampleUUID,
 				Level:    "invalid",
 				Type:     "cpu",
 				Message:  "High CPU usage",
@@ -190,8 +191,8 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "invalid type",
-			alert: DeviceAlerts{
-				DeviceID: "device1",
+			alert: DeviceAlert{
+				DeviceID: sampleUUID,
 				Level:    "warning",
 				Type:     "invalid",
 				Message:  "High CPU usage",
@@ -200,8 +201,8 @@ func TestAlertValidation(t *testing.T) {
 		},
 		{
 			name: "empty message",
-			alert: DeviceAlerts{
-				DeviceID: "device1",
+			alert: DeviceAlert{
+				DeviceID: sampleUUID,
 				Level:    "warning",
 				Type:     "cpu",
 				Message:  "",
@@ -221,14 +222,14 @@ func TestAlertValidation(t *testing.T) {
 func TestAlertIsCritical(t *testing.T) {
 	tests := []struct {
 		name     string
-		alert    DeviceAlerts
+		alert    DeviceAlert
 		expected bool
 	}{
-		{"critical", DeviceAlerts{Level: "critical"}, true},
-		{"CRITICAL", DeviceAlerts{Level: "CRITICAL"}, true},
-		{"warning", DeviceAlerts{Level: "warning"}, false},
-		{"info", DeviceAlerts{Level: "info"}, false},
-		{"error", DeviceAlerts{Level: "error"}, false},
+		{"critical", DeviceAlert{Level: "critical"}, true},
+		{"CRITICAL", DeviceAlert{Level: "CRITICAL"}, true},
+		{"warning", DeviceAlert{Level: "warning"}, false},
+		{"info", DeviceAlert{Level: "info"}, false},
+		{"error", DeviceAlert{Level: "error"}, false},
 	}
 
 	for _, tt := range tests {
@@ -239,16 +240,16 @@ func TestAlertIsCritical(t *testing.T) {
 	}
 }
 
-func TestDeviceMetricsValidation(t *testing.T) {
+func TestDeviceMetricValidation(t *testing.T) {
 	tests := []struct {
 		name     string
-		metrics  DeviceMetrics
+		metrics  DeviceMetric
 		wantErrs int
 	}{
 		{
 			name: "valid metrics",
-			metrics: DeviceMetrics{
-				DeviceID:    "device1",
+			metrics: DeviceMetric{
+				DeviceID:    sampleUUID,
 				CPUUsage:    50.5,
 				CPUTemp:     65.0,
 				MemoryTotal: 8000000000,
@@ -260,24 +261,24 @@ func TestDeviceMetricsValidation(t *testing.T) {
 		},
 		{
 			name: "invalid CPU usage",
-			metrics: DeviceMetrics{
-				DeviceID: "device1",
+			metrics: DeviceMetric{
+				DeviceID: sampleUUID,
 				CPUUsage: 150.0,
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "invalid CPU temperature",
-			metrics: DeviceMetrics{
-				DeviceID: "device1",
+			metrics: DeviceMetric{
+				DeviceID: sampleUUID,
 				CPUTemp:  200.0,
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "memory used exceeds total",
-			metrics: DeviceMetrics{
-				DeviceID:    "device1",
+			metrics: DeviceMetric{
+				DeviceID:    sampleUUID,
 				MemoryTotal: 4000000000,
 				MemoryUsed:  8000000000,
 			},
@@ -287,21 +288,21 @@ func TestDeviceMetricsValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			errors := tt.metrics.ValidateDeviceMetrics()
+			errors := tt.metrics.ValidateDeviceMetric()
 			assert.Equal(t, tt.wantErrs, len(errors))
 		})
 	}
 }
 
-func TestDeviceMetricsGetMemoryUsagePercent(t *testing.T) {
+func TestDeviceMetricGetMemoryUsagePercent(t *testing.T) {
 	tests := []struct {
 		name     string
-		metrics  DeviceMetrics
+		metrics  DeviceMetric
 		expected float64
 	}{
 		{
 			name: "50% usage",
-			metrics: DeviceMetrics{
+			metrics: DeviceMetric{
 				MemoryTotal: 8000000000,
 				MemoryUsed:  4000000000,
 			},
@@ -309,7 +310,7 @@ func TestDeviceMetricsGetMemoryUsagePercent(t *testing.T) {
 		},
 		{
 			name: "zero total",
-			metrics: DeviceMetrics{
+			metrics: DeviceMetric{
 				MemoryTotal: 0,
 				MemoryUsed:  4000000000,
 			},
@@ -317,7 +318,7 @@ func TestDeviceMetricsGetMemoryUsagePercent(t *testing.T) {
 		},
 		{
 			name: "100% usage",
-			metrics: DeviceMetrics{
+			metrics: DeviceMetric{
 				MemoryTotal: 8000000000,
 				MemoryUsed:  8000000000,
 			},
@@ -333,15 +334,15 @@ func TestDeviceMetricsGetMemoryUsagePercent(t *testing.T) {
 	}
 }
 
-func TestDeviceMetricsGetDiskUsagePercent(t *testing.T) {
+func TestDeviceMetricGetDiskUsagePercent(t *testing.T) {
 	tests := []struct {
 		name     string
-		metrics  DeviceMetrics
+		metrics  DeviceMetric
 		expected float64
 	}{
 		{
 			name: "25% usage",
-			metrics: DeviceMetrics{
+			metrics: DeviceMetric{
 				DiskTotal: 1000000000000,
 				DiskUsed:  250000000000,
 			},
@@ -349,7 +350,7 @@ func TestDeviceMetricsGetDiskUsagePercent(t *testing.T) {
 		},
 		{
 			name: "zero total",
-			metrics: DeviceMetrics{
+			metrics: DeviceMetric{
 				DiskTotal: 0,
 				DiskUsed:  250000000000,
 			},
@@ -368,40 +369,40 @@ func TestDeviceMetricsGetDiskUsagePercent(t *testing.T) {
 func TestRemoteCommandValidation(t *testing.T) {
 	tests := []struct {
 		name     string
-		command  DeviceRemoteCommands
+		command  DeviceRemoteCommand
 		wantErrs int
 	}{
 		{
 			name: "valid command",
-			command: DeviceRemoteCommands{
-				DeviceID: "device1",
-				Command:  "ls -la",
-				Status:   "pending",
+			command: DeviceRemoteCommand{
+				DeviceID:    sampleUUID,
+				CommandText: "ls -la",
+				Status:      "pending",
 			},
 			wantErrs: 0,
 		},
 		{
 			name: "empty device ID",
-			command: DeviceRemoteCommands{
-				DeviceID: "",
-				Command:  "ls -la",
+			command: DeviceRemoteCommand{
+				DeviceID:    sampleUUID,
+				CommandText: "ls -la",
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "empty command",
-			command: DeviceRemoteCommands{
-				DeviceID: "device1",
-				Command:  "",
+			command: DeviceRemoteCommand{
+				DeviceID:    sampleUUID,
+				CommandText: "",
 			},
 			wantErrs: 1,
 		},
 		{
 			name: "invalid status",
-			command: DeviceRemoteCommands{
-				DeviceID: "device1",
-				Command:  "ls -la",
-				Status:   "invalid",
+			command: DeviceRemoteCommand{
+				DeviceID:    sampleUUID,
+				CommandText: "ls -la",
+				Status:      "invalid",
 			},
 			wantErrs: 1,
 		},
@@ -418,14 +419,14 @@ func TestRemoteCommandValidation(t *testing.T) {
 func TestRemoteCommandIsCompleted(t *testing.T) {
 	tests := []struct {
 		name     string
-		command  DeviceRemoteCommands
+		command  DeviceRemoteCommand
 		expected bool
 	}{
-		{"completed", DeviceRemoteCommands{Status: "completed"}, true},
-		{"failed", DeviceRemoteCommands{Status: "failed"}, true},
-		{"COMPLETED", DeviceRemoteCommands{Status: "COMPLETED"}, true},
-		{"pending", DeviceRemoteCommands{Status: "pending"}, false},
-		{"running", DeviceRemoteCommands{Status: "running"}, false},
+		{"completed", DeviceRemoteCommand{Status: "completed"}, true},
+		{"failed", DeviceRemoteCommand{Status: "failed"}, true},
+		{"COMPLETED", DeviceRemoteCommand{Status: "COMPLETED"}, true},
+		{"pending", DeviceRemoteCommand{Status: "pending"}, false},
+		{"running", DeviceRemoteCommand{Status: "running"}, false},
 	}
 
 	for _, tt := range tests {
@@ -439,12 +440,12 @@ func TestRemoteCommandIsCompleted(t *testing.T) {
 func TestRemoteCommandIsSuccessful(t *testing.T) {
 	tests := []struct {
 		name     string
-		command  DeviceRemoteCommands
+		command  DeviceRemoteCommand
 		expected bool
 	}{
 		{
 			name: "successful",
-			command: DeviceRemoteCommands{
+			command: DeviceRemoteCommand{
 				Status:   "completed",
 				ExitCode: 0,
 			},
@@ -452,7 +453,7 @@ func TestRemoteCommandIsSuccessful(t *testing.T) {
 		},
 		{
 			name: "completed with error",
-			command: DeviceRemoteCommands{
+			command: DeviceRemoteCommand{
 				Status:   "completed",
 				ExitCode: 1,
 			},
@@ -460,7 +461,7 @@ func TestRemoteCommandIsSuccessful(t *testing.T) {
 		},
 		{
 			name: "failed",
-			command: DeviceRemoteCommands{
+			command: DeviceRemoteCommand{
 				Status:   "failed",
 				ExitCode: 0,
 			},
@@ -468,7 +469,7 @@ func TestRemoteCommandIsSuccessful(t *testing.T) {
 		},
 		{
 			name: "still running",
-			command: DeviceRemoteCommands{
+			command: DeviceRemoteCommand{
 				Status:   "running",
 				ExitCode: 0,
 			},
