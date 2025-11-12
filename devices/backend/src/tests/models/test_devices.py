@@ -1,5 +1,5 @@
 """Test data models functionality without database connection."""
-from app.models.devices import Device, DeviceMetric, DeviceAlert as Alert
+from app.models.devices import Device, DeviceActivity, DeviceMetric, DeviceAlert as Alert, DeviceProcess
 
 
 class TestDevice:
@@ -116,11 +116,11 @@ class TestProcess:
     
     def test_process_table_name(self):
         """Test that Process model has correct table name."""
-        assert Process.__tablename__ == "device_processes"
+        assert DeviceProcess.__tablename__ == "device_processes"
     
     def test_process_columns(self):
         """Test that Process model has all expected columns."""
-        process = Process()
+        process = DeviceProcess()
         
         # Check that all expected attributes exist
         assert hasattr(process, 'id')
@@ -134,7 +134,7 @@ class TestProcess:
     
     def test_process_instantiation(self):
         """Test creating Process instance with data."""
-        process = Process(
+        process = DeviceProcess(
             device_id="test-device-123",
             pid=1234,
             name="chrome",
@@ -156,11 +156,11 @@ class TestActivityLog:
     
     def test_activity_log_table_name(self):
         """Test that ActivityLog model has correct table name."""
-        assert ActivityLog.__tablename__ == "device_activities"
+        assert DeviceActivity.__tablename__ == "device_activity"
     
     def test_activity_log_columns(self):
         """Test that ActivityLog model has all expected columns."""
-        activity = ActivityLog()
+        activity = DeviceActivity()
         
         # Check that all expected attributes exist
         assert hasattr(activity, 'id')
@@ -173,7 +173,7 @@ class TestActivityLog:
     
     def test_activity_log_instantiation(self):
         """Test creating ActivityLog instance with data."""
-        activity = ActivityLog(
+        activity = DeviceActivity(
             device_id="test-device-123",
             type="app_launch",
             description="User launched Chrome browser",
@@ -263,7 +263,7 @@ class TestModelRelationships:
     
     def test_all_models_have_device_id(self):
         """Test that related models have device_id field."""
-        models_with_device_id = [DeviceMetric, Process, ActivityLog, Alert]
+        models_with_device_id = [DeviceMetric, DeviceProcess, DeviceActivity, Alert]
         
         for model_class in models_with_device_id:
             instance = model_class()
@@ -271,8 +271,8 @@ class TestModelRelationships:
     
     def test_all_models_have_timestamp(self):
         """Test that models have timestamp fields."""
-        models_with_timestamp = [Device, DeviceMetric, Process, ActivityLog, Alert]
-        
+        models_with_timestamp = [Device, DeviceMetric, DeviceProcess, DeviceActivity, Alert]
+
         for model_class in models_with_timestamp:
             instance = model_class()
             timestamp_field = 'last_seen' if model_class == Device else 'timestamp'
@@ -280,8 +280,8 @@ class TestModelRelationships:
     
     def test_all_models_have_uuid_primary_key_except_device(self):
         """Test that all models except Device use UUID primary keys."""
-        models_with_uuid_pk = [DeviceMetric, Process, ActivityLog, Alert]
-        
+        models_with_uuid_pk = [DeviceMetric, DeviceProcess, DeviceActivity, Alert]
+
         for model_class in models_with_uuid_pk:
             instance = model_class()
             assert hasattr(instance, 'id'), f"{model_class.__name__} should have id field"
@@ -296,7 +296,7 @@ class TestModelPerformance:
         """Test handling of large text in description fields."""
         large_text = "x" * 10000  # 10KB of text
         
-        activity = ActivityLog(
+        activity = DeviceActivity(
             device_id="test-device",
             description=large_text
         )
