@@ -9,7 +9,6 @@ import (
 	"mentor-backend/models"
 
 	"gorm.io/driver/postgres"
-	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
@@ -21,53 +20,32 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	var db *gorm.DB
 	var err error
 
-	// Check if we should use PostgreSQL (only if explicitly configured for CI)
-	usePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS") == "true"
+	// Use PostgreSQL for tests (CI environment)
+	user := getEnvOrDefault("POSTGRES_USER", "postgres")
+	password := getEnvOrDefault("POSTGRES_PASSWORD", "password")
+	host := getEnvOrDefault("POSTGRES_HOST", "localhost")
+	port := getEnvOrDefault("POSTGRES_PORT", "5432")
 
-	if usePostgres {
-		// Use PostgreSQL for tests (CI environment)
-		user := getEnvOrDefault("POSTGRES_USER", "postgres")
-		password := getEnvOrDefault("POSTGRES_PASSWORD", "password")
-		host := getEnvOrDefault("POSTGRES_HOST", "localhost")
-		port := getEnvOrDefault("POSTGRES_PORT", "5432")
-
-		// For CI, use the main database; for local testing, use test database
-		var dbname string
-		if user == "monitor" {
-			// CI environment - use the monitoring_db
-			dbname = getEnvOrDefault("POSTGRES_DB", "monitoring_db")
-		} else {
-			// Local environment - use test database
-			dbname = getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
-		}
-
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-			host, user, password, dbname, port)
-
-		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-		if err != nil {
-			// Skip test if database is not available
-			t.Skipf("Test database not available: %v", err)
-			return nil
-		}
-		log.Printf("Test database connected successfully (PostgreSQL): %s", dbname)
+	// For CI, use the main database; for local testing, use test database
+	var dbname string
+	if user == "monitor" {
+		// CI environment - use the monitoring_db
+		dbname = getEnvOrDefault("POSTGRES_DB", "monitoring_db")
 	} else {
-		// Use SQLite in-memory database for tests (default, no external dependencies)
-		db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-		if err != nil {
-			t.Fatalf("Failed to create SQLite test database: %v", err)
-			return nil
-		}
-
-		// Enable WAL mode for better concurrency support in SQLite
-		sqlDB, err := db.DB()
-		if err == nil {
-			_, _ = sqlDB.Exec("PRAGMA journal_mode=WAL;")
-			_, _ = sqlDB.Exec("PRAGMA busy_timeout=5000;") // 5 second timeout for locks
-		}
-
-		log.Printf("Test database connected successfully (SQLite in-memory)")
+		// Local environment - use test database
+		dbname = getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
 	}
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		host, user, password, dbname, port)
+
+	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	if err != nil {
+		// Skip test if database is not available
+		t.Skipf("Test database not available: %v", err)
+		return nil
+	}
+	log.Printf("Test database connected successfully (PostgreSQL): %s", dbname)
 
 	// Auto-migrate all models for testing
 	err = db.AutoMigrate(

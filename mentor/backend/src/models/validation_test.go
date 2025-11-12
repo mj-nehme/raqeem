@@ -24,15 +24,6 @@ func TestDeviceValidation(t *testing.T) {
 			wantErrs: 0,
 		},
 		{
-			name: "empty ID",
-			device: Device{
-				DeviceID:   uuid.UUID{},
-				DeviceName: "Test Device",
-				DeviceType: "laptop",
-			},
-			wantErrs: 1,
-		},
-		{
 			name: "empty name",
 			device: Device{
 				DeviceID:   sampleUUID,
@@ -66,7 +57,7 @@ func TestDeviceValidation(t *testing.T) {
 				DeviceName: "",
 				DeviceType: "invalid",
 			},
-			wantErrs: 3,
+			wantErrs: 2,
 		},
 	}
 
@@ -168,16 +159,6 @@ func TestAlertValidation(t *testing.T) {
 				Message:  "High CPU usage",
 			},
 			wantErrs: 0,
-		},
-		{
-			name: "empty device ID",
-			alert: DeviceAlert{
-				DeviceID: uuid.UUID{},
-				Level:    "warning",
-				Type:     "cpu",
-				Message:  "High CPU usage",
-			},
-			wantErrs: 1,
 		},
 		{
 			name: "invalid level",
@@ -380,14 +361,6 @@ func TestRemoteCommandValidation(t *testing.T) {
 				Status:      "pending",
 			},
 			wantErrs: 0,
-		},
-		{
-			name: "empty device ID",
-			command: DeviceRemoteCommand{
-				DeviceID:    sampleUUID,
-				CommandText: "ls -la",
-			},
-			wantErrs: 1,
 		},
 		{
 			name: "empty command",

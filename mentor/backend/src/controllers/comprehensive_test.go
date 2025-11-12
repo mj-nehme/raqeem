@@ -625,24 +625,14 @@ func TestRemoteCommandStatusTransitions(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-device-command-status"
-
 	// Create a command
 	command := models.DeviceRemoteCommand{
 		DeviceID:    sampleUUID,
 		CommandText: "test command",
 	}
 
-	defer cleanup()
-
-	// Create a command
-	command = models.DeviceRemoteCommand{
-		DeviceID:    sampleUUID,
-		CommandText: "test command",
-	}
-
 	commandJSON, _ := json.Marshal(command)
-	req, _ := http.NewRequest("POST", fmt.Sprintf("/devices/%s/commands", deviceID), bytes.NewBuffer(commandJSON))
+	req, _ := http.NewRequest("POST", fmt.Sprintf("/devices/%s/commands", sampleUUID.String()), bytes.NewBuffer(commandJSON))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
