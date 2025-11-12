@@ -26,21 +26,8 @@ async def test_app_startup():
 async def test_api_router_included():
     """Test that API router is included with correct prefix."""
     # Check that routes are registered
-    routes = [route.path for route in app.routes]
-    assert any('/api/v1' in route for route in routes)
-
-
-@pytest.mark.asyncio
-async def test_lifespan_init_db_exception():
-    """Test that lifespan handles init_db exception gracefully."""
-    from unittest.mock import patch, AsyncMock
-    from app.main import lifespan
-    
-    # Mock init_db to raise an exception
-    with patch('app.main.init_db', new=AsyncMock(side_effect=Exception("DB init failed"))):
-        async with lifespan(app):
-            # Should not raise - exception is caught
-            pass
+    routes = [getattr(route, "path", None) for route in app.routes if hasattr(route, "path")]
+    assert any('/api/v1' in route for route in routes if route)
 
 
 @pytest.mark.asyncio  

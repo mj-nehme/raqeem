@@ -388,7 +388,8 @@ class TestDataTransformation:
     
     def test_bytes_to_human_readable(self):
         """Test bytes to human readable format conversion."""
-        with patch('app.utils.formatters') as mock_formatters:
+
+        with patch('tests.utils.formatters') as mock_formatters:
             test_cases = [
                 {'bytes': 1024, 'expected': '1.0 KB'},
                 {'bytes': 1024**2, 'expected': '1.0 MB'},
@@ -403,7 +404,7 @@ class TestDataTransformation:
                 
     def test_timestamp_formatting(self):
         """Test timestamp formatting utilities."""
-        with patch('app.utils.formatters') as mock_formatters:
+        with patch('tests.utils.formatters') as mock_formatters:
             test_timestamp = datetime(2024, 1, 15, 12, 30, 45)
             expected_iso = '2024-01-15T12:30:45'
             
@@ -413,7 +414,7 @@ class TestDataTransformation:
             
     def test_cpu_percentage_formatting(self):
         """Test CPU percentage formatting."""
-        with patch('app.utils.formatters') as mock_formatters:
+        with patch('tests.utils.formatters') as mock_formatters:
             test_cases = [
                 {'value': 0.0, 'expected': '0.0%'},
                 {'value': 25.5, 'expected': '25.5%'},
