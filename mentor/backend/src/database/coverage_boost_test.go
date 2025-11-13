@@ -91,12 +91,7 @@ func TestSetupTestDBFailsGracefully(t *testing.T) {
 	_ = os.Setenv("POSTGRES_HOST", "invalid-host-that-does-not-exist")
 
 	config := DBConfig{
-		User:     "POSTGRES_USER",
-		Password: "POSTGRES_PASSWORD",
-		Host:     "invalid-host-that-does-not-exist",
-		Port:     "POSTGRES_PORT",
-		DBName:   "POSTGRES_DB",
-		SSLMode:  "disable",
+		Host: "invalid-host-that-does-not-exist",
 	}
 
 	db, err := SetupTestDB(t, config)

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"testing"
 
 	"mentor-backend/models"
@@ -21,7 +22,7 @@ type DBConfig struct {
 	User     string
 	Password string
 	Host     string
-	Port     string
+	Port     int32
 	DBName   string
 	SSLMode  string
 }
@@ -32,11 +33,16 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 	var err error
 
 	if len(config) == 0 {
+		portStr := getEnvOrDefault("POSTGRES_PORT", "5432")
+		var portInt int32 = 5432
+		if p, err := strconv.Atoi(portStr); err == nil {
+			portInt = int32(p)
+		}
 		config = append(config, DBConfig{
 			User:     getEnvOrDefault("POSTGRES_USER", "testusername"),
 			Password: getEnvOrDefault("POSTGRES_PASSWORD", "testpassword"),
 			Host:     getEnvOrDefault("POSTGRES_HOST", "localhost"),
-			Port:     getEnvOrDefault("POSTGRES_PORT", "5432"),
+			Port:     portInt,
 			SSLMode:  "disable",
 		})
 	}
@@ -52,7 +58,7 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		dbname = getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
 	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		dbConfig.Host, dbConfig.User, dbConfig.Password, dbname, dbConfig.Port)
 
 	fmt.Println("Database Connection: ", dsn)

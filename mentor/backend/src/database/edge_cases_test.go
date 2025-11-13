@@ -117,23 +117,13 @@ func TestSetupTestDBConcurrentAccess(t *testing.T) {
 
 // TestSetupTestDBWithEmptyEnvironment tests SetupTestDB with no environment variables
 func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
-
-	config := DBConfig{
-		User:     "POSTGRES_USER",
-		Password: "POSTGRES_PASSWORD",
-		Host:     "POSTGRES_HOST",
-		Port:     "POSTGRES_PORT",
-		DBName:   "POSTGRES_DB",
-		SSLMode:  "disable",
-	}
-
-	// List of env variable names from config
 	envVars := []string{
-		config.User,
-		config.Password,
-		config.Host,
-		config.Port,
-		config.DBName,
+		"POSTGRES_USER",
+		"POSTGRES_PASSWORD",
+		"POSTGRES_HOST",
+		"POSTGRES_PORT",
+		"POSTGRES_DB",
+		"POSTGRES_TEST_DB",
 	}
 	// Clear all PostgreSQL environment variables
 	originalVars := make(map[string]string)
@@ -151,7 +141,7 @@ func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
 	}()
 
 	// Should still work with SQLite
-	db, err := SetupTestDB(t, config)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
 	require.NoError(t, err)
 
