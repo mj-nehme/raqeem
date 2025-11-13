@@ -27,9 +27,10 @@ type DBConfig struct {
 	SSLMode  string
 }
 
-// SetupTestDB initializes a test database connection
+// SetupTestDB initializes a test database connection with transaction isolation
+// This ensures tests don't persist data - all changes are rolled back automatically
 func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
-	var db *gorm.DB
+	var baseDB *gorm.DB
 	var err error
 
 	if len(config) == 0 {
@@ -57,20 +58,19 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode)
 
-	fmt.Println("Database Connection: ", dsn)
-	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbConfig.DBName)
+	baseDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		t.Errorf("Failed to connect to test database: %v", err)
 		return nil, fmt.Errorf("test database not available: %v", err)
 	}
 	log.Printf("Test database connected successfully (PostgreSQL): %s", dbConfig.DBName)
 
-	// Auto-migrate all models for testing
-	err = db.AutoMigrate(
+	// Auto-migrate all models once at connection time (not in transactions)
+	err = baseDB.AutoMigrate(
 		&models.Device{},
 		&models.DeviceMetric{},
 		&models.DeviceProcess{},
-		&models.DeviceActivity{},
 		&models.DeviceActivity{},
 		&models.DeviceRemoteCommand{},
 		&models.DeviceScreenshot{},
@@ -81,71 +81,37 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		t.Fatalf("Failed to migrate test database: %v", err)
 	}
 
-	TestDB = db
-	return db, nil
+	// Begin a transaction for this test
+	txDB := baseDB.Begin()
+	if txDB.Error != nil {
+		t.Fatalf("Failed to begin transaction: %v", txDB.Error)
+	}
+
+	// Register cleanup to rollback transaction and close base connection
+	t.Cleanup(func() {
+		txDB.Rollback()
+		log.Printf("Test transaction rolled back for %s", t.Name())
+		
+		// Close the base database connection to avoid connection pool exhaustion
+		if sqlDB, err := baseDB.DB(); err == nil {
+			sqlDB.Close()
+		}
+	})
+
+	TestDB = txDB
+	return txDB, nil
 }
 
-// CleanupTestDB cleans up test data after each test
+// CleanupTestDB is deprecated - transaction rollback handles cleanup automatically
+// This function is kept for backward compatibility but does nothing
 func CleanupTestDB(t *testing.T, db *gorm.DB) {
-	if db == nil {
-		return
-	}
-
-	// Clean up all test data - using Delete with unscoped to actually remove records
-	// Order matters due to foreign key constraints
-	db.Unscoped().Where("1 = 1").Delete(&models.DeviceAlert{})
-	db.Unscoped().Where("1 = 1").Delete(&models.DeviceScreenshot{})
-	db.Unscoped().Where("1 = 1").Delete(&models.DeviceRemoteCommand{})
-	db.Unscoped().Where("1 = 1").Delete(&models.DeviceActivity{})
-	db.Unscoped().Where("1 = 1").Delete(&models.DeviceActivity{})
-	db.Unscoped().Where("1 = 1").Delete(&models.DeviceProcess{})
-	db.Unscoped().Where("1 = 1").Delete(&models.DeviceMetric{})
-	db.Unscoped().Where("1 = 1").Delete(&models.Device{})
-	db.Unscoped().Where("1 = 1").Delete(&models.User{})
+	// No-op: cleanup is handled by transaction rollback in SetupTestDB
 }
 
-// CreateTestDatabase creates a test database if it doesn't exist
-// This function is only needed for PostgreSQL testing
+// CreateTestDatabase is deprecated - database should exist before running tests
+// This function is kept for backward compatibility but does nothing
 func CreateTestDatabase() error {
-	// Check if we should use PostgreSQL
-	usePostgres := os.Getenv("USE_POSTGRES_FOR_TESTS") == "true"
-
-	if !usePostgres {
-		// SQLite doesn't need database creation
-		return nil
-	}
-
-	user := getEnvOrDefault("POSTGRES_USER", "postgres")
-	password := getEnvOrDefault("POSTGRES_PASSWORD", "password")
-	host := getEnvOrDefault("POSTGRES_HOST", "localhost")
-	port := getEnvOrDefault("POSTGRES_PORT", "5432")
-
-	// For CI, use the main database; for local testing, use test database
-	var dbname string
-	if user == "monitor" {
-		// CI environment - database already exists, no need to create
-		return nil
-	} else {
-		// Local environment - create test database
-		dbname = getEnvOrDefault("POSTGRES_TEST_DB", "raqeem_test")
-	}
-
-	// Connect to postgres database to create test database
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=postgres port=%s sslmode=disable",
-		host, user, password, port)
-
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		return fmt.Errorf("failed to connect to postgres: %v", err)
-	}
-
-	// Create test database if it doesn't exist
-	result := db.Exec(fmt.Sprintf("CREATE DATABASE %s", dbname))
-	if result.Error != nil {
-		// Database might already exist, which is fine
-		log.Printf("Database creation result: %v", result.Error)
-	}
-
+	// No-op: database must exist before tests run (CI creates it, local requires manual setup)
 	return nil
 }
 
