@@ -42,25 +42,29 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		config = append(config, DBConfig{
 			User:     getEnvOrDefault("POSTGRES_USER", "monitor"),
 			Password: getEnvOrDefault("POSTGRES_PASSWORD", "password"),
-			Host:     getEnvOrDefault("POSTGRES_HOST", "localhost"),
+			Host:     getEnvOrDefault("POSTGRES_HOST", "127.0.0.1"),
 			Port:     portInt,
-			SSLMode:  "disable",
+			DBName:   getEnvOrDefault("POSTGRES_DB", "monitoring_db"),
+			SSLMode:  getEnvOrDefault("SSLMODE", "disable"),
 		})
 	}
 	dbConfig := config[0]
 
-	// Always use PostgreSQL - no SQLite fallback
-	dbname := getEnvOrDefault("POSTGRES_DB", "monitoring_db")
+	// Always use PostgreSQL with configured or env-provided database name
+	if dbConfig.DBName == "" {
+		dbConfig.DBName = getEnvOrDefault("POSTGRES_DB", "monitoring_db")
+	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
-		dbConfig.Host, dbConfig.User, dbConfig.Password, dbname, dbConfig.Port)
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
+		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode)
 
 	log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbname)
 	baseDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		t.Errorf("Failed to connect to test database: %v", err)
-		return nil, fmt.Errorf("Test database not available: %v", err)
+		return nil, fmt.Errorf("test database not available: %v", err)
 	}
+	log.Printf("Test database connected successfully (PostgreSQL): %s", dbConfig.DBName)
 
 	// Auto-migrate all models once at connection time (not in transactions)
 	err = baseDB.AutoMigrate(
