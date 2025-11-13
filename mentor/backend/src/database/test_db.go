@@ -58,7 +58,7 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
 		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode)
 
-	log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbname)
+	log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbConfig.DBName)
 	baseDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		t.Errorf("Failed to connect to test database: %v", err)
@@ -87,10 +87,15 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		t.Fatalf("Failed to begin transaction: %v", txDB.Error)
 	}
 
-	// Register cleanup to rollback transaction
+	// Register cleanup to rollback transaction and close base connection
 	t.Cleanup(func() {
 		txDB.Rollback()
 		log.Printf("Test transaction rolled back for %s", t.Name())
+		
+		// Close the base database connection to avoid connection pool exhaustion
+		if sqlDB, err := baseDB.DB(); err == nil {
+			sqlDB.Close()
+		}
 	})
 
 	TestDB = txDB
