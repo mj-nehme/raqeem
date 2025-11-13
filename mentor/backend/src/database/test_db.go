@@ -61,7 +61,7 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		t.Errorf("Failed to connect to test database: %v", err)
-		return nil, fmt.Errorf("Test database not available: %v", err)
+		return nil, fmt.Errorf("test database not available: %v", err)
 	}
 	log.Printf("Test database connected successfully (PostgreSQL): %s", dbConfig.DBName)
 

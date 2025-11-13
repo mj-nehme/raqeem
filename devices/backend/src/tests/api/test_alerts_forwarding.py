@@ -27,8 +27,6 @@ async def _ensure_db():
 
 @respx.mock
 async def test_post_alerts_is_saved_and_forwarded():
-    database_url = os.getenv("DATABASE_URL")
-
     device_id = "test-device-alerts"
 
     # Mock mentor forwarding endpoint if configured
