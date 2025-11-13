@@ -104,8 +104,8 @@ func TestGetDeviceCommands(t *testing.T) {
 	})
 }
 
-// TestStoreScreenshot tests StoreScreenshot endpoint thoroughly
-func TestStoreScreenshot(t *testing.T) {
+// TestStoreScreenshot_CoverageBoost tests StoreScreenshot thoroughly with SQLite
+func TestStoreScreenshot_CoverageBoost(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, err := database.SetupTestDB(t)
 	require.NoError(t, err)
@@ -188,8 +188,8 @@ func TestStoreScreenshot(t *testing.T) {
 	})
 }
 
-// TestCreateRemoteCommandWithForwarding tests CreateRemoteCommand with forwarding
-func TestCreateRemoteCommandWithForwarding(t *testing.T) {
+// TestCreateRemoteCommandWithForwarding_CoverageBoost tests CreateRemoteCommand with SQLite
+func TestCreateRemoteCommandWithForwarding_CoverageBoost(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, err := database.SetupTestDB(t)
 	require.NoError(t, err)
