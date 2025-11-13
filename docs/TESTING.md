@@ -15,6 +15,35 @@ Complete guide to testing the Raqeem monitoring system for reliability and corre
 
 ## Quick Start
 
+### Prerequisites
+
+**All tests require PostgreSQL**. Tests use transaction-based isolation to ensure no data persists between test runs.
+
+#### PostgreSQL Setup
+
+Tests expect PostgreSQL to be available with these credentials:
+- **User**: `monitor`
+- **Password**: `password`
+- **Database**: `monitoring_db`
+- **Host**: `127.0.0.1` (or `localhost`)
+- **Port**: `5432`
+
+**Using Docker:**
+```bash
+docker run --name raqeem-test-postgres \
+  -e POSTGRES_USER=monitor \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=monitoring_db \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+**Local PostgreSQL:**
+```sql
+CREATE USER monitor WITH PASSWORD 'password';
+CREATE DATABASE monitoring_db OWNER monitor;
+```
+
 ### 1. Unit Tests (Development)
 
 Run individual component tests during development:
@@ -28,8 +57,22 @@ pytest tests/api/test_alerts_forwarding.py -v
 **Go (Mentor Backend)**
 ```bash
 cd mentor/backend/src
-go test ./controllers -v
+
+# Set environment variables
+export POSTGRES_USER=monitor
+export POSTGRES_PASSWORD=password
+export POSTGRES_DB=monitoring_db
+export POSTGRES_HOST=127.0.0.1
+export POSTGRES_PORT=5432
+
+# Run tests
+go test ./... -v
+
+# Run tests with coverage
+go test ./... -v -race -coverprofile=coverage.out
 ```
+
+**Note**: Go tests use transaction-based isolation. All database changes are automatically rolled back after each test completes.
 
 **Frontend (React)**
 ```bash
@@ -204,6 +247,11 @@ docker run -d --name test-postgres \
   postgres:16
 ```
 
+**Connection refused (Go tests):**
+- Ensure PostgreSQL is running on 127.0.0.1:5432
+- Check environment variables are set correctly
+- Verify database `monitoring_db` exists
+
 **Missing dependencies:**
 ```bash
 # Python
@@ -212,6 +260,10 @@ pip install -r devices/backend/requirements-test.txt
 # Node
 npm install  # in frontend directories
 ```
+
+**Go: "relation does not exist":**
+- This shouldn't happen as tests run AutoMigrate automatically
+- If it does, ensure `database.SetupTestDB(t)` is called in your test
 
 ### Integration Tests Fail
 
@@ -399,15 +451,30 @@ async def test_my_feature():
 
 ```go
 func TestMyFeature(t *testing.T) {
+    // SetupTestDB begins a transaction - all changes are rolled back automatically
+    db, err := database.SetupTestDB(t)
+    require.NoError(t, err)
+    
+    // Set global DB for controllers
+    database.DB = db
+    
+    // Create test data - will be rolled back
+    device := models.Device{
+        DeviceID: uuid.New(),
+        DeviceName: "Test Device",
+    }
+    db.Create(&device)
+    
+    // Test your feature
     w := httptest.NewRecorder()
     c, _ := gin.CreateTestContext(w)
     c.Request, _ = http.NewRequest("GET", "/my-endpoint", nil)
     
     MyController(c)
     
-    if w.Code != http.StatusOK {
-        t.Fatalf("expected 200, got %d", w.Code)
-    }
+    assert.Equal(t, http.StatusOK, w.Code)
+    
+    // Transaction is automatically rolled back when test ends
 }
 ```
 
@@ -427,11 +494,16 @@ test('renders correctly', () => {
 ## Best Practices
 
 1. **Test Isolation**: Each test should be independent
+   - Go: Tests use transaction-based isolation (automatic rollback)
+   - Python: Tests use unique IDs to avoid conflicts
 2. **Mock External Services**: Use respx/nock for HTTP mocking
-3. **Clear Test Data**: Use unique IDs (timestamps) for test entities
+3. **Clear Test Data**: 
+   - Go: Data is automatically cleaned up via transaction rollback
+   - Python: Use unique IDs (timestamps, UUIDs) for test entities
 4. **Meaningful Assertions**: Test behavior, not implementation
 5. **Fast Feedback**: Unit tests should run in <5s
 6. **Descriptive Names**: Test names should explain what's being tested
+7. **PostgreSQL Only**: All tests require PostgreSQL - no SQLite fallback
 
 ## Resources
 

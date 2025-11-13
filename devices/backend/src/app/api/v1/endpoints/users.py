@@ -21,15 +21,15 @@ class UserResponse(BaseModel):
 
 @router.post("/", status_code=201, response_model=UserResponse)
 async def create_user(user: UserCreate, db: AsyncSession = Depends(get_db)):
-    obj = UserModel(device_id=user.device_id, name=user.name)
+    obj = UserModel(deviceid=user.device_id, username=user.name)
     # Use a transaction context and avoid an immediate refresh to prevent overlapping operations
     async with db.begin():
         db.add(obj)
     # At this point, the object has been flushed/committed; UUID is generated client-side
-    return {"id": str(obj.id), "deviceid": obj.device_id, "name": obj.name}
+    return {"id": str(obj.userid), "deviceid": str(obj.deviceid), "name": obj.username}
 
 @router.get("/", response_model=List[UserResponse])
 async def get_users(db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(UserModel))
     items = result.scalars().all()
-    return [{"id": str(u.id), "deviceid": u.device_id, "name": u.name} for u in items]
+    return [{"id": str(u.userid), "deviceid": str(u.deviceid), "name": u.username} for u in items]

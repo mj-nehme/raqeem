@@ -5,7 +5,7 @@ import pytest
 
 # Set required environment variables for testing
 TEST_ENV_VARS = {
-    'DATABASE_URL': 'postgresql+asyncpg://monitor:monitorpw@localhost:5432/monitoring_db',
+    'DATABASE_URL': 'postgresql+asyncpg://monitor:password@127.0.0.1:5432/monitoring_db',
     'MINIO_ENDPOINT': 'localhost:9000',
     'MINIO_ACCESS_KEY': 'minioadmin',
     'MINIO_SECRET_KEY': 'minioadmin',
@@ -21,9 +21,18 @@ TEST_ENV_VARS = {
 for key, value in TEST_ENV_VARS.items():
     os.environ.setdefault(key, value)
 
+
 @pytest.fixture(autouse=True)
 def mock_dependencies():
-    """Mock external dependencies for all tests."""
-    # Tests use actual database with proper DATABASE_URL in CI
-    # No need to mock database or minio since tests run with proper environment
+    """
+    Mock external dependencies for all tests.
+    
+    Note: These are integration tests that use the actual FastAPI app and PostgreSQL database.
+    Tests use unique IDs to avoid conflicts. For truly non-destructive tests, consider:
+    1. Using pytest-postgresql with transaction rollback
+    2. Database truncation between tests
+    3. Mocking the database layer entirely
+    
+    Current approach: Each test uses unique device IDs to prevent interference.
+    """
     yield
