@@ -30,9 +30,9 @@ class CommandResultSubmit(BaseModel):
 
 
 class CommandOut(BaseModel):
-    id: int
-    device_id: str
-    command: str
+    commandid: str
+    deviceid: str
+    command_text: str
     status: str
     created_at: datetime
     completed_at: Optional[datetime] = None

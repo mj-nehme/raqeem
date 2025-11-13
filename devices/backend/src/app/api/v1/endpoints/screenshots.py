@@ -51,7 +51,7 @@ async def create_screenshot(
         
         # Also store in device_screenshots table with proper schema
         device_screenshot = dev_models.DeviceScreenshot(
-            device_id=device_id,
+            deviceid=device_id,
             path=filename,
             resolution=DEFAULT_SCREENSHOT_RESOLUTION,
             size=file_size
