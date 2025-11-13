@@ -74,21 +74,43 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		log.Printf("Test database connected successfully (PostgreSQL): %s", dbConfig.DBName)
 
 		// Auto-migrate all models once at connection time (not in transactions)
-		// Models must be migrated in order: Device first, then tables with foreign keys to Device
+		// Models must be migrated sequentially to avoid race conditions with foreign keys
 		migrationError = baseConnection.AutoMigrate(&models.Device{})
 		if migrationError != nil {
 			return
 		}
 		
-		migrationError = baseConnection.AutoMigrate(
-			&models.DeviceMetric{},
-			&models.DeviceProcess{},
-			&models.DeviceActivity{},
-			&models.DeviceRemoteCommand{},
-			&models.DeviceScreenshot{},
-			&models.DeviceAlert{},
-			&models.User{},
-		)
+		migrationError = baseConnection.AutoMigrate(&models.DeviceMetric{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceProcess{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceActivity{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceRemoteCommand{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceScreenshot{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceAlert{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.User{})
 	})
 
 	if migrationError != nil {
