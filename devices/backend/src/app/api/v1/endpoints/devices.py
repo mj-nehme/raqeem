@@ -401,60 +401,182 @@ async def create_command(
     return command
 
 
-@router.get("/processes")
-async def get_all_processes(db: AsyncSession = Depends(get_db)):
-    """Get all processes from all devices"""
-    res = await db.execute(select(dev_models.DeviceProcess).order_by(dev_models.DeviceProcess.timestamp.desc()).limit(100))
-    processes = res.scalars().all()
-    return [
-        {
+@router.get("/{device_id}/metrics")
+async def get_device_metrics(device_id: str, limit: int = 60, db: AsyncSession = Depends(get_db)):
+    """Get recent metrics for a specific device.
+    
+    Args:
+        device_id: Device identifier
+        limit: Number of records to return (default: 60)
+    
+    Returns up to 'limit' most recent metrics ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.DeviceMetric)
+        .where(dev_models.DeviceMetric.deviceid == device_id)
+        .order_by(dev_models.DeviceMetric.timestamp.desc())
+        .limit(limit)
+    )
+    metrics_list = res.scalars().all()
+    metrics = []
+    for metric in metrics_list:
+        metrics.append({
+            "id": str(metric.metricid),
+            "deviceid": str(metric.deviceid),
+            "timestamp": metric.timestamp.isoformat() if metric.timestamp else None,
+            "cpu_usage": float(metric.cpu_usage) if metric.cpu_usage is not None else None,
+            "cpu_temp": float(metric.cpu_temp) if metric.cpu_temp is not None else None,
+            "memory_total": metric.memory_total,
+            "memory_used": metric.memory_used,
+            "swap_used": metric.swap_used,
+            "disk_total": metric.disk_total,
+            "disk_used": metric.disk_used,
+            "net_bytes_in": metric.net_bytes_in,
+            "net_bytes_out": metric.net_bytes_out,
+        })
+    return metrics
+
+
+@router.get("/{device_id}/processes")
+async def get_device_processes(device_id: str, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    """Get latest known processes for a specific device.
+    
+    Args:
+        device_id: Device identifier
+        limit: Number of records to return (default: 100)
+    
+    Returns up to 'limit' most recent processes ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.DeviceProcess)
+        .where(dev_models.DeviceProcess.deviceid == device_id)
+        .order_by(dev_models.DeviceProcess.timestamp.desc())
+        .limit(limit)
+    )
+    processes_list = res.scalars().all()
+    processes = []
+    for process in processes_list:
+        processes.append({
             "id": str(process.processid),
             "deviceid": str(process.deviceid),
+            "timestamp": process.timestamp.isoformat() if process.timestamp else None,
             "pid": process.pid,
             "name": process.process_name,
-            "cpu": process.cpu,
+            "cpu": float(process.cpu) if process.cpu is not None else None,
             "memory": process.memory,
             "command": process.command_text,
-            "timestamp": process.timestamp.isoformat() if process.timestamp else None,
-        }
-        for process in processes
-    ]
+        })
+    return processes
 
 
-@router.get("/activities")
-async def get_all_activities(db: AsyncSession = Depends(get_db)):
-    """Get all activities from all devices"""
-    res = await db.execute(select(dev_models.DeviceActivity).order_by(dev_models.DeviceActivity.timestamp.desc()).limit(100))
-    activities = res.scalars().all()
-    return [
-        {
+@router.get("/{device_id}/activities")
+async def get_device_activities(device_id: str, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    """Get recent activity logs for a specific device.
+    
+    Args:
+        device_id: Device identifier
+        limit: Number of records to return (default: 100)
+    
+    Returns up to 'limit' most recent activities ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.DeviceActivity)
+        .where(dev_models.DeviceActivity.deviceid == device_id)
+        .order_by(dev_models.DeviceActivity.timestamp.desc())
+        .limit(limit)
+    )
+    activities_list = res.scalars().all()
+    activities = []
+    for activity in activities_list:
+        activities.append({
             "id": str(activity.activityid),
             "deviceid": str(activity.deviceid),
+            "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
             "type": activity.activity_type,
             "description": activity.description,
             "app": activity.app,
             "duration": activity.duration,
-            "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
-        }
-        for activity in activities
-    ]
+        })
+    return activities
 
 
-@router.get("/alerts")
-async def get_all_alerts(db: AsyncSession = Depends(get_db)):
-    """Get all alerts from all devices"""
-    res = await db.execute(select(dev_models.DeviceAlert).order_by(dev_models.DeviceAlert.timestamp.desc()).limit(100))
-    alerts = res.scalars().all()
-    return [
-        {
+@router.get("/{device_id}/alerts")
+async def get_device_alerts(device_id: str, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    """Get recent alerts for a specific device.
+    
+    Args:
+        device_id: Device identifier
+        limit: Number of records to return (default: 100)
+    
+    Returns up to 'limit' most recent alerts ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.DeviceAlert)
+        .where(dev_models.DeviceAlert.deviceid == device_id)
+        .order_by(dev_models.DeviceAlert.timestamp.desc())
+        .limit(limit)
+    )
+    alerts_list = res.scalars().all()
+    alerts = []
+    for alert in alerts_list:
+        alerts.append({
             "id": str(alert.alertid),
             "deviceid": str(alert.deviceid),
+            "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
             "level": alert.level,
             "type": alert.alert_type,
             "message": alert.message,
-            "value": alert.value,
-            "threshold": alert.threshold,
-            "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
-        }
-        for alert in alerts
-    ]
+            "value": float(alert.value) if alert.value is not None else None,
+            "threshold": float(alert.threshold) if alert.threshold is not None else None,
+        })
+    return alerts
+
+
+@router.get("/{device_id}/screenshots")
+async def get_device_screenshots(device_id: str, limit: int = 50, db: AsyncSession = Depends(get_db)):
+    """Get recent screenshots metadata for a specific device.
+    
+    Args:
+        device_id: Device identifier
+        limit: Number of records to return (default: 50)
+    
+    Returns up to 'limit' most recent screenshots ordered by timestamp descending.
+    """
+    res = await db.execute(
+        select(dev_models.DeviceScreenshot)
+        .where(dev_models.DeviceScreenshot.deviceid == device_id)
+        .order_by(dev_models.DeviceScreenshot.timestamp.desc())
+        .limit(limit)
+    )
+    screenshots_list = res.scalars().all()
+    screenshots = []
+    for screenshot in screenshots_list:
+        screenshots.append({
+            "id": str(screenshot.screenshotid),
+            "deviceid": str(screenshot.deviceid),
+            "timestamp": screenshot.timestamp.isoformat() if screenshot.timestamp else None,
+            "path": screenshot.path,
+            "resolution": screenshot.resolution,
+            "size": screenshot.size,
+        })
+    return screenshots
+
+
+@router.get("/{device_id}/commands")
+async def get_device_commands(device_id: str, limit: int = 100, db: AsyncSession = Depends(get_db)):
+    """Get command history for a specific device.
+    
+    Args:
+        device_id: Device identifier
+        limit: Number of records to return (default: 100)
+    
+    Returns up to 'limit' most recent commands ordered by creation time descending.
+    """
+    res = await db.execute(
+        select(dev_models.DeviceRemoteCommand)
+        .where(dev_models.DeviceRemoteCommand.deviceid == device_id)
+        .order_by(dev_models.DeviceRemoteCommand.created_at.desc())
+        .limit(limit)
+    )
+    commands = res.scalars().all()
+    return commands
