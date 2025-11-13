@@ -20,7 +20,8 @@ import (
 // TestListDevicesFullScenarios tests ListDevices with various scenarios
 func TestListDevicesFullScenarios(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -93,7 +94,8 @@ func TestListDevicesFullScenarios(t *testing.T) {
 // TestUpdateProcessListFullScenarios tests UpdateProcessList with various scenarios
 func TestUpdateProcessListFullScenarios(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -163,7 +165,8 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 // TestGetPendingCommandsAdvanced tests GetPendingCommands thoroughly
 func TestGetPendingCommandsAdvanced(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -226,7 +229,8 @@ func TestGetPendingCommandsAdvanced(t *testing.T) {
 // TestStoreScreenshotFullScenarios tests StoreScreenshot with various scenarios
 func TestStoreScreenshotFullScenarios(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -283,7 +287,8 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 // TestActivityFullScenarios tests Activity with various scenarios
 func TestActivityFullScenarios(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -347,7 +352,8 @@ func TestActivityFullScenarios(t *testing.T) {
 // TestReportAlertFullScenarios tests ReportAlert with various scenarios
 func TestReportAlertFullScenarios(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db

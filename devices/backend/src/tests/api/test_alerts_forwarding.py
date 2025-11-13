@@ -28,8 +28,6 @@ async def _ensure_db():
 @respx.mock
 async def test_post_alerts_is_saved_and_forwarded():
     database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        pytest.skip("DATABASE_URL not set; skipping integration test")
 
     device_id = "test-device-alerts"
 

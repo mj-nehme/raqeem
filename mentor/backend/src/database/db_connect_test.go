@@ -14,35 +14,6 @@ import (
 
 // TestConnectEnvironmentVariableLoading tests that Connect loads environment variables
 func TestConnectEnvironmentVariableLoading(t *testing.T) {
-	// Save original environment variables
-	originalVars := map[string]string{
-		"POSTGRES_USER":     os.Getenv("POSTGRES_USER"),
-		"POSTGRES_PASSWORD": os.Getenv("POSTGRES_PASSWORD"),
-		"POSTGRES_DB":       os.Getenv("POSTGRES_DB"),
-		"POSTGRES_HOST":     os.Getenv("POSTGRES_HOST"),
-		"POSTGRES_PORT":     os.Getenv("POSTGRES_PORT"),
-	}
-	originalDB := DB
-
-	// Restore environment variables and DB after test
-	defer func() {
-		for k, v := range originalVars {
-			if v != "" {
-				_ = os.Setenv(k, v)
-			} else {
-				_ = os.Unsetenv(k)
-			}
-		}
-		DB = originalDB
-	}()
-
-	// Set test environment variables
-	_ = os.Setenv("POSTGRES_USER", "testuser")
-	_ = os.Setenv("POSTGRES_PASSWORD", "testpass")
-	_ = os.Setenv("POSTGRES_DB", "testdb")
-	_ = os.Setenv("POSTGRES_HOST", "testhost")
-	_ = os.Setenv("POSTGRES_PORT", "5432")
-
 	// We can't call Connect directly because it will try to connect to a real database
 	// and call log.Fatalf on failure. Instead, we test the DSN construction logic
 	user := os.Getenv("POSTGRES_USER")
@@ -435,7 +406,7 @@ func TestConnectGormOpenWithInvalidDSN(t *testing.T) {
 func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 	// Only run if PostgreSQL is configured in environment
 	if os.Getenv("RUN_INTEGRATION_TESTS") != "true" {
-		t.Skip("Skipping integration test - set RUN_INTEGRATION_TESTS=true to run")
+		t.Error("Integration test ERROR- set RUN_INTEGRATION_TESTS=true to run")
 	}
 
 	// Save original DB

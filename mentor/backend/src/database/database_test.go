@@ -16,7 +16,8 @@ import (
 
 func TestSetupTestDB(t *testing.T) {
 	// Test with SQLite (default)
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 
 	// Test that all tables are created by attempting to query them
@@ -41,7 +42,8 @@ func TestSetupTestDB(t *testing.T) {
 }
 
 func TestCleanupTestDB(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 
 	// Insert test data
@@ -108,19 +110,21 @@ func TestGetEnvOrDefault(t *testing.T) {
 
 func TestDatabaseConnection(t *testing.T) {
 	// Test that SetupTestDB creates a working database connection
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
 	// Test that we can perform a simple query
 	var result int
-	err := db.Raw("SELECT 1").Scan(&result).Error
+	err = db.Raw("SELECT 1").Scan(&result).Error
 	assert.NoError(t, err)
 	assert.Equal(t, 1, result)
 }
 
 func TestDatabaseMigrationIntegrity(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
@@ -232,8 +236,9 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 }
 
 func TestDatabaseTransactionRollback(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 	defer CleanupTestDB(t, db)
 
 	// Test transaction rollback
@@ -244,7 +249,7 @@ func TestDatabaseTransactionRollback(t *testing.T) {
 		DeviceName: "Rollback Test Device",
 	}
 
-	err := tx.Create(&device).Error
+	err = tx.Create(&device).Error
 	assert.NoError(t, err)
 
 	// Rollback transaction
@@ -256,8 +261,9 @@ func TestDatabaseTransactionRollback(t *testing.T) {
 	assert.Equal(t, int64(0), count)
 }
 func TestConcurrentDatabaseAccess(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 	defer CleanupTestDB(t, db)
 
 	sqlDB, err := db.DB()
@@ -317,10 +323,9 @@ func TestConcurrentDatabaseAccess(t *testing.T) {
 
 func TestSetupTestDBWithPostgres(t *testing.T) {
 	// Test that when USE_POSTGRES_FOR_TESTS is not set, we use SQLite
-	err := os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-	require.NoError(t, err)
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 	defer CleanupTestDB(t, db)
 
 	// Verify it's SQLite by checking for SQLite-specific behavior
@@ -351,17 +356,20 @@ func TestCleanupTestDBWithNilDB(t *testing.T) {
 
 func TestSetupTestDBMultipleTimes(t *testing.T) {
 	// Test that we can setup database multiple times
-	db1 := SetupTestDB(t)
+	db1, err := SetupTestDB(t)
+	require.NoError(t, err)
 	assert.NotNil(t, db1)
 	CleanupTestDB(t, db1)
 
-	db2 := SetupTestDB(t)
+	db2, err := SetupTestDB(t)
+	require.NoError(t, err)
 	assert.NotNil(t, db2)
 	CleanupTestDB(t, db2)
 }
 
 func TestDatabaseQueryOperations(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
@@ -374,7 +382,7 @@ func TestDatabaseQueryOperations(t *testing.T) {
 	}
 
 	// Create
-	err := db.Create(&device).Error
+	err = db.Create(&device).Error
 	assert.NoError(t, err)
 
 	// Read
@@ -398,7 +406,8 @@ func TestDatabaseQueryOperations(t *testing.T) {
 }
 
 func TestDatabaseComplexQueries(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
@@ -433,7 +442,8 @@ func TestDatabaseComplexQueries(t *testing.T) {
 }
 
 func TestDatabaseRelationships(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
@@ -462,7 +472,8 @@ func TestDatabaseRelationships(t *testing.T) {
 }
 
 func TestDatabaseErrorHandling(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
@@ -471,7 +482,7 @@ func TestDatabaseErrorHandling(t *testing.T) {
 		DeviceID:   sampleUUID,
 		DeviceName: "Duplicate",
 	}
-	err := db.Create(&device).Error
+	err = db.Create(&device).Error
 	assert.NoError(t, err)
 
 	// Try to create again with same ID
@@ -489,7 +500,8 @@ func TestDatabaseErrorHandling(t *testing.T) {
 }
 
 func TestAddActivityLogAndCheckExistence(t *testing.T) {
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
@@ -503,7 +515,7 @@ func TestAddActivityLogAndCheckExistence(t *testing.T) {
 	}
 
 	// Add activity to database
-	err := db.Create(&activity).Error
+	err = db.Create(&activity).Error
 	assert.NoError(t, err)
 
 	// Check existence

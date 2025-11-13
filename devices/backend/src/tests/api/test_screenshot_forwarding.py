@@ -30,8 +30,6 @@ async def _ensure_db():
 async def test_post_screenshot_is_saved_and_forwarded():
     """Test that screenshots are saved and forwarded to mentor backend."""
     database_url = os.getenv("DATABASE_URL")
-    if not database_url:
-        pytest.skip("DATABASE_URL not set; skipping integration test")
 
     device_id = "test-device-screenshot"
 

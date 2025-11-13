@@ -20,7 +20,8 @@ import (
 // TestGetDeviceCommandsWithSQLite tests GetDeviceCommands with SQLite
 func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 
@@ -106,7 +107,8 @@ func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 // TestStoreScreenshotWithSQLite tests StoreScreenshot thoroughly with SQLite
 func TestStoreScreenshotWithSQLite(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 
@@ -189,7 +191,8 @@ func TestStoreScreenshotWithSQLite(t *testing.T) {
 // TestCreateRemoteCommandWithForwardingSQLite tests CreateRemoteCommand with SQLite
 func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 
@@ -319,7 +322,8 @@ func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
 // TestUpdateCommandStatusEdgeCases tests UpdateCommandStatus with various edge cases
 func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 

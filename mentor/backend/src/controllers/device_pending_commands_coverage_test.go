@@ -80,13 +80,14 @@ func TestGetPendingCommandsDatabaseError(t *testing.T) {
 
 	t.Run("Valid query after database error recovery", func(t *testing.T) {
 		// Set up a proper test database
-		db := database.SetupTestDB(t)
+		db, err := database.SetupTestDB(t)
+		require.NoError(t, err)
 		require.NotNil(t, db)
 		defer database.CleanupTestDB(t, db)
 		database.DB = db
 
 		// Ensure the table is migrated
-		err := db.AutoMigrate(&models.DeviceRemoteCommand{})
+		err = db.AutoMigrate(&models.DeviceRemoteCommand{})
 		require.NoError(t, err)
 
 		w := httptest.NewRecorder()

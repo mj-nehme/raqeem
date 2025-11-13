@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"mentor-backend/database"
@@ -16,9 +15,6 @@ import (
 
 // TestCreateRemoteCommandComprehensive tests CreateRemoteCommand with various scenarios
 func TestCreateRemoteCommandComprehensive(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -77,9 +73,6 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 
 // TestUpdateProcessListComprehensive tests UpdateProcessList with various scenarios
 func TestUpdateProcessListComprehensive(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -139,9 +132,6 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 
 // TestListDevicesComprehensive tests ListDevices with various scenarios
 func TestListDevicesComprehensive(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -205,9 +195,6 @@ func TestListDevicesComprehensive(t *testing.T) {
 
 // TestGetPendingCommandsComprehensive tests GetPendingCommands with various scenarios
 func TestGetPendingCommandsComprehensive(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -271,9 +258,6 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 
 // TestUpdateCommandStatusComprehensive tests UpdateCommandStatus with various scenarios
 func TestUpdateCommandStatusComprehensive(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -328,9 +312,6 @@ func TestUpdateCommandStatusComprehensive(t *testing.T) {
 
 // TestGetDeviceCommandsComprehensive tests GetDeviceCommands with edge cases
 func TestGetDeviceCommandsComprehensive(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()

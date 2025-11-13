@@ -12,12 +12,15 @@ import (
 	_ "mentor-backend/docs"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 // TestMainRouterIntegration verifies that the router package integrates correctly with main
 func TestMainRouterIntegration(t *testing.T) {
 	// Set up test database
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	assert.NoError(t, err)
+	assert.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 
 	// Set test mode

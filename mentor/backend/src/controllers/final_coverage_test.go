@@ -19,7 +19,8 @@ import (
 // TestRegisterDeviceEdgeCases tests RegisterDevice with various edge cases
 func TestRegisterDeviceEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -63,7 +64,8 @@ func TestRegisterDeviceEdgeCases(t *testing.T) {
 // TestUpdateDeviceMetricEdgeCases tests UpdateDeviceMetric thoroughly
 func TestUpdateDeviceMetricEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -103,7 +105,8 @@ func TestUpdateDeviceMetricEdgeCases(t *testing.T) {
 // TestActivityEdgeCases tests Activity with edge cases
 func TestActivityEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -143,7 +146,8 @@ func TestActivityEdgeCases(t *testing.T) {
 // TestUpdateProcessListAdditionalEdgeCases tests UpdateProcessList with additional edge cases
 func TestUpdateProcessListAdditionalEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -185,7 +189,8 @@ func TestUpdateProcessListAdditionalEdgeCases(t *testing.T) {
 // TestListDevicesAdditionalFilters tests ListDevices with various filters
 func TestListDevicesAdditionalFilters(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -239,7 +244,8 @@ func TestListDevicesAdditionalFilters(t *testing.T) {
 // TestGetDeviceMetricEdgeCases tests GetDeviceMetric with edge cases
 func TestGetDeviceMetricEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -287,7 +293,8 @@ func TestGetDeviceMetricEdgeCases(t *testing.T) {
 // TestGetDeviceProcessesEdgeCases tests GetDeviceProcesses with edge cases
 func TestGetDeviceProcessesEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -323,7 +330,8 @@ func TestGetDeviceProcessesEdgeCases(t *testing.T) {
 // TestGetDeviceActivityEdgeCases tests GetDeviceActivity
 func TestGetDeviceActivityEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -356,7 +364,8 @@ func TestGetDeviceActivityEdgeCases(t *testing.T) {
 // TestGetDeviceAlertEdgeCases tests GetDeviceAlert
 func TestGetDeviceAlertEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -390,7 +399,8 @@ func TestGetDeviceAlertEdgeCases(t *testing.T) {
 // TestGetDeviceScreenshotEdgeCases tests GetDeviceScreenshot
 func TestGetDeviceScreenshotEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -422,7 +432,8 @@ func TestGetDeviceScreenshotEdgeCases(t *testing.T) {
 // TestGetPendingCommandsEdgeCases tests GetPendingCommands
 func TestGetPendingCommandsEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
@@ -459,7 +470,8 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 // TestReportAlertEdgeCases tests ReportAlert
 func TestReportAlertEdgeCases(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 	database.DB = db

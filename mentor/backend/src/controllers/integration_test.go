@@ -22,9 +22,10 @@ func setupTestRouterWithDB(t *testing.T) (*gin.Engine, func()) {
 	gin.SetMode(gin.TestMode)
 
 	// Setup test database
-	testDB := database.SetupTestDB(t)
+	testDB, err := database.SetupTestDB(t)
+	require.NoError(t, err)
 	if testDB == nil {
-		t.Skip("Test database not available")
+		t.Error("Test database not available")
 	}
 
 	// Set the global DB variable for controllers to use

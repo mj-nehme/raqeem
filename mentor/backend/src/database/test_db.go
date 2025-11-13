@@ -1,5 +1,7 @@
 package database
 
+// DBConfig holds database connection variables
+
 import (
 	"fmt"
 	"log"
@@ -15,20 +17,34 @@ import (
 // TestDB holds the test database connection
 var TestDB *gorm.DB
 
+type DBConfig struct {
+	User     string
+	Password string
+	Host     string
+	Port     string
+	DBName   string
+	SSLMode  string
+}
+
 // SetupTestDB initializes a test database connection
-func SetupTestDB(t *testing.T) *gorm.DB {
+func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 
-	// Use PostgreSQL for tests (CI environment)
-	user := getEnvOrDefault("POSTGRES_USER", "postgres")
-	password := getEnvOrDefault("POSTGRES_PASSWORD", "password")
-	host := getEnvOrDefault("POSTGRES_HOST", "localhost")
-	port := getEnvOrDefault("POSTGRES_PORT", "5432")
+	if len(config) == 0 {
+		config = append(config, DBConfig{
+			User:     getEnvOrDefault("POSTGRES_USER", "testusername"),
+			Password: getEnvOrDefault("POSTGRES_PASSWORD", "testpassword"),
+			Host:     getEnvOrDefault("POSTGRES_HOST", "localhost"),
+			Port:     getEnvOrDefault("POSTGRES_PORT", "5432"),
+			SSLMode:  "disable",
+		})
+	}
+	dbConfig := config[0]
 
 	// For CI, use the main database; for local testing, use test database
 	var dbname string
-	if user == "monitor" {
+	if dbConfig.User == "monitor" {
 		// CI environment - use the monitoring_db
 		dbname = getEnvOrDefault("POSTGRES_DB", "monitoring_db")
 	} else {
@@ -37,13 +53,13 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	}
 
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-		host, user, password, dbname, port)
+		dbConfig.Host, dbConfig.User, dbConfig.Password, dbname, dbConfig.Port)
 
+	fmt.Println("Database Connection: ", dsn)
 	db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		// Skip test if database is not available
-		t.Skipf("Test database not available: %v", err)
-		return nil
+		t.Errorf("Failed to connect to test database: %v", err)
+		return nil, fmt.Errorf("Test database not available: %v", err)
 	}
 	log.Printf("Test database connected successfully (PostgreSQL): %s", dbname)
 
@@ -64,7 +80,7 @@ func SetupTestDB(t *testing.T) *gorm.DB {
 	}
 
 	TestDB = db
-	return db
+	return db, nil
 }
 
 // CleanupTestDB cleans up test data after each test

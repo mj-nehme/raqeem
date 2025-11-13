@@ -8,6 +8,7 @@ import (
 	"mentor-backend/database"
 
 	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
@@ -16,7 +17,9 @@ import (
 
 func TestSwaggerEndpoints(t *testing.T) {
 	// Set up test database
-	db := database.SetupTestDB(t)
+	db, err := database.SetupTestDB(t)
+	assert.NoError(t, err)
+	assert.NotNil(t, db)
 	defer database.CleanupTestDB(t, db)
 
 	// Create router

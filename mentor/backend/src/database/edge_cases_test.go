@@ -10,18 +10,17 @@ import (
 
 // TestSetupTestDBMultipleCalls tests calling SetupTestDB multiple times
 func TestSetupTestDBMultipleCalls(t *testing.T) {
-	// Ensure we use SQLite
-	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-
-	db1 := SetupTestDB(t)
+	db1, err := SetupTestDB(t)
 	require.NotNil(t, db1)
+	require.NoError(t, err)
 
-	db2 := SetupTestDB(t)
+	db2, err := SetupTestDB(t)
 	require.NotNil(t, db2)
+	require.NoError(t, err)
 
 	// Both should work independently
 	var count1, count2 int64
-	err := db1.Raw("SELECT 1").Scan(&count1).Error
+	err = db1.Raw("SELECT 1").Scan(&count1).Error
 	assert.NoError(t, err)
 
 	err = db2.Raw("SELECT 1").Scan(&count2).Error
@@ -33,10 +32,10 @@ func TestSetupTestDBMultipleCalls(t *testing.T) {
 
 // TestSetupTestDBAutoMigrationSuccess tests successful auto-migration
 func TestSetupTestDBAutoMigrationSuccess(t *testing.T) {
-	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
+
 	defer CleanupTestDB(t, db)
 
 	// Verify all tables were created by checking we can query them
@@ -60,15 +59,14 @@ func TestSetupTestDBAutoMigrationSuccess(t *testing.T) {
 
 // TestSetupTestDBSQLitePragmas tests SQLite pragma settings
 func TestSetupTestDBSQLitePragmas(t *testing.T) {
-	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 	defer CleanupTestDB(t, db)
 
 	// Check busy timeout is set
 	var busyTimeout int
-	err := db.Raw("PRAGMA busy_timeout").Scan(&busyTimeout).Error
+	err = db.Raw("PRAGMA busy_timeout").Scan(&busyTimeout).Error
 	assert.NoError(t, err)
 	// Should be greater than 0 (we set it to 5000ms)
 	assert.Greater(t, busyTimeout, 0)
@@ -76,9 +74,7 @@ func TestSetupTestDBSQLitePragmas(t *testing.T) {
 
 // TestSetupTestDBCacheSharing tests cache sharing mode
 func TestSetupTestDBCacheSharing(t *testing.T) {
-	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
@@ -94,10 +90,9 @@ func TestSetupTestDBCacheSharing(t *testing.T) {
 
 // TestSetupTestDBConcurrentAccess tests concurrent access to test database
 func TestSetupTestDBConcurrentAccess(t *testing.T) {
-	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 	defer CleanupTestDB(t, db)
 
 	// Test concurrent reads and writes
@@ -122,19 +117,27 @@ func TestSetupTestDBConcurrentAccess(t *testing.T) {
 
 // TestSetupTestDBWithEmptyEnvironment tests SetupTestDB with no environment variables
 func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
-	// Clear all PostgreSQL environment variables
-	vars := []string{
-		"USE_POSTGRES_FOR_TESTS",
-		"POSTGRES_USER",
-		"POSTGRES_PASSWORD",
-		"POSTGRES_HOST",
-		"POSTGRES_PORT",
-		"POSTGRES_DB",
-		"POSTGRES_TEST_DB",
+
+	config := DBConfig{
+		User:     "POSTGRES_USER",
+		Password: "POSTGRES_PASSWORD",
+		Host:     "POSTGRES_HOST",
+		Port:     "POSTGRES_PORT",
+		DBName:   "POSTGRES_DB",
+		SSLMode:  "disable",
 	}
 
+	// List of env variable names from config
+	envVars := []string{
+		config.User,
+		config.Password,
+		config.Host,
+		config.Port,
+		config.DBName,
+	}
+	// Clear all PostgreSQL environment variables
 	originalVars := make(map[string]string)
-	for _, v := range vars {
+	for _, v := range envVars {
 		originalVars[v] = os.Getenv(v)
 		_ = os.Unsetenv(v)
 	}
@@ -148,12 +151,13 @@ func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
 	}()
 
 	// Should still work with SQLite
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t, config)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 
 	// Verify it works
 	var result int
-	err := db.Raw("SELECT 1").Scan(&result).Error
+	err = db.Raw("SELECT 1").Scan(&result).Error
 	assert.NoError(t, err)
 	assert.Equal(t, 1, result)
 
@@ -162,10 +166,9 @@ func TestSetupTestDBWithEmptyEnvironment(t *testing.T) {
 
 // TestCleanupTestDBIdempotent tests calling CleanupTestDB multiple times
 func TestCleanupTestDBIdempotent(t *testing.T) {
-	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 
 	// Cleanup multiple times should not cause errors
 	CleanupTestDB(t, db)
@@ -175,10 +178,9 @@ func TestCleanupTestDBIdempotent(t *testing.T) {
 
 // TestCleanupTestDBWithEmptyTables tests cleanup when tables are already empty
 func TestCleanupTestDBWithEmptyTables(t *testing.T) {
-	_ = os.Unsetenv("USE_POSTGRES_FOR_TESTS")
-
-	db := SetupTestDB(t)
+	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 
 	// Tables are already empty after SetupTestDB
 	// Cleanup should work fine
@@ -186,7 +188,7 @@ func TestCleanupTestDBWithEmptyTables(t *testing.T) {
 
 	// Verify tables still exist and are empty
 	var count int64
-	err := db.Table("devices").Count(&count).Error
+	err = db.Table("devices").Count(&count).Error
 	assert.NoError(t, err)
 	assert.Equal(t, int64(0), count)
 }

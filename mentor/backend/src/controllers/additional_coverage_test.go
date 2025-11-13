@@ -22,9 +22,6 @@ var sampleUUID, _ = uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
 
 // TestCreateRemoteCommandWithForwarding tests CreateRemoteCommand with DEVICES_API_URL set
 func TestCreateRemoteCommandWithForwarding(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -117,9 +114,6 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 
 // TestGetDeviceCommandsWithLimit tests GetDeviceCommands with various limit values
 func TestGetDeviceCommandsWithLimit(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -184,9 +178,6 @@ func TestGetDeviceCommandsWithLimit(t *testing.T) {
 
 // TestStoreScreenshotComprehensive tests StoreScreenshot thoroughly
 func TestStoreScreenshotComprehensive(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -260,9 +251,6 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 
 // TestUpdateProcessListEdgeCases tests UpdateProcessList with edge cases
 func TestUpdateProcessListEdgeCases(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()
@@ -326,9 +314,6 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 
 // TestListDevicesWithQuery tests ListDevices with various query parameters
 func TestListDevicesWithQuery(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
 
 	gin.SetMode(gin.TestMode)
 	database.Connect()

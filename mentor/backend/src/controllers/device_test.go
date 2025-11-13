@@ -31,9 +31,7 @@ func setupTestDB(t *testing.T) {
 }
 
 func TestReportAndGetAlerts(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
+
 	setupTestDB(t)
 
 	// Ensure clean slate for test device
@@ -86,9 +84,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetDeviceProcesses
 	t.Run("GetDeviceProcesses returns empty array", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -125,9 +121,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetDeviceMetric
 	t.Run("GetDeviceMetric returns empty array", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -149,9 +143,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetDeviceActivity
 	t.Run("GetDeviceActivity returns empty array", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -173,9 +165,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetDeviceAlert
 	t.Run("GetDeviceAlert returns empty array", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -197,9 +187,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test ListDevices
 	t.Run("ListDevices returns empty array", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		// Clear all devices
@@ -223,9 +211,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetPendingCommands
 	t.Run("GetPendingCommands returns empty array", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -247,9 +233,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetDeviceCommands
 	t.Run("GetDeviceCommands returns empty array", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -271,9 +255,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetDeviceCommands with limit parameter
 	t.Run("GetDeviceCommands respects limit parameter", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -290,9 +272,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 
 	// Test GetDeviceCommands with invalid limit parameter
 	t.Run("GetDeviceCommands handles invalid limit", func(t *testing.T) {
-		if os.Getenv("POSTGRES_HOST") == "" {
-			t.Skip("POSTGRES_* env vars not set; skipping integration test")
-		}
+
 		setupTestDB(t)
 
 		w := httptest.NewRecorder()
@@ -309,9 +289,7 @@ func TestEmptyArraySerialization(t *testing.T) {
 }
 
 func TestStoreScreenshot(t *testing.T) {
-	if os.Getenv("POSTGRES_HOST") == "" {
-		t.Skip("POSTGRES_* env vars not set; skipping integration test")
-	}
+
 	setupTestDB(t)
 
 	// Ensure tables are migrated
