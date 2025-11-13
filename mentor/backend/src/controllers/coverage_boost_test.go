@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// TestGetDeviceCommandsWithSQLite tests GetDeviceCommands with SQLite
-func TestGetDeviceCommandsWithSQLite(t *testing.T) {
+// TestGetDeviceCommands tests GetDeviceCommands endpoint
+func TestGetDeviceCommands(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, err := database.SetupTestDB(t)
 	require.NoError(t, err)
@@ -104,8 +104,8 @@ func TestGetDeviceCommandsWithSQLite(t *testing.T) {
 	})
 }
 
-// TestStoreScreenshotWithSQLite tests StoreScreenshot thoroughly with SQLite
-func TestStoreScreenshotWithSQLite(t *testing.T) {
+// TestStoreScreenshot tests StoreScreenshot endpoint thoroughly
+func TestStoreScreenshot(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, err := database.SetupTestDB(t)
 	require.NoError(t, err)
@@ -188,8 +188,8 @@ func TestStoreScreenshotWithSQLite(t *testing.T) {
 	})
 }
 
-// TestCreateRemoteCommandWithForwardingSQLite tests CreateRemoteCommand with SQLite
-func TestCreateRemoteCommandWithForwardingSQLite(t *testing.T) {
+// TestCreateRemoteCommandWithForwarding tests CreateRemoteCommand with forwarding
+func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	db, err := database.SetupTestDB(t)
 	require.NoError(t, err)
