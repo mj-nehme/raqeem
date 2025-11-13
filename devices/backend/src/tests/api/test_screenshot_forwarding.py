@@ -29,8 +29,6 @@ async def _ensure_db():
 @respx.mock
 async def test_post_screenshot_is_saved_and_forwarded():
     """Test that screenshots are saved and forwarded to mentor backend."""
-    database_url = os.getenv("DATABASE_URL")
-
     device_id = "test-device-screenshot"
 
     # Mock mentor forwarding endpoint if configured

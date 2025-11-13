@@ -76,6 +76,7 @@ func TestSetupTestDBSQLitePragmas(t *testing.T) {
 func TestSetupTestDBCacheSharing(t *testing.T) {
 	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
+	require.NoError(t, err)
 	defer CleanupTestDB(t, db)
 
 	// Verify we can get the underlying SQL DB

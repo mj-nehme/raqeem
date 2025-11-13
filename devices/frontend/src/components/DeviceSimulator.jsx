@@ -332,7 +332,7 @@ function DeviceSimulator() {
         } catch (error) {
             addLog(`✗ Processes error: ${error.message}`, 'error');
         }
-    }, [deviceId]);
+    }, [deviceId, addLog]);
 
     const startSimulation = () => {
         if (!isRegistered) {
