@@ -14,13 +14,13 @@ class TestDevice:
         device = Device()
         
         # Check that all expected attributes exist
-        assert hasattr(device, 'id')
-        assert hasattr(device, 'name')
-        assert hasattr(device, 'type')
+        assert hasattr(device, 'deviceid')
+        assert hasattr(device, 'device_name')
+        assert hasattr(device, 'device_type')
         assert hasattr(device, 'os')
         assert hasattr(device, 'last_seen')
         assert hasattr(device, 'is_online')
-        assert hasattr(device, 'location')
+        assert hasattr(device, 'device_location')
         assert hasattr(device, 'ip_address')
         assert hasattr(device, 'mac_address')
         assert hasattr(device, 'current_user')
@@ -28,23 +28,23 @@ class TestDevice:
     def test_device_instantiation(self):
         """Test creating Device instance with data."""
         device = Device(
-            id="test-device-123",
-            name="Test Device",
-            type="laptop",
+            deviceid="test-device-123",
+            device_name="Test Device",
+            device_type="laptop",
             os="macOS",
             is_online=True,
-            location="Office",
+            device_location="Office",
             ip_address="192.168.1.100",
             mac_address="00:11:22:33:44:55",
             current_user="testuser"
         )
         
-        assert device.id == "test-device-123"
-        assert device.name == "Test Device"
-        assert device.type == "laptop"
+        assert str(device.deviceid) == "test-device-123"
+        assert device.device_name == "Test Device"
+        assert device.device_type == "laptop"
         assert device.os == "macOS"
         assert device.is_online is True
-        assert device.location == "Office"
+        assert device.device_location == "Office"
         assert device.ip_address == "192.168.1.100"
         assert device.mac_address == "00:11:22:33:44:55"
         assert device.current_user == "testuser"
@@ -62,8 +62,8 @@ class TestDeviceMetric:
         metrics = DeviceMetric()
         
         # Check that all expected attributes exist
-        assert hasattr(metrics, 'id')
-        assert hasattr(metrics, 'device_id')
+        assert hasattr(metrics, 'metricid')
+        assert hasattr(metrics, 'deviceid')
         assert hasattr(metrics, 'timestamp')
         assert hasattr(metrics, 'cpu_usage')
         assert hasattr(metrics, 'cpu_temp')
@@ -78,7 +78,7 @@ class TestDeviceMetric:
     def test_device_metrics_instantiation(self):
         """Test creating DeviceMetric instance with data."""
         metrics = DeviceMetric(
-            device_id="test-device-123",
+            deviceid="test-device-123",
             cpu_usage=50.5,
             cpu_temp=65.2,
             memory_total=8589934592,  # 8GB
@@ -90,7 +90,7 @@ class TestDeviceMetric:
             net_bytes_out=2048
         )
         
-        assert metrics.device_id == "test-device-123"
+        assert str(metrics.deviceid) == "test-device-123"
         assert metrics.cpu_usage == 50.5
         assert metrics.cpu_temp == 65.2
         assert metrics.memory_total == 8589934592
@@ -102,13 +102,13 @@ class TestDeviceMetric:
         assert metrics.net_bytes_out == 2048
     
     def test_device_metrics_auto_uuid(self):
-        """Test that DeviceMetric generates UUID for id if not provided."""
-        metrics = DeviceMetric(device_id="test-device")
+        """Test that DeviceMetric generates UUID for metricid if not provided."""
+        metrics = DeviceMetric(deviceid="test-device")
         
-        # The id should be automatically generated as UUID
+        # The metricid should be automatically generated as UUID
         # Note: This tests the default value setup, actual UUID generation 
         # happens at database insert time with SQLAlchemy
-        assert hasattr(metrics, 'id')
+        assert hasattr(metrics, 'metricid')
 
 
 class TestProcess:
@@ -123,32 +123,32 @@ class TestProcess:
         process = DeviceProcess()
         
         # Check that all expected attributes exist
-        assert hasattr(process, 'id')
-        assert hasattr(process, 'device_id')
+        assert hasattr(process, 'processid')
+        assert hasattr(process, 'deviceid')
         assert hasattr(process, 'timestamp')
         assert hasattr(process, 'pid')
-        assert hasattr(process, 'name')
+        assert hasattr(process, 'process_name')
         assert hasattr(process, 'cpu')
         assert hasattr(process, 'memory')
-        assert hasattr(process, 'command')
+        assert hasattr(process, 'command_text')
     
     def test_process_instantiation(self):
         """Test creating Process instance with data."""
         process = DeviceProcess(
-            device_id="test-device-123",
+            deviceid="test-device-123",
             pid=1234,
-            name="chrome",
+            process_name="chrome",
             cpu=25.5,
             memory=536870912,  # 512MB
-            command="/usr/bin/chrome --enable-features=test"
+            command_text="/usr/bin/chrome --enable-features=test"
         )
         
-        assert process.device_id == "test-device-123"
+        assert str(process.deviceid) == "test-device-123"
         assert process.pid == 1234
-        assert process.name == "chrome"
+        assert process.process_name == "chrome"
         assert process.cpu == 25.5
         assert process.memory == 536870912
-        assert process.command == "/usr/bin/chrome --enable-features=test"
+        assert process.command_text == "/usr/bin/chrome --enable-features=test"
 
 
 class TestActivityLog:
@@ -156,17 +156,17 @@ class TestActivityLog:
     
     def test_activity_log_table_name(self):
         """Test that ActivityLog model has correct table name."""
-        assert DeviceActivity.__tablename__ == "device_activity"
+        assert DeviceActivity.__tablename__ == "device_activities"
     
     def test_activity_log_columns(self):
         """Test that ActivityLog model has all expected columns."""
         activity = DeviceActivity()
         
         # Check that all expected attributes exist
-        assert hasattr(activity, 'id')
-        assert hasattr(activity, 'device_id')
+        assert hasattr(activity, 'activityid')
+        assert hasattr(activity, 'deviceid')
         assert hasattr(activity, 'timestamp')
-        assert hasattr(activity, 'type')
+        assert hasattr(activity, 'activity_type')
         assert hasattr(activity, 'description')
         assert hasattr(activity, 'app')
         assert hasattr(activity, 'duration')
@@ -174,15 +174,15 @@ class TestActivityLog:
     def test_activity_log_instantiation(self):
         """Test creating ActivityLog instance with data."""
         activity = DeviceActivity(
-            device_id="test-device-123",
-            type="app_launch",
+            deviceid="test-device-123",
+            activity_type="app_launch",
             description="User launched Chrome browser",
             app="chrome",
             duration=3600  # 1 hour
         )
         
-        assert activity.device_id == "test-device-123"
-        assert activity.type == "app_launch"
+        assert str(activity.deviceid) == "test-device-123"
+        assert activity.activity_type == "app_launch"
         assert activity.description == "User launched Chrome browser"
         assert activity.app == "chrome"
         assert activity.duration == 3600
@@ -200,11 +200,11 @@ class TestAlert:
         alert = Alert()
         
         # Check that all expected attributes exist
-        assert hasattr(alert, 'id')
-        assert hasattr(alert, 'device_id')
+        assert hasattr(alert, 'alertid')
+        assert hasattr(alert, 'deviceid')
         assert hasattr(alert, 'timestamp')
         assert hasattr(alert, 'level')
-        assert hasattr(alert, 'type')
+        assert hasattr(alert, 'alert_type')
         assert hasattr(alert, 'message')
         assert hasattr(alert, 'value')
         assert hasattr(alert, 'threshold')
@@ -212,17 +212,17 @@ class TestAlert:
     def test_alert_instantiation(self):
         """Test creating Alert instance with data."""
         alert = Alert(
-            device_id="test-device-123",
+            deviceid="test-device-123",
             level="warning",
-            type="cpu",
+            alert_type="cpu",
             message="High CPU usage detected",
             value=85.5,
             threshold=80.0
         )
         
-        assert alert.device_id == "test-device-123"
+        assert str(alert.deviceid) == "test-device-123"
         assert alert.level == "warning"
-        assert alert.type == "cpu"
+        assert alert.alert_type == "cpu"
         assert alert.message == "High CPU usage detected"
         assert alert.value == 85.5
         assert alert.threshold == 80.0
@@ -233,9 +233,9 @@ class TestAlert:
         
         for level in valid_levels:
             alert = Alert(
-                device_id="test-device",
+                deviceid="test-device",
                 level=level,
-                type="cpu",
+                alert_type="cpu",
                 message="Test alert",
                 value=50.0,
                 threshold=40.0
@@ -248,26 +248,26 @@ class TestAlert:
         
         for alert_type in valid_types:
             alert = Alert(
-                device_id="test-device",
+                deviceid="test-device",
                 level="warning",
-                type=alert_type,
+                alert_type=alert_type,
                 message="Test alert",
                 value=50.0,
                 threshold=40.0
             )
-            assert alert.type == alert_type
+            assert alert.alert_type == alert_type
 
 
 class TestModelRelationships:
     """Test relationships and constraints between models."""
     
     def test_all_models_have_device_id(self):
-        """Test that related models have device_id field."""
+        """Test that related models have deviceid field."""
         models_with_device_id = [DeviceMetric, DeviceProcess, DeviceActivity, Alert]
         
         for model_class in models_with_device_id:
             instance = model_class()
-            assert hasattr(instance, 'device_id'), f"{model_class.__name__} should have device_id field"
+            assert hasattr(instance, 'deviceid'), f"{model_class.__name__} should have deviceid field"
     
     def test_all_models_have_timestamp(self):
         """Test that models have timestamp fields."""
@@ -284,7 +284,12 @@ class TestModelRelationships:
 
         for model_class in models_with_uuid_pk:
             instance = model_class()
-            assert hasattr(instance, 'id'), f"{model_class.__name__} should have id field"
+            # Check for the correct primary key field name
+            pk_field = 'metricid' if model_class == DeviceMetric else \
+                       'processid' if model_class == DeviceProcess else \
+                       'activityid' if model_class == DeviceActivity else \
+                       'alertid'
+            assert hasattr(instance, pk_field), f"{model_class.__name__} should have {pk_field} field"
             # The actual UUID generation and type checking would need database context
 
 
@@ -297,13 +302,13 @@ class TestModelPerformance:
         large_text = "x" * 10000  # 10KB of text
         
         activity = DeviceActivity(
-            device_id="test-device",
+            deviceid="test-device",
             description=large_text
         )
         assert len(activity.description) == 10000
         
         alert = Alert(
-            device_id="test-device",
+            deviceid="test-device",
             message=large_text
         )
         assert len(alert.message) == 10000
@@ -312,7 +317,7 @@ class TestModelPerformance:
         """Test numeric edge cases."""
         # Test very large numbers for disk/memory
         metrics = DeviceMetric(
-            device_id="test-device",
+            deviceid="test-device",
             memory_total=18446744073709551615,  # Max uint64
             cpu_usage=100.0,
             cpu_temp=-273.15,  # Absolute zero
@@ -327,24 +332,24 @@ class TestModelPerformance:
         unicode_text = "测试设备 🖥️ デバイス"
         
         device = Device(
-            id="unicode-test",
-            name=unicode_text,
-            location=unicode_text
+            deviceid="unicode-test",
+            device_name=unicode_text,
+            device_location=unicode_text
         )
         
-        assert device.name == unicode_text
-        assert device.location == unicode_text
+        assert device.device_name == unicode_text
+        assert device.device_location == unicode_text
     
     def test_null_handling(self):
         """Test handling of null/None values."""
-        device = Device(id="null-test")
+        device = Device(deviceid="null-test")
         
         # These fields should accept None
-        assert device.name is None
-        assert device.type is None
+        assert device.device_name is None
+        assert device.device_type is None
         assert device.os is None
         assert device.is_online is None
-        assert device.location is None
+        assert device.device_location is None
         assert device.ip_address is None
         assert device.mac_address is None
         assert device.current_user is None

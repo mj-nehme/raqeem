@@ -22,34 +22,34 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     # Upsert device row (simple read-then-update or insert)
     now = datetime.datetime.utcnow()
     # try to find existing device
-    res = await db.execute(select(dev_models.Device).where(dev_models.Device.id == device_id))
+    res = await db.execute(select(dev_models.Device).where(dev_models.Device.deviceid == device_id))
     existing = res.scalars().first()
     if existing:
         # update fields
-        existing.name = payload.get("name") or existing.name
-        existing.type = payload.get("device_type") or existing.type
+        existing.device_name = payload.get("name") or existing.device_name
+        existing.device_type = payload.get("device_type") or existing.device_type
         existing.os = payload.get("os") or existing.os
         existing.last_seen = now
         existing.is_online = True
-        existing.location = payload.get("location") or existing.location
+        existing.device_location = payload.get("location") or existing.device_location
         existing.ip_address = payload.get("ip_address") or existing.ip_address
         existing.mac_address = payload.get("mac_address") or existing.mac_address
-        existing.current_user_text = payload.get("current_user") or existing.current_user_text
+        existing.current_user = payload.get("current_user") or existing.current_user
         db.add(existing)
         await db.commit()
         result = {"deviceid": device_id, "updated": True}
     else:
         obj = dev_models.Device(
-            id=device_id,
-            name=payload.get("name"),
-            type=payload.get("device_type"),
+            deviceid=device_id,
+            device_name=payload.get("name"),
+            device_type=payload.get("device_type"),
             os=payload.get("os"),
             last_seen=now,
             is_online=True,
-            location=payload.get("location"),
+            device_location=payload.get("location"),
             ip_address=payload.get("ip_address"),
             mac_address=payload.get("mac_address"),
-            current_user_text=payload.get("current_user"),
+            current_user=payload.get("current_user"),
         )
         db.add(obj)
         await db.commit()
@@ -72,7 +72,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
 @router.post("/{device_id}/metrics")
 async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends(get_db)):
     obj = dev_models.DeviceMetric(
-        device_id=device_id,
+        deviceid=device_id,
         cpu_usage=payload.get("cpu_usage"),
         cpu_temp=payload.get("cpu_temp"),
         memory_total=payload.get("memory_total"),
@@ -111,17 +111,17 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
 @router.post("/{device_id}/processes")
 async def post_processes(device_id: str, processes: List[dict], db: AsyncSession = Depends(get_db)):
     # delete existing processes for device, then insert new ones
-    await db.execute(dev_models.DeviceProcess.__table__.delete().where(dev_models.DeviceProcess.device_id == device_id))
+    await db.execute(dev_models.DeviceProcess.__table__.delete().where(dev_models.DeviceProcess.deviceid == device_id))
     to_add = []
     now = datetime.datetime.utcnow()
     for p in processes:
         to_add.append({
             "deviceid": device_id,
             "pid": p.get("pid"),
-            "name": p.get("name"),
+            "process_name": p.get("name"),
             "cpu": p.get("cpu"),
             "memory": p.get("memory"),
-            "command": p.get("command"),
+            "command_text": p.get("command"),
             "timestamp": now,
         })
     if to_add:
@@ -155,7 +155,7 @@ async def post_activity(device_id: str, activities: List[dict], db: AsyncSession
     for a in activities:
         to_add.append({
             "deviceid": device_id,
-            "type": a.get("type"),
+            "activity_type": a.get("type"),
             "description": a.get("description"),
             "app": a.get("app"),
             "duration": a.get("duration"),
@@ -190,7 +190,7 @@ async def post_alerts(device_id: str, alerts: List[dict], db: AsyncSession = Dep
         to_add.append({
             "deviceid": device_id,
             "level": a.get("level"),
-            "type": a.get("type"),
+            "alert_type": a.get("type"),
             "message": a.get("message"),
             "value": a.get("value"),
             "threshold": a.get("threshold"),
@@ -228,16 +228,16 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
     devices = []
     for device in devices_list:
         devices.append({
-            "id": device.id,
-            "name": device.name,
-            "device_type": device.type,
+            "id": str(device.deviceid),
+            "name": device.device_name,
+            "device_type": device.device_type,
             "os": device.os,
             "last_seen": device.last_seen.isoformat() if device.last_seen else None,
             "is_online": device.is_online,
-            "location": device.location,
+            "location": device.device_location,
             "ip_address": device.ip_address,
             "mac_address": device.mac_address,
-            "current_user": device.current_user_text,
+            "current_user": device.current_user,
         })
     return devices
 
@@ -257,14 +257,14 @@ async def list_all_processes(db: AsyncSession = Depends(get_db)):
     processes = []
     for process in processes_list:
         processes.append({
-            "id": str(process.id),
-            "deviceid": process.device_id,
+            "id": str(process.processid),
+            "deviceid": str(process.deviceid),
             "timestamp": process.timestamp.isoformat() if process.timestamp else None,
             "pid": process.pid,
-            "name": process.name,
+            "name": process.process_name,
             "cpu": float(process.cpu) if process.cpu is not None else None,
             "memory": process.memory,
-            "command": process.command,
+            "command": process.command_text,
         })
     return processes
 
@@ -284,10 +284,10 @@ async def list_all_activities(db: AsyncSession = Depends(get_db)):
     activities = []
     for activity in activities_list:
         activities.append({
-            "id": str(activity.id),
-            "deviceid": activity.device_id,
+            "id": str(activity.activityid),
+            "deviceid": str(activity.deviceid),
             "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
-            "type": activity.type,
+            "type": activity.activity_type,
             "description": activity.description,
             "app": activity.app,
             "duration": activity.duration,
@@ -310,11 +310,11 @@ async def list_all_alerts(db: AsyncSession = Depends(get_db)):
     alerts = []
     for alert in alerts_list:
         alerts.append({
-            "id": str(alert.id),
-            "deviceid": alert.device_id,
+            "id": str(alert.alertid),
+            "deviceid": str(alert.deviceid),
             "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
             "level": alert.level,
-            "type": alert.type,
+            "type": alert.alert_type,
             "message": alert.message,
             "value": float(alert.value) if alert.value is not None else None,
             "threshold": float(alert.threshold) if alert.threshold is not None else None,
@@ -327,7 +327,7 @@ async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db
     """Get pending commands for a device"""
     res = await db.execute(
         select(dev_models.DeviceRemoteCommand)
-        .where(dev_models.DeviceRemoteCommand.device_id == device_id)
+        .where(dev_models.DeviceRemoteCommand.deviceid == device_id)
         .where(dev_models.DeviceRemoteCommand.status == "pending")
         .order_by(dev_models.DeviceRemoteCommand.created_at.asc())
     )
@@ -343,7 +343,7 @@ async def submit_command_result(
 ):
     """Submit command execution result"""
     res = await db.execute(
-        select(dev_models.DeviceRemoteCommand).where(dev_models.DeviceRemoteCommand.id == command_id)
+        select(dev_models.DeviceRemoteCommand).where(dev_models.DeviceRemoteCommand.commandid == command_id)
     )
     command = res.scalars().first()
     if not command:
@@ -362,7 +362,7 @@ async def submit_command_result(
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 forward_payload = {
-                    "id": command.id,
+                    "id": str(command.commandid),
                     "status": command.status,
                     "result": command.result,
                     "exit_code": command.exit_code,
@@ -389,8 +389,8 @@ async def create_command(
         raise HTTPException(status_code=400, detail=f"Command not allowed. Allowed commands: {', '.join(allowed_commands)}")
     
     command = dev_models.DeviceRemoteCommand(
-        device_id=device_id,
-        command=payload.command,
+        deviceid=device_id,
+        command_text=payload.command,
         status="pending",
         created_at=datetime.datetime.utcnow(),
     )
@@ -408,13 +408,13 @@ async def get_all_processes(db: AsyncSession = Depends(get_db)):
     processes = res.scalars().all()
     return [
         {
-            "id": str(process.id),
-            "deviceid": process.device_id,
+            "id": str(process.processid),
+            "deviceid": str(process.deviceid),
             "pid": process.pid,
-            "name": process.name,
+            "name": process.process_name,
             "cpu": process.cpu,
             "memory": process.memory,
-            "command": process.command,
+            "command": process.command_text,
             "timestamp": process.timestamp.isoformat() if process.timestamp else None,
         }
         for process in processes
@@ -428,9 +428,9 @@ async def get_all_activities(db: AsyncSession = Depends(get_db)):
     activities = res.scalars().all()
     return [
         {
-            "id": str(activity.id),
-            "deviceid": activity.device_id,
-            "type": activity.type,
+            "id": str(activity.activityid),
+            "deviceid": str(activity.deviceid),
+            "type": activity.activity_type,
             "description": activity.description,
             "app": activity.app,
             "duration": activity.duration,
@@ -447,10 +447,10 @@ async def get_all_alerts(db: AsyncSession = Depends(get_db)):
     alerts = res.scalars().all()
     return [
         {
-            "id": str(alert.id),
-            "deviceid": alert.device_id,
+            "id": str(alert.alertid),
+            "deviceid": str(alert.deviceid),
             "level": alert.level,
-            "type": alert.type,
+            "type": alert.alert_type,
             "message": alert.message,
             "value": alert.value,
             "threshold": alert.threshold,

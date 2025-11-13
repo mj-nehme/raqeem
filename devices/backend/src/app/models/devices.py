@@ -8,23 +8,23 @@ import uuid
 class Device(Base):
     __tablename__ = "devices"
 
-    id = Column(String, primary_key=True)  # keep as text to allow arbitrary device ids
-    name = Column(Text, nullable=True)
-    type = Column(Text, nullable=True)
+    deviceid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_name = Column(Text, nullable=True)
+    device_type = Column(Text, nullable=True)
     os = Column(Text, nullable=True)
     last_seen = Column(TIMESTAMP, server_default=sa.func.now())
     is_online = Column(Boolean, nullable=True)
-    location = Column(Text, nullable=True)
+    device_location = Column(Text, nullable=True)
     ip_address = Column(Text, nullable=True)
     mac_address = Column(Text, nullable=True)
-    current_user_text = Column(Text, nullable=True)  # Match database schema column name
+    current_user = Column(Text, nullable=True)
 
 
 class DeviceMetric(Base):
     __tablename__ = "device_metrics"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    device_id = Column(String, nullable=False)
+    metricid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    deviceid = Column(UUID(as_uuid=True), nullable=False)
     timestamp = Column(TIMESTAMP, server_default=sa.func.now())
 
     cpu_usage = Column(Float, nullable=True)
@@ -44,23 +44,23 @@ class DeviceMetric(Base):
 class DeviceProcess(Base):
     __tablename__ = "device_processes"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    device_id = Column(String, nullable=False)
+    processid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    deviceid = Column(UUID(as_uuid=True), nullable=False)
     timestamp = Column(TIMESTAMP, server_default=sa.func.now())
     pid = Column(Integer, nullable=False)
-    name = Column(Text, nullable=False)
+    process_name = Column(Text, nullable=False)
     cpu = Column(Float, nullable=True)
     memory = Column(BigInteger, nullable=True)
-    command = Column(Text, nullable=True)
+    command_text = Column(Text, nullable=True)
 
 
 class DeviceActivity(Base):
     __tablename__ = "device_activities"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    device_id = Column(String, nullable=False)
+    activityid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    deviceid = Column(UUID(as_uuid=True), nullable=False)
     timestamp = Column(TIMESTAMP, server_default=sa.func.now())
-    type = Column(Text, nullable=True)
+    activity_type = Column(Text, nullable=True)
     description = Column(Text, nullable=True)
     app = Column(Text, nullable=True)
     duration = Column(Integer, nullable=True)
@@ -69,11 +69,11 @@ class DeviceActivity(Base):
 class DeviceAlert(Base):
     __tablename__ = "device_alerts"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    device_id = Column(String, nullable=False)
+    alertid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    deviceid = Column(UUID(as_uuid=True), nullable=False)
     timestamp = Column(TIMESTAMP, server_default=sa.func.now())
     level = Column(Text, nullable=True)
-    type = Column(Text, nullable=True)
+    alert_type = Column(Text, nullable=True)
     message = Column(Text, nullable=True)
     value = Column(Float, nullable=True)
     threshold = Column(Float, nullable=True)
@@ -82,10 +82,10 @@ class DeviceAlert(Base):
 class DeviceRemoteCommand(Base):
     __tablename__ = "device_remote_commands"
 
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    device_id = Column(String, nullable=False)
-    command = Column(Text, nullable=False)
-    status = Column(Text, nullable=False)  # pending, running, completed, failed
+    commandid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    deviceid = Column(UUID(as_uuid=True), nullable=False)
+    command_text = Column(Text, nullable=False)
+    status = Column(Text, nullable=False)
     created_at = Column(TIMESTAMP, server_default=sa.func.now())
     completed_at = Column(TIMESTAMP, nullable=True)
     result = Column(Text, nullable=True)
@@ -96,8 +96,8 @@ class DeviceScreenshot(Base):
     __tablename__ = "device_screenshots"
     __table_args__ = {'extend_existing': True}
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    device_id = Column(String, nullable=False)
+    screenshotid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    deviceid = Column(UUID(as_uuid=True), nullable=False)
     timestamp = Column(TIMESTAMP, server_default=sa.func.now())
     path = Column(Text, nullable=False)
     resolution = Column(Text, nullable=True)
