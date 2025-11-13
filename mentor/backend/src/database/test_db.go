@@ -94,7 +94,9 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		
 		// Close the base database connection to avoid connection pool exhaustion
 		if sqlDB, err := baseDB.DB(); err == nil {
-			sqlDB.Close()
+			if err := sqlDB.Close(); err != nil {
+				log.Printf("Error closing DB: %v", err)
+			}
 		}
 	})
 
