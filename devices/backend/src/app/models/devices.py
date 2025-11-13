@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Integer, BigInteger, TIMESTAMP, Boolean, Text
+from sqlalchemy import Column, Float, Integer, BigInteger, TIMESTAMP, Boolean, Text
 from sqlalchemy.dialects.postgresql import UUID
 from app.db.base import Base
 import sqlalchemy.sql as sa
