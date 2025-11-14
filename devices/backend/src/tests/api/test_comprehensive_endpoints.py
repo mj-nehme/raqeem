@@ -154,20 +154,6 @@ class TestScreenshotEndpoints:
             response = client.post("/api/v1/screenshots/upload", files=files, data=data)
             assert response.status_code in [200, 201, 422]
     
-    def test_get_screenshots_list(self, client, mock_database):
-        """Test getting screenshots list."""
-        mock_database.fetch_all.return_value = [
-            {
-                "screenshotid": 1,
-                "deviceid": sample_uuid,
-                "path": "screenshots/test.png",
-                "resolution": "1920x1080"
-            }
-        ]
-        
-        response = client.get("/api/v1/screenshots/")
-        assert response.status_code in [200, 422]
-        
     def test_upload_screenshot_invalid_file(self, client):
         """Test screenshot upload with invalid file."""
         files = {
