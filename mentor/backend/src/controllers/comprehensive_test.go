@@ -755,7 +755,7 @@ func TestDeviceLastSeenUpdate(t *testing.T) {
 
 	// Check that device's last seen was updated
 	var updatedDevice models.Device
-	database.DB.Where("id = ?", deviceID).First(&updatedDevice)
+	database.DB.Where("deviceid = ?", deviceID).First(&updatedDevice)
 	assert.True(t, updatedDevice.LastSeen.After(beforeUpdate))
 	assert.True(t, updatedDevice.IsOnline)
 }

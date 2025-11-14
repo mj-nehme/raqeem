@@ -427,6 +427,6 @@ func TestDeviceUpsertBehavior(t *testing.T) {
 
 	// Verify only one device exists in database
 	var count int64
-	database.DB.Model(&models.Device{}).Where("id = ?", deviceID).Count(&count)
+	database.DB.Model(&models.Device{}).Where("deviceid = ?", deviceID).Count(&count)
 	assert.Equal(t, int64(1), count)
 }

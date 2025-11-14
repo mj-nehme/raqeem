@@ -8,7 +8,7 @@ import (
 
 // Device represents a monitored device.
 type Device struct {
-	DeviceID       uuid.UUID `json:"deviceid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID       uuid.UUID `json:"deviceid" gorm:"column:deviceid;type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceName     string    `json:"device_name"`
 	DeviceType     string    `json:"device_type"`
 	OS             string    `json:"os"`
@@ -32,7 +32,7 @@ type Device struct {
 // DeviceMetric stores system metrics.
 type DeviceMetric struct {
 	MetricID    uuid.UUID `json:"metricid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID    uuid.UUID `json:"deviceid"`
+	DeviceID    uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
 	CPUUsage    float64   `json:"cpu_usage"`
 	CPUTemp     float64   `json:"cpu_temp"`
@@ -48,7 +48,7 @@ type DeviceMetric struct {
 // DeviceProcess represents a running process.
 type DeviceProcess struct {
 	ProcessID   uuid.UUID `json:"processid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID    uuid.UUID `json:"deviceid"`
+	DeviceID    uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	Timestamp   time.Time `json:"timestamp" gorm:"default:now()"`
 	PID         int       `json:"pid"`
 	ProcessName string    `json:"process_name"`
@@ -60,7 +60,7 @@ type DeviceProcess struct {
 // DeviceActivity tracks user activity on the device.
 type DeviceActivity struct {
 	ActivityID   uuid.UUID `json:"activityid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID     uuid.UUID `json:"deviceid"`
+	DeviceID     uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	Timestamp    time.Time `json:"timestamp" gorm:"default:now()"`
 	ActivityType string    `json:"activity_type"`
 	Description  string    `json:"description"`
@@ -71,7 +71,7 @@ type DeviceActivity struct {
 // DeviceAlert represents alerts raised by monitoring.
 type DeviceAlert struct {
 	AlertID   uuid.UUID `json:"alertid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID  uuid.UUID `json:"deviceid"`
+	DeviceID  uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	Timestamp time.Time `json:"timestamp" gorm:"default:now()"`
 	Level     string    `json:"level"`
 	AlertType string    `json:"alert_type"`
@@ -83,7 +83,7 @@ type DeviceAlert struct {
 // DeviceRemoteCommand represents a command sent remotely.
 type DeviceRemoteCommand struct {
 	CommandID   uuid.UUID `json:"commandid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID    uuid.UUID `json:"deviceid"`
+	DeviceID    uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	CommandText string    `json:"command_text"`
 	Status      string    `json:"status"`
 	CreatedAt   time.Time `json:"created_at" gorm:"default:now()"`
@@ -95,7 +95,7 @@ type DeviceRemoteCommand struct {
 // DeviceScreenshot stores screen captures.
 type DeviceScreenshot struct {
 	ScreenshotID uuid.UUID `json:"screenshotid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID     uuid.UUID `json:"deviceid"`
+	DeviceID     uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	Timestamp    time.Time `json:"timestamp" gorm:"default:now()"`
 	Path         string    `json:"path"`
 	Resolution   string    `json:"resolution"`
@@ -105,7 +105,7 @@ type DeviceScreenshot struct {
 // User represents a user linked to a device.
 type User struct {
 	UserID    uuid.UUID `json:"userid" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID  uuid.UUID `json:"deviceid"`
+	DeviceID  uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at" gorm:"default:now()"`
 }
