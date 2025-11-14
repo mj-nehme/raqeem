@@ -3,8 +3,6 @@
 import os
 import pytest
 from httpx import AsyncClient, ASGITransport
-import respx
-import httpx
 from app.main import app
 from app.db.init_db import init_db
 
@@ -24,6 +22,7 @@ sample_uuid = "550e8400-e29b-41d4-a716-446655440000"
 async def _ensure_db():
     """Create tables if not exist."""
     await init_db()
+
 
 class TestDeviceEndpoints:
     """Test device-related API endpoints."""
