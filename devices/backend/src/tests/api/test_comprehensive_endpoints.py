@@ -4,7 +4,6 @@ import os
 import pytest
 from httpx import AsyncClient, ASGITransport
 from app.main import app
-from app.db.init_db import init_db
 
 # Set minimal required env BEFORE importing app
 os.environ.setdefault("SECRET_KEY", "test-secret")
@@ -19,17 +18,11 @@ pytestmark = pytest.mark.asyncio
 sample_uuid = "550e8400-e29b-41d4-a716-446655440000"
 
 
-async def _ensure_db():
-    """Create tables if not exist."""
-    await init_db()
-
-
 class TestDeviceEndpoints:
     """Test device-related API endpoints."""
     
-    async def test_register_device_success(self):
+    async def test_register_device_success(self, init_test_db):
         """Test successful device registration."""
-        await _ensure_db()
         
         device_data = {
             "id": sample_uuid,
@@ -43,9 +36,8 @@ class TestDeviceEndpoints:
             response = await client.post("/api/v1/devices/register", json=device_data)
             assert response.status_code == 200  # Successful registration
 
-    async def test_register_device_invalid_data(self):
+    async def test_register_device_invalid_data(self, init_test_db):
         """Test device registration with invalid data."""
-        await _ensure_db()
         
         invalid_data = {
             "name": "",  # Missing required id field
@@ -56,26 +48,23 @@ class TestDeviceEndpoints:
             response = await client.post("/api/v1/devices/register", json=invalid_data)
             assert response.status_code == 400  # Missing device id
         
-    async def test_get_devices_list(self):
+    async def test_get_devices_list(self, init_test_db):
         """Test getting devices list."""
-        await _ensure_db()
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/devices/")
             assert response.status_code == 200
         
-    async def test_get_device_by_id(self):
+    async def test_get_device_by_id(self, init_test_db):
         """Test getting specific device."""
-        await _ensure_db()
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/devices/device-1")
             # Device might not exist, so 404 is acceptable
             assert response.status_code in [200, 404]
         
-    async def test_update_device_metrics(self):
+    async def test_update_device_metrics(self, init_test_db):
         """Test updating device metrics."""
-        await _ensure_db()
         
         metrics_data = {
             "cpu_usage": 75.5,
@@ -89,9 +78,8 @@ class TestDeviceEndpoints:
             response = await client.post(f"/api/v1/devices/{sample_uuid}/metrics", json=metrics_data)
             assert response.status_code == 200
         
-    async def test_update_metrics_invalid_data(self):
+    async def test_update_metrics_invalid_data(self, init_test_db):
         """Test metrics update with invalid data."""
-        await _ensure_db()
         
         invalid_metrics = {
             "cpu_usage": -10,  # Invalid negative CPU usage
@@ -106,9 +94,8 @@ class TestDeviceEndpoints:
 class TestActivityEndpoints:
     """Test activity-related API endpoints."""
     
-    async def test_log_activity_success(self):
+    async def test_log_activity_success(self, init_test_db):
         """Test successful activity logging."""
-        await _ensure_db()
         
         activity_data = [
             {
@@ -123,17 +110,15 @@ class TestActivityEndpoints:
             response = await client.post(f"/api/v1/devices/{sample_uuid}/activities", json=activity_data)
             assert response.status_code == 200
         
-    async def test_get_device_activities(self):
+    async def test_get_device_activities(self, init_test_db):
         """Test getting device activities."""
-        await _ensure_db()
 
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get(f"/api/v1/devices/{sample_uuid}/activities")
             assert response.status_code == 200
         
-    async def test_log_activity_invalid_type(self):
+    async def test_log_activity_invalid_type(self, init_test_db):
         """Test activity logging with invalid type."""
-        await _ensure_db()
         
         invalid_activity = [
             {
@@ -150,9 +135,8 @@ class TestActivityEndpoints:
 class TestScreenshotEndpoints:
     """Test screenshot-related API endpoints."""
     
-    async def test_upload_screenshot_success(self):
+    async def test_upload_screenshot_success(self, init_test_db):
         """Test successful screenshot upload."""
-        await _ensure_db()
         
         # The actual endpoint doesn't exist in the devices.py router
         # This test should be skipped or the endpoint should be tested elsewhere
@@ -169,9 +153,8 @@ class TestScreenshotEndpoints:
             # This endpoint doesn't exist in the router, so it should return 404
             assert response.status_code in [200, 201, 404, 422]
     
-    async def test_upload_screenshot_invalid_file(self):
+    async def test_upload_screenshot_invalid_file(self, init_test_db):
         """Test screenshot upload with invalid file."""
-        await _ensure_db()
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             files = {
@@ -185,9 +168,8 @@ class TestScreenshotEndpoints:
 class TestUserEndpoints:
     """Test user-related API endpoints."""
     
-    async def test_create_user_success(self):
+    async def test_create_user_success(self, init_test_db):
         """Test successful user creation."""
-        await _ensure_db()
         
         user_data = {
             "username": "testuser",
@@ -200,9 +182,8 @@ class TestUserEndpoints:
             # User endpoints don't exist in devices backend, should be 404
             assert response.status_code in [200, 201, 404, 422]
         
-    async def test_login_user_success(self):
+    async def test_login_user_success(self, init_test_db):
         """Test successful user login."""
-        await _ensure_db()
         
         login_data = {
             "username": "testuser",
@@ -214,9 +195,8 @@ class TestUserEndpoints:
             # User endpoints don't exist in devices backend, should be 404
             assert response.status_code in [200, 401, 404, 422]
         
-    async def test_create_user_invalid_email(self):
+    async def test_create_user_invalid_email(self, init_test_db):
         """Test user creation with invalid email."""
-        await _ensure_db()
         
         invalid_user = {
             "username": "testuser",
@@ -228,9 +208,8 @@ class TestUserEndpoints:
             response = await client.post("/api/v1/users/", json=invalid_user)
             assert response.status_code in [404, 422]
         
-    async def test_create_user_weak_password(self):
+    async def test_create_user_weak_password(self, init_test_db):
         """Test user creation with weak password."""
-        await _ensure_db()
         
         weak_password_user = {
             "username": "testuser",
@@ -245,18 +224,16 @@ class TestUserEndpoints:
 class TestErrorHandling:
     """Test error handling and edge cases."""
     
-    async def test_invalid_device_id_format(self):
+    async def test_invalid_device_id_format(self, init_test_db):
         """Test endpoints with invalid device ID format."""
-        await _ensure_db()
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/devices/invalid@device$id")
             # The endpoint doesn't validate device_id format, might return 200 with empty data
             assert response.status_code in [200, 404, 422]
         
-    async def test_malformed_json_request(self):
+    async def test_malformed_json_request(self, init_test_db):
         """Test endpoints with malformed JSON."""
-        await _ensure_db()
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.post(
@@ -266,9 +243,8 @@ class TestErrorHandling:
             )
             assert response.status_code == 422
         
-    async def test_missing_required_fields(self):
+    async def test_missing_required_fields(self, init_test_db):
         """Test endpoints with missing required fields."""
-        await _ensure_db()
         
         incomplete_data = {}  # Missing all required fields
         
@@ -276,9 +252,8 @@ class TestErrorHandling:
             response = await client.post("/api/v1/devices/register", json=incomplete_data)
             assert response.status_code == 400  # Missing device id
         
-    async def test_unauthorized_access(self):
+    async def test_unauthorized_access(self, init_test_db):
         """Test unauthorized access to protected endpoints."""
-        await _ensure_db()
         
         # Test without authentication headers
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -286,17 +261,15 @@ class TestErrorHandling:
             # User endpoints don't exist, should be 404
             assert response.status_code in [401, 403, 404, 422]
         
-    async def test_not_found_endpoints(self):
+    async def test_not_found_endpoints(self, init_test_db):
         """Test non-existent endpoints."""
-        await _ensure_db()
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.get("/api/v1/nonexistent")
             assert response.status_code == 404
         
-    async def test_method_not_allowed(self):
+    async def test_method_not_allowed(self, init_test_db):
         """Test wrong HTTP methods."""
-        await _ensure_db()
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             response = await client.patch("/api/v1/devices/")  # PATCH not allowed
@@ -305,9 +278,8 @@ class TestErrorHandling:
 class TestValidationLogic:
     """Test validation logic and business rules."""
     
-    async def test_cpu_usage_boundaries(self):
+    async def test_cpu_usage_boundaries(self, init_test_db):
         """Test CPU usage validation boundaries."""
-        await _ensure_db()
         
         test_cases = [
             {"cpu_usage": -1, "should_fail": False},  # Endpoint doesn't validate
@@ -326,9 +298,8 @@ class TestValidationLogic:
                 # Endpoint accepts any value without validation
                 assert response.status_code == 200
                 
-    async def test_memory_validation(self):
+    async def test_memory_validation(self, init_test_db):
         """Test memory usage validation."""
-        await _ensure_db()
         
         test_cases = [
             {
@@ -355,9 +326,8 @@ class TestValidationLogic:
                 # Endpoint accepts values without validation
                 assert response.status_code == 200
             
-    async def test_coordinate_validation(self):
+    async def test_coordinate_validation(self, init_test_db):
         """Test geographic coordinate validation."""
-        await _ensure_db()
         
         test_cases = [
             {"latitude": 91, "longitude": 0, "should_fail": False},  # No validation
@@ -382,9 +352,8 @@ class TestValidationLogic:
 class TestPerformanceEdgeCases:
     """Test performance-related edge cases."""
     
-    async def test_large_payload_handling(self):
+    async def test_large_payload_handling(self, init_test_db):
         """Test handling of large payloads."""
-        await _ensure_db()
         
         large_description = "A" * 10000  # Very long description
         
@@ -399,9 +368,8 @@ class TestPerformanceEdgeCases:
             # Should handle or reject gracefully
             assert response.status_code in [200, 413, 422]
         
-    async def test_concurrent_requests_simulation(self):
+    async def test_concurrent_requests_simulation(self, init_test_db):
         """Test multiple requests to same endpoint."""
-        await _ensure_db()
         
         responses = []
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
