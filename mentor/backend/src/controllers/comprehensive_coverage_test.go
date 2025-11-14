@@ -85,7 +85,7 @@ func TestListDevicesFullScenarios(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		var offlineDevice models.Device
-		db.Where("id = ?", "device-offline-1").First(&offlineDevice)
+		db.Where("deviceid = ?", "device-offline-1").First(&offlineDevice)
 		// Should be marked offline due to old last_seen
 		assert.False(t, offlineDevice.IsOnline)
 	})
@@ -120,7 +120,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 
 		// Verify processes were created
 		var count int64
-		db.Model(&models.DeviceProcess{}).Where("device_id = ?", sampleUUID.String()).Count(&count)
+		db.Model(&models.DeviceProcess{}).Where("deviceid = ?", sampleUUID.String()).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 
@@ -142,7 +142,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 
 		// Verify old processes are gone and new process exists
 		var count int64
-		db.Model(&models.DeviceProcess{}).Where("device_id = ?", sampleUUID.String()).Count(&count)
+		db.Model(&models.DeviceProcess{}).Where("deviceid = ?", sampleUUID.String()).Count(&count)
 		assert.Equal(t, int64(1), count)
 	})
 
@@ -279,7 +279,7 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 
 		// Verify all screenshots were stored
 		var count int64
-		db.Model(&models.DeviceScreenshot{}).Where("device_id = ?", "test-device-multi").Count(&count)
+		db.Model(&models.DeviceScreenshot{}).Where("deviceid = ?", "test-device-multi").Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }
@@ -315,7 +315,7 @@ func TestActivityFullScenarios(t *testing.T) {
 
 		// Verify activity was stored
 		var storedActivity models.DeviceActivity
-		db.Where("device_id = ?", sampleUUID.String()).First(&storedActivity)
+		db.Where("deviceid = ?", sampleUUID.String()).First(&storedActivity)
 		assert.Equal(t, "app_launch", storedActivity.ActivityType)
 		assert.Equal(t, "Chrome", storedActivity.App)
 	})
@@ -344,7 +344,7 @@ func TestActivityFullScenarios(t *testing.T) {
 
 		// Verify all activities were stored
 		var count int64
-		db.Model(&models.DeviceActivity{}).Where("device_id = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceActivity{}).Where("deviceid = ?", deviceID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }
@@ -411,7 +411,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 
 		// Verify all alerts were stored
 		var count int64
-		db.Model(&models.DeviceAlert{}).Where("device_id = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceAlert{}).Where("deviceid = ?", deviceID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }

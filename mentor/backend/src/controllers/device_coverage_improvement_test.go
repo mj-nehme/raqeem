@@ -140,7 +140,7 @@ func TestListDevicesComprehensive(t *testing.T) {
 	}
 
 	// Clean up test devices first
-	database.DB.Where("id LIKE ?", sampleUUID).Delete(&models.Device{})
+	database.DB.Where("deviceid LIKE ?", sampleUUID).Delete(&models.Device{})
 
 	t.Run("List devices returns array", func(t *testing.T) {
 		// Create a test device
@@ -205,7 +205,7 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 	deviceID := "test-pending-device"
 
 	// Clean up first
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
+	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
 
 	t.Run("Get pending commands returns array", func(t *testing.T) {
 		// Create a pending command
@@ -322,7 +322,7 @@ func TestGetDeviceCommandsComprehensive(t *testing.T) {
 	deviceID := "test-cmd-history-device"
 
 	// Clean up first
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
+	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
 
 	t.Run("Get commands without limit parameter", func(t *testing.T) {
 		// Create some commands

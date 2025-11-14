@@ -33,11 +33,16 @@ func RegisterDevice(c *gin.Context) {
 		return
 	}
 
+	// Generate UUID if not provided
+	if device.DeviceID == uuid.Nil {
+		device.DeviceID = uuid.New()
+	}
+
 	device.LastSeen = time.Now()
 	device.IsOnline = true
 
 	// Upsert device
-	result := database.DB.Where("id = ?", device.DeviceID).
+	result := database.DB.Where("deviceid = ?", device.DeviceID).
 		Assign(device).
 		FirstOrCreate(&device)
 

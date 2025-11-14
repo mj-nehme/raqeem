@@ -2,6 +2,10 @@
 
 import os
 import pytest
+import pytest_asyncio
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from sqlalchemy.orm import sessionmaker
+from app.db.base import Base
 
 # Set required environment variables for testing
 TEST_ENV_VARS = {
@@ -36,3 +40,22 @@ def mock_dependencies():
     Current approach: Each test uses unique device IDs to prevent interference.
     """
     yield
+
+
+@pytest_asyncio.fixture(scope="function")
+async def init_test_db():
+    """
+    Initialize database tables for tests using the test's event loop.
+    This fixture creates a fresh engine in the current event loop to avoid
+    'Task got Future attached to a different loop' errors.
+    """
+    # Create a new engine in the current event loop
+    engine = create_async_engine(TEST_ENV_VARS['DATABASE_URL'], echo=False)
+    
+    try:
+        async with engine.begin() as conn:
+            # Create all tables
+            await conn.run_sync(Base.metadata.create_all)
+        yield engine
+    finally:
+        await engine.dispose()
