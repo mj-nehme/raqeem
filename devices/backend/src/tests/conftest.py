@@ -3,8 +3,7 @@
 import os
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.asyncio import create_async_engine
 from app.db.base import Base
 
 # Set required environment variables for testing
