@@ -26,22 +26,34 @@ for key, value in TEST_ENV_VARS.items():
 
 
 @pytest.fixture(autouse=True)
-def mock_dependencies():
+async def reset_db_engine():
     """
-    Mock external dependencies for all tests.
-    
-    Note: These are integration tests that use the actual FastAPI app and PostgreSQL database.
-    Tests use unique IDs to avoid conflicts. For truly non-destructive tests, consider:
-    1. Using pytest-postgresql with transaction rollback
-    2. Database truncation between tests
-    3. Mocking the database layer entirely
-    
-    Current approach: Each test uses unique device IDs to prevent interference.
+    Reset the database engine for each test to avoid event loop conflicts.
+    This fixture ensures the global engine is disposed before tests
+    and recreated in the current event loop context.
     """
+    # Import here to avoid circular imports and ensure env vars are set
+    from app.db import session
+    
+    # Dispose the existing engine if it exists
+    if session.engine:
+        await session.engine.dispose()
+    
+    # Recreate engine in the current event loop
+    session.engine = create_async_engine(TEST_ENV_VARS['DATABASE_URL'], echo=True)
+    session.async_session = session.sessionmaker(
+        bind=session.engine,
+        class_=session.AsyncSession,
+        expire_on_commit=False,
+    )
+    
     yield
+    
+    # Clean up after test
+    await session.engine.dispose()
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", loop_scope="function")
 async def init_test_db():
     """
     Initialize database tables for tests using the test's event loop.
