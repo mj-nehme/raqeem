@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"sync"
 	"testing"
 
 	"mentor-backend/models"
@@ -17,6 +18,11 @@ import (
 
 // TestDB holds the test database connection
 var TestDB *gorm.DB
+
+// once ensures AutoMigrate is only run once across all tests
+var once sync.Once
+var baseConnection *gorm.DB
+var migrationError error
 
 type DBConfig struct {
 	User     string
@@ -30,7 +36,6 @@ type DBConfig struct {
 // SetupTestDB initializes a test database connection with transaction isolation
 // This ensures tests don't persist data - all changes are rolled back automatically
 func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
-	var baseDB *gorm.DB
 	var err error
 
 	if len(config) == 0 {
@@ -55,49 +60,74 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		dbConfig.DBName = getEnvOrDefault("POSTGRES_DB", "monitoring_db")
 	}
 
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
-		dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode)
+	// Initialize the base connection and run migrations only once
+	once.Do(func() {
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
+			dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode)
 
-	log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbConfig.DBName)
-	baseDB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	if err != nil {
-		t.Errorf("Failed to connect to test database: %v", err)
-		return nil, fmt.Errorf("test database not available: %v", err)
-	}
-	log.Printf("Test database connected successfully (PostgreSQL): %s", dbConfig.DBName)
+		log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbConfig.DBName)
+		baseConnection, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		if err != nil {
+			migrationError = fmt.Errorf("test database not available: %v", err)
+			return
+		}
+		log.Printf("Test database connected successfully (PostgreSQL): %s", dbConfig.DBName)
 
-	// Auto-migrate all models once at connection time (not in transactions)
-	err = baseDB.AutoMigrate(
-		&models.Device{},
-		&models.DeviceMetric{},
-		&models.DeviceProcess{},
-		&models.DeviceActivity{},
-		&models.DeviceRemoteCommand{},
-		&models.DeviceScreenshot{},
-		&models.DeviceAlert{},
-		&models.User{},
-	)
-	if err != nil {
-		t.Fatalf("Failed to migrate test database: %v", err)
+		// Auto-migrate all models once at connection time (not in transactions)
+		// Models must be migrated sequentially to avoid race conditions with foreign keys
+		migrationError = baseConnection.AutoMigrate(&models.Device{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceMetric{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceProcess{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceActivity{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceRemoteCommand{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceScreenshot{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.DeviceAlert{})
+		if migrationError != nil {
+			return
+		}
+		
+		migrationError = baseConnection.AutoMigrate(&models.User{})
+	})
+
+	if migrationError != nil {
+		t.Fatalf("Failed to connect or migrate test database: %v", migrationError)
+		return nil, migrationError
 	}
 
 	// Begin a transaction for this test
-	txDB := baseDB.Begin()
+	txDB := baseConnection.Begin()
 	if txDB.Error != nil {
 		t.Fatalf("Failed to begin transaction: %v", txDB.Error)
 	}
 
-	// Register cleanup to rollback transaction and close base connection
+	// Register cleanup to rollback transaction
 	t.Cleanup(func() {
 		txDB.Rollback()
 		log.Printf("Test transaction rolled back for %s", t.Name())
-		
-		// Close the base database connection to avoid connection pool exhaustion
-		if sqlDB, err := baseDB.DB(); err == nil {
-			if err := sqlDB.Close(); err != nil {
-				log.Printf("Error closing DB: %v", err)
-			}
-		}
 	})
 
 	TestDB = txDB
