@@ -66,7 +66,9 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 			dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode)
 
 		log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbConfig.DBName)
-		baseConnection, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		baseConnection, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			DisableForeignKeyConstraintWhenMigrating: true,
+		})
 		if err != nil {
 			migrationError = fmt.Errorf("test database not available: %v", err)
 			return
