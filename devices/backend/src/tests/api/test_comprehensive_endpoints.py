@@ -83,7 +83,7 @@ class TestDeviceEndpoints:
         
         invalid_metrics = {
             "cpu_usage": -10,  # Invalid negative CPU usage
-            "memory_used": "invalid"  # Invalid type
+            "memory_used": -999  # Invalid negative memory
         }
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
