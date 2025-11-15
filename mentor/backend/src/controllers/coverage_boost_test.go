@@ -134,7 +134,7 @@ func TestStoreScreenshot_CoverageBoost(t *testing.T) {
 		var result models.DeviceScreenshot
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
-		assert.Equal(t, "test-device-screenshot", result.DeviceID)
+		assert.Equal(t, sampleUUID, result.DeviceID)
 		assert.Equal(t, "https://example.com/screenshot.png", result.Path)
 		assert.NotZero(t, result.DeviceID)
 	})
@@ -183,7 +183,7 @@ func TestStoreScreenshot_CoverageBoost(t *testing.T) {
 		var result models.DeviceScreenshot
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
-		assert.Equal(t, "test-device-full", result.DeviceID)
+		assert.Equal(t, sampleUUID, result.DeviceID)
 		assert.Equal(t, "s3://bucket/screenshots/test.png", result.Path)
 	})
 }

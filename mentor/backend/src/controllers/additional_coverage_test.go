@@ -278,7 +278,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 	t.Run("UpdateProcessList with empty processes array", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-empty"}}
+		c.Params = gin.Params{gin.Param{Key: "id", Value: sampleUUID.String()}}
 
 		processes := []models.DeviceProcess{}
 		b, _ := json.Marshal(processes)
@@ -306,7 +306,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 	t.Run("UpdateProcessList with many processes", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-many"}}
+		c.Params = gin.Params{gin.Param{Key: "id", Value: sampleUUID.String()}}
 
 		processes := make([]models.DeviceProcess, 50)
 		for i := 0; i < 50; i++ {
@@ -347,7 +347,7 @@ func TestListDevicesWithQuery(t *testing.T) {
 	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440011")
 	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440012")
 	uuid3 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440013")
-	
+
 	devices := []models.Device{
 		{DeviceID: uuid1, DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true},
 		{DeviceID: uuid2, DeviceName: "Device 2", DeviceType: "desktop", IsOnline: false},
