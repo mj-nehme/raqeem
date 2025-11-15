@@ -246,6 +246,12 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
 @router.get("/{device_id}")
 async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
     """Get a specific device by ID."""
+    # Validate UUID format
+    try:
+        UUID(device_id)
+    except (ValueError, AttributeError):
+        raise HTTPException(status_code=422, detail="Invalid device ID format")
+    
     res = await db.execute(
         select(dev_models.Device).where(dev_models.Device.deviceid == device_id)
     )
