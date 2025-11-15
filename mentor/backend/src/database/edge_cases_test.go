@@ -99,11 +99,13 @@ func TestSetupTestDBCacheSharing(t *testing.T) {
 
 // TestSetupTestDBConcurrentAccess tests concurrent access to test database
 func TestSetupTestDBConcurrentAccess(t *testing.T) {
-	// Use baseConnection for concurrent access since transaction-wrapped DB can't be used concurrently
-	if baseConnection == nil {
-		t.Skip("No base connection available")
-	}
+	// Setup test database to ensure baseConnection is initialized
+	testDB, err := SetupTestDB(t)
+	require.NoError(t, err)
+	require.NotNil(t, testDB)
+	defer CleanupTestDB(t, testDB)
 	
+	// Use baseConnection for concurrent access since transaction-wrapped DB can't be used concurrently
 	db := baseConnection
 
 	// Test concurrent reads
@@ -132,8 +134,6 @@ func TestSetupTestDBConcurrentAccess(t *testing.T) {
 	close(errors)
 	for err := range errors {
 		assert.NoError(t, err)
-	}
-}
 	}
 }
 
