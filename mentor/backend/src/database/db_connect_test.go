@@ -439,18 +439,18 @@ func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 	
 	if !hasDBConfig {
 		// Set default environment variables for testing
-		os.Setenv("POSTGRES_USER", "monitor")
-		os.Setenv("POSTGRES_PASSWORD", "password")
-		os.Setenv("POSTGRES_DB", "monitoring_db")
-		os.Setenv("POSTGRES_HOST", "127.0.0.1")
-		os.Setenv("POSTGRES_PORT", "5432")
+		_ = os.Setenv("POSTGRES_USER", "monitor")
+		_ = os.Setenv("POSTGRES_PASSWORD", "password")
+		_ = os.Setenv("POSTGRES_DB", "monitoring_db")
+		_ = os.Setenv("POSTGRES_HOST", "127.0.0.1")
+		_ = os.Setenv("POSTGRES_PORT", "5432")
 		
 		defer func() {
-			os.Unsetenv("POSTGRES_USER")
-			os.Unsetenv("POSTGRES_PASSWORD")
-			os.Unsetenv("POSTGRES_DB")
-			os.Unsetenv("POSTGRES_HOST")
-			os.Unsetenv("POSTGRES_PORT")
+			_ = os.Unsetenv("POSTGRES_USER")
+			_ = os.Unsetenv("POSTGRES_PASSWORD")
+			_ = os.Unsetenv("POSTGRES_DB")
+			_ = os.Unsetenv("POSTGRES_HOST")
+			_ = os.Unsetenv("POSTGRES_PORT")
 		}()
 	}
 
