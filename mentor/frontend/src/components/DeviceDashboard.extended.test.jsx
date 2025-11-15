@@ -29,13 +29,14 @@ vi.mock('recharts', () => ({
 const mockDevices = [
     {
         id: 'device-1',
-        name: 'Test Laptop',
-        type: 'laptop',
+        deviceid: 'device-1',
+        device_name: 'Test Laptop',
+        device_type: 'laptop',
         os: 'Windows',
         is_online: true,
         last_seen: '2024-01-01T12:00:00Z',
         current_user: 'john.doe',
-        location: 'Office',
+        device_location: 'Office',
         ip_address: '192.168.1.100',
         mac_address: 'aa:bb:cc:dd:ee:ff'
     }
@@ -57,13 +58,13 @@ const mockMetrics = [
 const mockProcesses = [
     {
         pid: 1234,
-        name: 'chrome.exe',
+        process_name: 'chrome.exe',
         cpu: 25.5,
         memory: 536870912
     },
     {
         pid: 5678,
-        name: 'vscode.exe',
+        process_name: 'vscode.exe',
         cpu: 15.2,
         memory: 268435456
     }
@@ -356,7 +357,7 @@ describe('DeviceDashboard Extended Tests', () => {
                 expect.objectContaining({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ device_id: 'device-1', command: 'test_command' })
+                    body: JSON.stringify({ device_id: 'device-1', command_text: 'test_command' })
                 })
             )
         })
@@ -413,7 +414,7 @@ describe('DeviceDashboard Extended Tests', () => {
 
         const commandInput = screen.getByPlaceholderText(/enter command/i)
         fireEvent.change(commandInput, { target: { value: 'test_enter_command' } })
-        fireEvent.keyPress(commandInput, { key: 'Enter', code: 'Enter', charCode: 13 })
+        fireEvent.keyDown(commandInput, { key: 'Enter' })
 
         await waitFor(() => {
             expect(fetch).toHaveBeenCalledWith(
@@ -451,7 +452,7 @@ describe('DeviceDashboard Extended Tests', () => {
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
+            .mockResolvedValue({
                 ok: true,
                 json: async () => []
             })
@@ -608,12 +609,12 @@ describe('DeviceDashboard Extended Tests', () => {
 
     test('renders different device icons based on device type', async () => {
         const devicesWithTypes = [
-            { id: '1', name: 'Phone Device', type: 'phone', is_online: true },
-            { id: '2', name: 'Tablet Device', type: 'tablet', is_online: true },
-            { id: '3', name: 'Desktop Device', type: 'desktop', is_online: true }
+            { id: '1', deviceid: '1', device_name: 'Phone Device', device_type: 'phone', is_online: true },
+            { id: '2', deviceid: '2', device_name: 'Tablet Device', device_type: 'tablet', is_online: true },
+            { id: '3', deviceid: '3', device_name: 'Desktop Device', device_type: 'desktop', is_online: true }
         ]
 
-        fetch.mockResolvedValueOnce({
+        fetch.mockResolvedValue({
             ok: true,
             json: async () => devicesWithTypes
         })

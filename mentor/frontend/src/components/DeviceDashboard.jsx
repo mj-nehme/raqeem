@@ -447,7 +447,7 @@ export default function DeviceDashboard() {
                                                             placeholder="Enter command (e.g., get_info, status, restart)..."
                                                             value={command}
                                                             onChange={(e) => setCommand(e.target.value)}
-                                                            onKeyPress={(e) => { if (e.key === 'Enter') sendCommand(); }}
+                                                            onKeyDown={(e) => { if (e.key === 'Enter') sendCommand(); }}
                                                         />
                                                         <Button variant="contained" startIcon={<Send />} onClick={sendCommand} disabled={!command.trim()}>
                                                             Send

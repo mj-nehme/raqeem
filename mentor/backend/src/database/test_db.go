@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"mentor-backend/models"
 
@@ -63,8 +64,12 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 
 	// Initialize the base connection and run migrations only once
 	once.Do(func() {
-		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s",
-			dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode)
+		// Use a dedicated schema for tests to ensure isolation from any existing data
+		testSchema := getEnvOrDefault("TEST_DB_SCHEMA", fmt.Sprintf("test_schema_%d", time.Now().UnixNano()))
+
+		// Include search_path in DSN so all pooled connections default to the test schema
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=%s search_path=%s",
+			dbConfig.Host, dbConfig.User, dbConfig.Password, dbConfig.DBName, dbConfig.Port, dbConfig.SSLMode, testSchema)
 
 		log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbConfig.DBName)
 		baseConnection, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
@@ -76,6 +81,18 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 			return
 		}
 		log.Printf("Test database connected successfully (PostgreSQL): %s", dbConfig.DBName)
+
+		// Ensure clean, isolated schema: drop if exists then recreate, then set search_path
+		// Ignore errors on drop (schema may not exist yet)
+		_ = baseConnection.Exec("DROP SCHEMA IF EXISTS " + testSchema + " CASCADE").Error
+		if err := baseConnection.Exec("CREATE SCHEMA " + testSchema).Error; err != nil {
+			migrationError = fmt.Errorf("failed to create test schema %s: %v", testSchema, err)
+			return
+		}
+		if err := baseConnection.Exec("SET search_path TO " + testSchema).Error; err != nil {
+			migrationError = fmt.Errorf("failed to set search_path to %s: %v", testSchema, err)
+			return
+		}
 
 		// Auto-migrate all models once at connection time (not in transactions)
 		// Models must be migrated sequentially to avoid race conditions with foreign keys

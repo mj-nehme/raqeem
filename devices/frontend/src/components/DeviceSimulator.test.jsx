@@ -138,8 +138,8 @@ describe('DeviceSimulator Component', () => {
         const callArgs = fetch.mock.calls[0]
         const requestBody = JSON.parse(callArgs[1].body)
 
-        expect(requestBody.name).toBe('My Test Device')
-        expect(requestBody.type).toBe('tablet')
+        expect(requestBody.device_name).toBe('My Test Device')
+        expect(requestBody.device_type).toBe('tablet')
         expect(requestBody.os).toBe('Android')
         expect(requestBody.current_user).toBe('testuser123')
     })
@@ -401,7 +401,7 @@ describe('DeviceSimulator Component', () => {
         const callArgs = fetch.mock.calls[0]
         const requestBody = JSON.parse(callArgs[1].body)
 
-        expect(requestBody.name).toMatch(/laptop-/) // Should use default pattern
+        expect(requestBody.device_name).toMatch(/laptop-/) // Should use default pattern
         expect(requestBody.current_user).toBe('simulator-user')
     })
 
@@ -1203,7 +1203,7 @@ describe('DeviceSimulator Component', () => {
 
         const callArgs = fetch.mock.calls[0]
         const requestBody = JSON.parse(callArgs[1].body)
-        expect(requestBody.location).toBe('Simulated Location')
+        expect(requestBody.device_location).toBe('Simulated Location')
     })
 
     test('registration payload includes all required fields', async () => {
@@ -1223,13 +1223,13 @@ describe('DeviceSimulator Component', () => {
 
         const callArgs = fetch.mock.calls[0]
         const requestBody = JSON.parse(callArgs[1].body)
-        
-        expect(requestBody).toHaveProperty('id')
-        expect(requestBody).toHaveProperty('name')
-        expect(requestBody).toHaveProperty('type')
+
+        expect(requestBody).toHaveProperty('deviceid')
+        expect(requestBody).toHaveProperty('device_name')
+        expect(requestBody).toHaveProperty('device_type')
         expect(requestBody).toHaveProperty('os')
         expect(requestBody).toHaveProperty('current_user')
-        expect(requestBody).toHaveProperty('location')
+        expect(requestBody).toHaveProperty('device_location')
         expect(requestBody).toHaveProperty('ip_address')
         expect(requestBody).toHaveProperty('mac_address')
     })
@@ -1263,7 +1263,7 @@ describe('DeviceSimulator Component', () => {
 
         const callArgs = fetch.mock.calls[0]
         const requestBody = JSON.parse(callArgs[1].body)
-        
+
         expect(requestBody).toHaveProperty('cpu_usage')
         expect(requestBody).toHaveProperty('cpu_temp')
         expect(requestBody).toHaveProperty('memory_total')
@@ -1301,7 +1301,7 @@ describe('DeviceSimulator Component', () => {
 
         const callArgs = fetch.mock.calls[0]
         const requestBody = JSON.parse(callArgs[1].body)
-        
+
         expect(Array.isArray(requestBody)).toBe(true)
         expect(requestBody.length).toBeGreaterThan(0)
     })
@@ -1335,10 +1335,10 @@ describe('DeviceSimulator Component', () => {
 
         const callArgs = fetch.mock.calls[0]
         const requestBody = JSON.parse(callArgs[1].body)
-        
+
         expect(Array.isArray(requestBody)).toBe(true)
         expect(requestBody[0]).toHaveProperty('level')
-        expect(requestBody[0]).toHaveProperty('type')
+        expect(requestBody[0]).toHaveProperty('alert_type')
         expect(requestBody[0]).toHaveProperty('message')
     })
 })

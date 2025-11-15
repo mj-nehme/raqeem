@@ -29,25 +29,27 @@ vi.mock('recharts', () => ({
 const mockDevices = [
     {
         id: 'device-1',
-        name: 'Test Laptop',
-        type: 'laptop',
+        deviceid: 'device-1',
+        device_name: 'Test Laptop',
+        device_type: 'laptop',
         os: 'Windows',
         is_online: true,
         last_seen: '2024-01-01T12:00:00Z',
         current_user: 'john.doe',
-        location: 'Office',
+        device_location: 'Office',
         ip_address: '192.168.1.100',
         mac_address: 'aa:bb:cc:dd:ee:ff'
     },
     {
         id: 'device-2',
-        name: 'Test Desktop',
-        type: 'desktop',
+        deviceid: 'device-2',
+        device_name: 'Test Desktop',
+        device_type: 'desktop',
         os: 'macOS',
         is_online: false,
         last_seen: '2024-01-01T10:00:00Z',
         current_user: 'jane.smith',
-        location: 'Home Office',
+        device_location: 'Home Office',
         ip_address: '192.168.1.101',
         mac_address: '11:22:33:44:55:66'
     }

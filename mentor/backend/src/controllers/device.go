@@ -478,7 +478,7 @@ func UpdateCommandStatus(c *gin.Context) {
 	}
 
 	if err := database.DB.Model(&models.DeviceRemoteCommand{}).
-		Where("command_id = ?", cmd.CommandID).
+		Where("commandid = ?", cmd.CommandID).
 		Updates(map[string]interface{}{
 			"status":       cmd.Status,
 			"result":       cmd.Result,
