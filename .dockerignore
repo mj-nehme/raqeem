@@ -1,0 +1,58 @@
+# Git
+.git
+.github
+.gitignore
+
+# Environment
+.venv
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__
+*.py[co]
+.pytest_cache
+.coverage
+htmlcov
+*.egg-info
+dist
+build
+
+# Node
+node_modules
+npm-debug.log
+yarn-error.log
+.npm
+
+# Build artifacts
+**/dist/
+**/build/
+coverage/
+*.lcov
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation development files
+docs/*_SUMMARY.md
+docs/*_FINAL.md
+docs/*_TRACKING.md
+*.log
+
+# Test results
+test-results.json
+coverage.out
+coverage.xml
+
+# Temporary files
+*.tmp
+*.temp

@@ -50,4 +50,14 @@ test-results.json
 *_FINAL.md
 *_VALIDATION.md
 *_RESULTS.md
+*_TRACKING.md
+*_IMPLEMENTATION.md
+*_FIX.md
+*_ASSESSMENT.md
+*_REPORT.md
+*_STATUS.md
+*_IMPROVEMENTS.md
+*_NOTES.md
+SESSION_SUMMARY.md
 COMMIT_MSG.txt
+.github_issue_template.md

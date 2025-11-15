@@ -9,7 +9,6 @@ from app.core.config import settings
 import datetime
 import httpx
 from uuid import UUID
-import uuid
 
 router = APIRouter()
 
@@ -72,9 +71,6 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         db.add(obj)
         await db.commit()
         result = {"deviceid": final_id, "created": True}
-        if generated:
-            result["original_id"] = device_id
-            result["normalized"] = True
 
     if settings.mentor_api_url:
         fwd = dict(payload)
