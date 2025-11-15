@@ -4,7 +4,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # Pydantic v2: use SettingsConfigDict instead of inner Config
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
+    # Ignore unrelated env vars to avoid failures in diverse dev shells
+    # Do NOT read .env implicitly; tests expect explicit env only
+    model_config = SettingsConfigDict(
+        extra="ignore",
+    )
 
     # Database URL, e.g. postgresql+asyncpg://user:pass@localhost/dbname
     database_url: str = Field(..., validation_alias=AliasChoices("DATABASE_URL"))

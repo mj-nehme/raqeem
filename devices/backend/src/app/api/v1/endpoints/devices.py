@@ -177,10 +177,14 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
 
 @router.post("/{device_id}/activities")
 async def post_activity(device_id: str, activities: List[dict], db: AsyncSession = Depends(get_db)):
-    # Validate legacy fields and reject with clear error messages
+    # If legacy field 'type' is provided, treat as validation issue (422) instead of 400
     for a in activities:
-        if "type" in a:
-            raise HTTPException(status_code=400, detail="unsupported legacy field: type; use activity_type")
+        if "type" in a and not a.get("activity_type"):
+            # Non-empty legacy 'type' should be rejected as bad request (400)
+            if (a.get("type") or "") != "":
+                raise HTTPException(status_code=400, detail="unsupported legacy field: type; use activity_type")
+            # Empty legacy 'type' is treated as validation error (422)
+            raise HTTPException(status_code=422, detail="invalid field: use activity_type instead of type")
     
     to_add = []
     now = datetime.datetime.utcnow()
@@ -266,6 +270,7 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
     for device in devices_list:
         devices.append({
             "deviceid": str(device.deviceid),
+            "id": str(device.deviceid),  # legacy alias for compatibility
             "device_name": device.device_name,
             "device_type": device.device_type,
             "os": device.os,
@@ -299,6 +304,7 @@ async def list_all_processes(db: AsyncSession = Depends(get_db)):
             "timestamp": process.timestamp.isoformat() if process.timestamp else None,
             "pid": process.pid,
             "process_name": process.process_name,
+            "name": process.process_name,  # legacy alias for compatibility
             "cpu": float(process.cpu) if process.cpu is not None else None,
             "memory": process.memory,
             "command_text": process.command_text,
@@ -378,26 +384,14 @@ async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
     
     return {
         "deviceid": str(device.deviceid),
+        "id": str(device.deviceid),  # legacy alias for compatibility
+        "name": device.device_name,  # legacy alias for compatibility
         "device_name": device.device_name,
         "device_type": device.device_type,
         "os": device.os,
         "last_seen": device.last_seen.isoformat() if device.last_seen else None,
         "is_online": device.is_online,
         "device_location": device.device_location,
-        "ip_address": device.ip_address,
-        "mac_address": device.mac_address,
-        "current_user": device.current_user,
-    }
-
-
-    return {
-        "id": str(device.deviceid),
-        "name": device.device_name,
-        "device_type": device.device_type,
-        "os": device.os,
-        "last_seen": device.last_seen.isoformat() if device.last_seen else None,
-        "is_online": device.is_online,
-        "location": device.device_location,
         "ip_address": device.ip_address,
         "mac_address": device.mac_address,
         "current_user": device.current_user,

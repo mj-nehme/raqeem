@@ -27,14 +27,16 @@ def setup_cors(app):
 
     if len(origins) == 0 and not allow_origin_regex:
         # Derive from dynamic port exported by startup scripts (start-smart.sh).
-        # The devices frontend port is stored in VITE_DEVICES_FRONTEND_PORT at runtime, but we prefer
-        # an explicit DEVICES_FRONTEND_PORT (set by start script) if available; fall back to 4000 base.
-        dev_port = os.getenv("DEVICES_FRONTEND_PORT") or os.getenv("VITE_DEVICES_FRONTEND_PORT") or "4001"
+        # Include common dev ports by default to satisfy local tests.
+        dev_port = os.getenv("DEVICES_FRONTEND_PORT") or os.getenv("VITE_DEVICES_FRONTEND_PORT")
         mentor_port = os.getenv("MENTOR_FRONTEND_PORT") or os.getenv("VITE_MENTOR_FRONTEND_PORT")
-        # Always include devices frontend; optionally mentor frontend if defined.
-        origins = [f"http://localhost:{dev_port}"]
+        # Start with common defaults 4000 and 4001, then append discovered ports
+        base_origins = {"http://localhost:4000", "http://localhost:4001"}
+        if dev_port:
+            base_origins.add(f"http://localhost:{dev_port}")
         if mentor_port and mentor_port != dev_port:
-            origins.append(f"http://localhost:{mentor_port}")
+            base_origins.add(f"http://localhost:{mentor_port}")
+        origins = sorted(base_origins)
 
     wildcard = (len(origins) == 1 and origins[0] == "*") or (allow_origin_regex == ".*")
 

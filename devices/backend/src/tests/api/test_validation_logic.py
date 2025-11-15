@@ -51,10 +51,10 @@ class TestDeviceRegistrationLogic:
             "current_user": "testuser"
         }
         
-        assert payload.get("name") == "Test Device"
+        assert payload.get("device_name") == "Test Device"
         assert payload.get("device_type") == "laptop"
         assert payload.get("os") == "macOS"
-        assert payload.get("location") == "Office"
+        assert payload.get("device_location") == "Office"
         assert payload.get("ip_address") == "192.168.1.100"
         assert payload.get("mac_address") == "00:11:22:33:44:55"
         assert payload.get("current_user") == "testuser"
@@ -276,7 +276,7 @@ class TestProcessValidation:
         
         assert "deviceid" in process_payload
         assert "pid" in process_payload
-        assert "device_name" in process_payload
+        assert "process_name" in process_payload
         assert process_payload["pid"] > 0
         assert 0 <= process_payload["cpu"] <= 100
         assert process_payload["memory"] >= 0
