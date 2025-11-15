@@ -19,7 +19,7 @@ func TestUpdateProcessListWithValidData(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-process-device"
+	deviceID := sampleUUID.String()
 
 	// Register device first
 	device := models.Device{
@@ -60,7 +60,7 @@ func TestUpdateProcessListWithValidData(t *testing.T) {
 
 	// Verify processes were created
 	var savedProcesses []models.DeviceProcess
-	database.DB.Where("device_id = ?", deviceID).Find(&savedProcesses)
+	database.DB.Where("deviceid = ?", deviceID).Find(&savedProcesses)
 	assert.GreaterOrEqual(t, len(savedProcesses), 2)
 }
 
@@ -68,7 +68,7 @@ func TestUpdateProcessListDeletion(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-process-delete"
+	deviceID := sampleUUID.String()
 
 	// Register device
 	device := models.Device{
@@ -148,7 +148,7 @@ func TestGetDeviceMetricWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "metrics-limit-test"
+	deviceID := sampleUUID.String()
 
 	// Create device
 	device := models.Device{
@@ -186,7 +186,7 @@ func TestGetDeviceMetricInvalidLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "metrics-invalid-limit"
+	deviceID := sampleUUID.String()
 	device := models.Device{DeviceID: sampleUUID, DeviceName: "Test", IsOnline: true}
 	database.DB.Create(&device)
 
@@ -203,7 +203,7 @@ func TestGetDeviceProcessesWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "process-limit-test"
+	deviceID := sampleUUID.String()
 
 	// Create device
 	device := models.Device{
@@ -243,7 +243,7 @@ func TestGetDeviceAlertWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "alert-limit-test"
+	deviceID := sampleUUID.String()
 
 	// Create device
 	device := models.Device{
@@ -284,7 +284,7 @@ func TestGetDeviceScreenshotWithLimit(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "screenshot-limit-test"
+	deviceID := sampleUUID.String()
 
 	// Create device
 	device := models.Device{
@@ -318,7 +318,7 @@ func TestCreateRemoteCommandSuccess(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "command-test-device"
+	deviceID := sampleUUID.String()
 
 	// Create device
 	device := models.Device{
@@ -353,7 +353,7 @@ func TestGetPendingCommandsForDevice(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "pending-commands-test"
+	deviceID := sampleUUID.String()
 
 	// Create device
 	device := models.Device{
@@ -422,7 +422,7 @@ func TestReportAlertSuccess(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "alert-report-test"
+	deviceID := sampleUUID.String()
 	device := models.Device{DeviceID: sampleUUID, DeviceName: "Test", IsOnline: true}
 	database.DB.Create(&device)
 

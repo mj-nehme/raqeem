@@ -35,7 +35,7 @@ func TestReportAndGetAlerts(t *testing.T) {
 
 	// Ensure clean slate for test device
 	deviceID := "test-device-go"
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceAlert{})
+	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceAlert{})
 
 	// Prepare gin context for ReportAlert
 	w := httptest.NewRecorder()
@@ -299,7 +299,7 @@ func TestStoreScreenshot(t *testing.T) {
 	deviceID := "test-device-screenshot"
 
 	// Clean up any existing screenshots for this device
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceScreenshot{})
+	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceScreenshot{})
 
 	// Prepare request
 	screenshot := models.DeviceScreenshot{
@@ -323,13 +323,13 @@ func TestStoreScreenshot(t *testing.T) {
 
 	// Verify screenshot was stored
 	var storedScreenshot models.DeviceScreenshot
-	result := database.DB.Where("device_id = ?", deviceID).First(&storedScreenshot)
+	result := database.DB.Where("deviceid = ?", deviceID).First(&storedScreenshot)
 	if result.Error != nil {
 		t.Fatalf("failed to retrieve stored screenshot: %v", result.Error)
 	}
 
 	if storedScreenshot.DeviceID != sampleUUID {
-		t.Errorf("expected device_id %s, got %s", deviceID, storedScreenshot.DeviceID)
+		t.Errorf("expected deviceid %s, got %s", deviceID, storedScreenshot.DeviceID)
 	}
 	if storedScreenshot.Path != screenshot.Path {
 		t.Errorf("expected path %s, got %s", screenshot.Path, storedScreenshot.Path)

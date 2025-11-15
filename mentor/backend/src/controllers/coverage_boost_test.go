@@ -28,10 +28,10 @@ func TestGetDeviceCommands(t *testing.T) {
 	// Set the global DB for controllers
 	database.DB = db
 
-	deviceID := "test-device-commands-sqlite"
+	deviceID := sampleUUID.String()
 
 	// Clean up any existing commands for this device
-	db.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
+	db.Where("deviceid = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
 
 	// Create multiple commands
 	for i := 0; i < 5; i++ {
