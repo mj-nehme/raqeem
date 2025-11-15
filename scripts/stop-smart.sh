@@ -5,6 +5,7 @@ echo "🛑 Stopping Smart Service Discovery Environment..."
 echo ""
 
 NAMESPACE=${NAMESPACE:-default}
+CLEAN_DATA=${1:-""}
 
 # Stop frontend processes
 if [[ -f ".deploy/smart.pids" ]]; then
@@ -37,8 +38,16 @@ helm uninstall mentor-backend -n "$NAMESPACE" 2>/dev/null || echo "  ℹ️ ment
 helm uninstall minio -n "$NAMESPACE" 2>/dev/null || echo "  ℹ️ minio not found"
 helm uninstall postgres -n "$NAMESPACE" 2>/dev/null || echo "  ℹ️ postgres not found"
 
-echo ""
-echo "✅ Smart Service Discovery Environment Stopped!"
-echo ""
-echo "💾 Note: Data volumes preserved"
-echo "   To delete all data: kubectl delete pvc --all -n $NAMESPACE"
+# Handle data cleanup based on flag
+if [[ "$CLEAN_DATA" == "--clean" ]] || [[ "$CLEAN_DATA" == "-c" ]]; then
+  echo ""
+  echo "🗑️  Deleting persistent volumes (fresh database on next start)..."
+  kubectl delete pvc --all -n "$NAMESPACE" 2>/dev/null || echo "  ℹ️ No PVCs to delete"
+  echo "✅ Database will be recreated fresh on next start"
+else
+  echo ""
+  echo "✅ Smart Service Discovery Environment Stopped!"
+  echo ""
+  echo "💾 Data volumes preserved - database will persist on restart"
+  echo "💡 To start fresh with clean database, run: ./stop.sh --clean"
+fi

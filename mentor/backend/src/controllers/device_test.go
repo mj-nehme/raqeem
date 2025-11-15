@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -14,20 +13,20 @@ import (
 	"mentor-backend/models"
 
 	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/require"
 )
 
 func setupTestDB(t *testing.T) {
-	require.NoError(t, os.Setenv("POSTGRES_USER", os.Getenv("POSTGRES_USER")))
-	require.NoError(t, os.Setenv("POSTGRES_PASSWORD", os.Getenv("POSTGRES_PASSWORD")))
-	require.NoError(t, os.Setenv("POSTGRES_DB", os.Getenv("POSTGRES_DB")))
-	require.NoError(t, os.Setenv("POSTGRES_HOST", os.Getenv("POSTGRES_HOST")))
-	require.NoError(t, os.Setenv("POSTGRES_PORT", os.Getenv("POSTGRES_PORT")))
-	database.Connect()
-	// Auto-migrate tables
-	if err := database.DB.AutoMigrate(&models.DeviceAlert{}); err != nil {
-		t.Fatalf("AutoMigrate Alert failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	t.Cleanup(func() {
+		database.CleanupTestDB(t, db)
+	})
+	database.DB = db
 }
 
 func TestReportAndGetAlerts(t *testing.T) {

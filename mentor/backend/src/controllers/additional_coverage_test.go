@@ -24,10 +24,15 @@ var sampleUUID, _ = uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
 func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
-		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	// Create a mock devices backend server
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -116,15 +121,17 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 func TestGetDeviceCommandsWithLimit(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
-		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	deviceID := sampleUUID.String()
-
-	// Clean up any existing commands for this device
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
 
 	// Create multiple commands
 	for i := 0; i < 5; i++ {
@@ -180,10 +187,15 @@ func TestGetDeviceCommandsWithLimit(t *testing.T) {
 func TestStoreScreenshotComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceScreenshot{}); err != nil {
-		t.Fatalf("AutoMigrate Screenshot failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	t.Run("Store screenshot with valid data", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -253,10 +265,15 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 func TestUpdateProcessListEdgeCases(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceProcess{}); err != nil {
-		t.Fatalf("AutoMigrate Process failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	t.Run("UpdateProcessList with empty processes array", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -316,10 +333,15 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 func TestListDevicesWithQuery(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.Device{}); err != nil {
-		t.Fatalf("AutoMigrate Device failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	// Create test devices
 	devices := []models.Device{

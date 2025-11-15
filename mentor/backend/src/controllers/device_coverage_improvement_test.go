@@ -17,10 +17,15 @@ import (
 func TestCreateRemoteCommandComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
-		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	t.Run("Create command with valid payload", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -75,10 +80,15 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 func TestUpdateProcessListComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceProcess{}); err != nil {
-		t.Fatalf("AutoMigrate Process failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	t.Run("Update process list with valid processes", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -134,13 +144,15 @@ func TestUpdateProcessListComprehensive(t *testing.T) {
 func TestListDevicesComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.Device{}); err != nil {
-		t.Fatalf("AutoMigrate Device failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
-
-	// Clean up test devices first
-	database.DB.Where("deviceid LIKE ?", sampleUUID).Delete(&models.Device{})
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	t.Run("List devices returns array", func(t *testing.T) {
 		// Create a test device
@@ -197,15 +209,17 @@ func TestListDevicesComprehensive(t *testing.T) {
 func TestGetPendingCommandsComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
-		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	deviceID := "test-pending-device"
-
-	// Clean up first
-	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
 
 	t.Run("Get pending commands returns array", func(t *testing.T) {
 		// Create a pending command
@@ -260,10 +274,15 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 func TestUpdateCommandStatusComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
-		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	t.Run("Update command status with valid data", func(t *testing.T) {
 		// Create a command first
@@ -314,10 +333,15 @@ func TestUpdateCommandStatusComprehensive(t *testing.T) {
 func TestGetDeviceCommandsComprehensive(t *testing.T) {
 
 	gin.SetMode(gin.TestMode)
-	database.Connect()
-	if err := database.DB.AutoMigrate(&models.DeviceRemoteCommand{}); err != nil {
-		t.Fatalf("AutoMigrate RemoteCommand failed: %v", err)
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Fatalf("Failed to setup test database: %v", err)
 	}
+	if db == nil {
+		t.Fatal("Test database is nil")
+	}
+	defer database.CleanupTestDB(t, db)
+	database.DB = db
 
 	deviceID := "test-cmd-history-device"
 

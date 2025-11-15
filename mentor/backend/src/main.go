@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 	"mentor-backend/database"
-	"mentor-backend/models"
 	"mentor-backend/router"
 	"os"
 
@@ -45,11 +44,6 @@ func NewApp() *App {
 // setupDatabase initializes the database connection and runs migrations
 func (a *App) setupDatabase() error {
 	database.Connect()
-
-	// Auto-migrate your models (include device-related models)
-	if err := database.DB.AutoMigrate(&models.Device{}, &models.DeviceMetric{}, &models.DeviceProcess{}, &models.DeviceActivity{}, &models.DeviceRemoteCommand{}, &models.DeviceScreenshot{}, &models.DeviceAlert{}, &models.User{}); err != nil {
-		return err
-	}
 	return nil
 }
 

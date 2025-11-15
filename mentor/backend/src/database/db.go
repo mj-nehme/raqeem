@@ -4,22 +4,63 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"mentor-backend/models"
 )
 
 var DB *gorm.DB
 
+// loadEnv tries multiple locations for a .env file to reduce CWD sensitivity
+func loadEnv() {
+	// Try common relative locations from various run directories
+	candidates := []string{
+		".env",
+		"../.env",
+		"../../.env",
+		"../../../.env",
+		// project specific
+		"mentor/backend/.env",
+	}
+
+	// Also walk upwards from current working directory up to root
+	if wd, err := os.Getwd(); err == nil {
+		dir := wd
+		for i := 0; i < 5; i++ { // limit depth to avoid long walks
+			candidates = append(candidates, filepath.Join(dir, ".env"))
+			parent := filepath.Dir(dir)
+			if parent == dir {
+				break
+			}
+			dir = parent
+		}
+	}
+
+	// Attempt loading from the first path that exists
+	for _, p := range candidates {
+		if _, err := os.Stat(p); err == nil {
+			if err := godotenv.Load(p); err == nil {
+				log.Printf("Loaded environment from %s", p)
+				return
+			}
+		}
+	}
+
+	// Fallback to default behavior (may be no-op)
+	if err := godotenv.Load(); err != nil {
+		log.Printf("godotenv.Load: %v", err)
+	}
+}
+
 // connectWithConfig attempts to connect to the database and returns an error if it fails.
 // This function is separated for testing purposes.
 func connectWithConfig() error {
-	// Load environment variables from .env file
-	if err := godotenv.Load(); err != nil {
-		// Don't fail hard; .env may not exist in CI/containers
-		log.Printf("godotenv.Load: %v", err)
-	}
+	// Load environment variables from .env file(s)
+	loadEnv()
 
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
@@ -31,7 +72,9 @@ func connectWithConfig() error {
 		host, user, password, dbname, port)
 
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		DisableForeignKeyConstraintWhenMigrating: true,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %v", err)
 	}
@@ -44,4 +87,30 @@ func Connect() {
 	if err := connectWithConfig(); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
+
+	// Perform automatic migrations on connect to avoid stale schema
+	if err := migrate(DB); err != nil {
+		log.Fatalf("Database migration failed: %v", err)
+	}
+}
+
+// migrate runs the schema migrations sequentially
+func migrate(db *gorm.DB) error {
+	// Migrate in explicit order to avoid FK issues even if constraints are enabled later
+	steps := []interface{}{
+		&models.Device{},
+		&models.DeviceMetric{},
+		&models.DeviceProcess{},
+		&models.DeviceActivity{},
+		&models.DeviceRemoteCommand{},
+		&models.DeviceScreenshot{},
+		&models.DeviceAlert{},
+		&models.User{},
+	}
+	for _, m := range steps {
+		if err := db.AutoMigrate(m); err != nil {
+			return err
+		}
+	}
+	return nil
 }
