@@ -38,8 +38,8 @@ describe('DeviceSimulator Component', () => {
     test('generates device ID automatically', () => {
         render(<DeviceSimulator />)
 
-        const deviceIdInput = screen.getByDisplayValue(/device-/)
-        expect(deviceIdInput.value).toMatch(/^device-[a-z0-9]{9}$/)
+        const deviceIdInput = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/)
+        expect(deviceIdInput.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
     })
 
     test('updates device name input', () => {
@@ -372,12 +372,12 @@ describe('DeviceSimulator Component', () => {
 
     test('generates different device IDs on multiple renders', () => {
         const { unmount } = render(<DeviceSimulator />)
-        const firstDeviceId = screen.getByDisplayValue(/device-/).value
+        const firstDeviceId = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/).value
 
         unmount()
 
         render(<DeviceSimulator />)
-        const secondDeviceId = screen.getByDisplayValue(/device-/).value
+        const secondDeviceId = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/).value
 
         expect(firstDeviceId).not.toBe(secondDeviceId)
     })
@@ -676,7 +676,7 @@ describe('DeviceSimulator Component', () => {
 
         render(<DeviceSimulator />)
 
-        const initialDeviceId = screen.getByDisplayValue(/device-/).value
+        const initialDeviceId = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/).value
 
         // Register device
         const registerButton = screen.getByRole('button', { name: /register device/i })
@@ -692,7 +692,7 @@ describe('DeviceSimulator Component', () => {
 
         // Check that device ID changed and registration was cleared
         await waitFor(() => {
-            const newDeviceId = screen.getByDisplayValue(/device-/).value
+            const newDeviceId = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/).value
             expect(newDeviceId).not.toBe(initialDeviceId)
             expect(screen.getByRole('button', { name: /register device/i })).toBeInTheDocument()
         })
@@ -729,7 +729,7 @@ describe('DeviceSimulator Component', () => {
             expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
         })
 
-        const deviceIdInput = screen.getByDisplayValue(/device-/)
+        const deviceIdInput = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/)
         const nameInput = screen.getByPlaceholderText(/My Device/i)
         const userInput = screen.getByPlaceholderText(/simulator-user/i)
 
@@ -1011,7 +1011,7 @@ describe('DeviceSimulator Component', () => {
 
     test('device ID input has placeholder', () => {
         render(<DeviceSimulator />)
-        const deviceIdInput = screen.getByDisplayValue(/device-/)
+        const deviceIdInput = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/)
         expect(deviceIdInput).toHaveAttribute('placeholder', 'device-xxxxx')
     })
 
@@ -1034,7 +1034,7 @@ describe('DeviceSimulator Component', () => {
 
     test('updates device ID input', () => {
         render(<DeviceSimulator />)
-        const deviceIdInput = screen.getByDisplayValue(/device-/)
+        const deviceIdInput = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/)
         fireEvent.change(deviceIdInput, { target: { value: 'device-custom123' } })
         expect(deviceIdInput.value).toBe('device-custom123')
     })
@@ -1115,10 +1115,10 @@ describe('DeviceSimulator Component', () => {
 
     test('generates new device ID if current is empty', () => {
         const { rerender } = render(<DeviceSimulator />)
-        const initialId = screen.getByDisplayValue(/device-/).value
+        const initialId = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/).value
         rerender(<DeviceSimulator />)
-        // Just verify the format is correct
-        expect(initialId).toMatch(/^device-[a-z0-9]{9}$/)
+        // Just verify the format is correct (UUID v4)
+        expect(initialId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
     })
 
     test('initializes processes count to 0', () => {
@@ -1138,8 +1138,8 @@ describe('DeviceSimulator Component', () => {
 
     test('device ID is generated on initial render', () => {
         render(<DeviceSimulator />)
-        const deviceIdInput = screen.getByDisplayValue(/device-/)
-        expect(deviceIdInput.value).toMatch(/^device-[a-z0-9]{9}$/)
+        const deviceIdInput = screen.getByDisplayValue(/[0-9a-f]{8}-[0-9a-f]{4}/)
+        expect(deviceIdInput.value).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i)
     })
 
     test('logs are displayed in reverse chronological order', async () => {

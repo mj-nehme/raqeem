@@ -21,9 +21,9 @@ function DeviceSimulator() {
         processesCount: 0
     });
 
-    // Generate random device ID
+    // Generate random device ID (UUID v4 format)
     const generateDeviceId = () => {
-        return `device-${Math.random().toString(36).substr(2, 9)}`;
+        return crypto.randomUUID();
     };
 
     useEffect(() => {

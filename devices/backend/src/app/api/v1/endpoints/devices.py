@@ -29,19 +29,18 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     if not device_id:
         raise HTTPException(status_code=400, detail="missing required field: deviceid")
 
-    final_id = device_id
-    generated = False
+    # Validate that deviceid is a valid UUID
     try:
-        UUID(str(device_id))
-    except Exception:
-        final_id = str(uuid.uuid4())
-        generated = True
+        final_id = UUID(str(device_id))
+    except (ValueError, AttributeError, TypeError) as e:
+        raise HTTPException(
+            status_code=400, 
+            detail=f"deviceid must be a valid UUID format: {str(e)}"
+        )
 
     now = datetime.datetime.utcnow()
-    existing = None
-    if not generated:
-        res = await db.execute(select(dev_models.Device).where(dev_models.Device.deviceid == final_id))
-        existing = res.scalars().first()
+    res = await db.execute(select(dev_models.Device).where(dev_models.Device.deviceid == final_id))
+    existing = res.scalars().first()
 
     if existing:
         # update fields
