@@ -10,17 +10,17 @@ class TestDeviceRegistrationLogic:
     def test_device_id_extraction_from_payload(self):
         """Test device ID extraction from different payload formats."""
         # Test with 'id' field
-        payload1 = {"id": "device-123", "name": "Test Device"}
+        payload1 = {"deviceid": "device-123", "device_name": "Test Device"}
         device_id = payload1.get("id") or payload1.get("deviceid")
         assert device_id == "device-123"
         
         # Test with 'device_id' field
-        payload2 = {"deviceid": "device-456", "name": "Test Device"}
+        payload2 = {"deviceid": "device-456", "device_name": "Test Device"}
         device_id = payload2.get("id") or payload2.get("deviceid")
         assert device_id == "device-456"
         
         # Test with both fields (id takes precedence)
-        payload3 = {"id": "device-123", "deviceid": "device-456", "name": "Test Device"}
+        payload3 = {"deviceid": "device-123", "deviceid": "device-456", "device_name": "Test Device"}
         device_id = payload3.get("id") or payload3.get("deviceid")
         assert device_id == "device-123"
     
@@ -28,10 +28,10 @@ class TestDeviceRegistrationLogic:
         """Test validation when device ID is missing."""
         payloads_without_id = [
             {},
-            {"name": "Test Device"},
-            {"id": None},
+            {"device_name": "Test Device"},
             {"deviceid": None},
-            {"id": "", "deviceid": ""},
+            {"deviceid": None},
+            {"deviceid": "", "deviceid": ""},
         ]
         
         for payload in payloads_without_id:
@@ -41,11 +41,11 @@ class TestDeviceRegistrationLogic:
     def test_payload_field_extraction(self):
         """Test extraction of various fields from payload."""
         payload = {
-            "id": "device-123",
-            "name": "Test Device",
+            "deviceid": "device-123",
+            "device_name": "Test Device",
             "device_type": "laptop",
             "os": "macOS",
-            "location": "Office",
+            "device_location": "Office",
             "ip_address": "192.168.1.100",
             "mac_address": "00:11:22:33:44:55",
             "current_user": "testuser"
@@ -61,7 +61,7 @@ class TestDeviceRegistrationLogic:
     
     def test_payload_with_optional_fields(self):
         """Test payload handling with missing optional fields."""
-        payload = {"id": "device-123"}
+        payload = {"deviceid": "device-123"}
         
         # These should return None for missing fields
         assert payload.get("name") is None
@@ -268,15 +268,15 @@ class TestProcessValidation:
         process_payload = {
             "deviceid": "device-123",
             "pid": 1234,
-            "name": "chrome",
+            "process_name": "chrome",
             "cpu": 25.5,
             "memory": 536870912,  # 512MB
-            "command": "/usr/bin/chrome --enable-features=test"
+            "command_text": "/usr/bin/chrome --enable-features=test"
         }
         
         assert "deviceid" in process_payload
         assert "pid" in process_payload
-        assert "name" in process_payload
+        assert "device_name" in process_payload
         assert process_payload["pid"] > 0
         assert 0 <= process_payload["cpu"] <= 100
         assert process_payload["memory"] >= 0
@@ -287,14 +287,14 @@ class TestProcessValidation:
             {
                 "deviceid": "device-123",
                 "pid": 1234,
-                "name": "chrome",
+                "process_name": "chrome",
                 "cpu": 25.5,
                 "memory": 536870912
             },
             {
                 "deviceid": "device-123", 
                 "pid": 5678,
-                "name": "firefox",
+                "process_name": "firefox",
                 "cpu": 15.2,
                 "memory": 268435456
             }
@@ -312,8 +312,8 @@ class TestProcessValidation:
         edge_cases = [
             {"pid": 1, "cpu": 0.0, "memory": 0},      # Minimal values
             {"pid": 65535, "cpu": 100.0, "memory": 1099511627776},  # Large values
-            {"name": "", "command": ""},               # Empty strings
-            {"name": "very-long-process-name" * 10},   # Long name
+            {"device_name": "", "command_text": ""},               # Empty strings
+            {"process_name": "very-long-process-name" * 10},   # Long name
         ]
         
         for case in edge_cases:

@@ -62,12 +62,12 @@ def register_device(device_id, name, device_type, os_name):
     hash_val = abs(hash(device_id))
     
     payload = {
-        "id": device_id,
-        "name": name,
-        "type": device_type,
+        "deviceid": device_id,
+        "device_name": name,
+        "device_type": device_type,
         "os": os_name,
         "current_user": "test-user",
-        "location": "E2E Test Lab",
+        "device_location": "E2E Test Lab",
         "ip_address": f"192.168.1.{(hash_val % 254) + 1}",
         "mac_address": f"{hash_val % 256:02X}:BB:CC:DD:EE:FF"
     }
@@ -115,7 +115,7 @@ def submit_metrics(device_id, cpu, memory_pct):
 def submit_activity(device_id, activity_type, app, description):
     """Submit activity for a device."""
     activities = [{
-        "type": activity_type,
+        "activity_type": activity_type,
         "app": app,
         "description": description,
         "duration": 60
@@ -137,7 +137,7 @@ def submit_alert(device_id, level, alert_type, message, value, threshold):
     """Submit alert for a device."""
     alerts = [{
         "level": level,
-        "type": alert_type,
+        "alert_type": alert_type,
         "message": message,
         "value": value,
         "threshold": threshold

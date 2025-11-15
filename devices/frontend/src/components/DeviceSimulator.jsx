@@ -40,12 +40,12 @@ function DeviceSimulator() {
     const registerDevice = async () => {
         try {
             const payload = {
-                id: deviceId,
-                name: deviceName || `${deviceType}-${deviceId.slice(-4)}`,
-                type: deviceType,
+                deviceid: deviceId,
+                device_name: deviceName || `${deviceType}-${deviceId.slice(-4)}`,
+                device_type: deviceType,
                 os: deviceOS,
                 current_user: currentUser || 'simulator-user',
-                location: 'Simulated Location',
+                device_location: 'Simulated Location',
                 ip_address: '192.168.1.' + Math.floor(Math.random() * 255),
                 mac_address: Array.from({ length: 6 }, () =>
                     Math.floor(Math.random() * 256).toString(16).padStart(2, '0')
@@ -104,7 +104,7 @@ function DeviceSimulator() {
             const types = ['app_usage', 'file_access', 'network_activity'];
 
             const activities = Array.from({ length: Math.floor(Math.random() * 3) + 1 }, () => ({
-                type: types[Math.floor(Math.random() * types.length)],
+                activity_type: types[Math.floor(Math.random() * types.length)],
                 app: apps[Math.floor(Math.random() * apps.length)],
                 description: `User activity on ${apps[Math.floor(Math.random() * apps.length)]}`,
                 duration: Math.floor(Math.random() * 300)
@@ -132,7 +132,7 @@ function DeviceSimulator() {
 
             const alerts = [{
                 level: levels[Math.floor(Math.random() * levels.length)],
-                type: alertTypes[Math.floor(Math.random() * alertTypes.length)],
+                alert_type: alertTypes[Math.floor(Math.random() * alertTypes.length)],
                 message: 'Simulated alert condition detected',
                 value: Math.floor(Math.random() * 100),
                 threshold: 80
@@ -195,7 +195,7 @@ function DeviceSimulator() {
 
     const executeCommand = useCallback(async (cmd) => {
         try {
-            addLog(`⚙️ Executing command: ${cmd.command}`, 'info');
+            addLog(`⚙️ Executing command: ${cmd.command_text}`, 'info');
 
             // Whitelist of allowed commands
             const allowedCommands = [
@@ -208,7 +208,7 @@ function DeviceSimulator() {
                 'screenshot'
             ];
 
-            const commandBase = cmd.command.toLowerCase().split(' ')[0];
+            const commandBase = cmd.command_text.toLowerCase().split(' ')[0];
             if (!allowedCommands.includes(commandBase)) {
                 throw new Error('Command not allowed');
             }
@@ -245,7 +245,7 @@ function DeviceSimulator() {
                     result = 'Log line 1\nLog line 2\nLog line 3';
                     break;
                 case 'restart_service': {
-                    const service = cmd.command.split(' ')[1] || 'unknown';
+                    const service = cmd.command_text.split(' ')[1] || 'unknown';
                     result = `Service ${service} restarted successfully`;
                     break;
                 }
@@ -253,11 +253,11 @@ function DeviceSimulator() {
                     result = 'Screenshot captured successfully';
                     break;
                 default:
-                    result = `Command executed: ${cmd.command}`;
+                    result = `Command executed: ${cmd.command_text}`;
             }
 
             // Submit result back to backend
-            const submitResponse = await fetch(`${API_BASE_URL}/commands/${cmd.id}/result`, {
+            const submitResponse = await fetch(`${API_BASE_URL}/commands/${cmd.commandid}/result`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -268,7 +268,7 @@ function DeviceSimulator() {
             });
 
             if (submitResponse.ok) {
-                addLog(`✓ Command completed: ${cmd.command}`, 'success');
+                addLog(`✓ Command completed: ${cmd.command_text}`, 'success');
             }
         } catch (error) {
             addLog(`✗ Command error: ${error.message}`, 'error');
@@ -313,10 +313,10 @@ function DeviceSimulator() {
 
             const processes = Array.from({ length: Math.floor(Math.random() * 8) + 5 }, () => ({
                 pid: 1000 + Math.floor(Math.random() * 9000),
-                name: processNames[Math.floor(Math.random() * processNames.length)],
+                process_name: processNames[Math.floor(Math.random() * processNames.length)],
                 cpu: Math.random() * 50,
                 memory: Math.floor(Math.random() * 1024 * 1024 * 1024), // Up to 1GB
-                command: `/usr/bin/${processNames[Math.floor(Math.random() * processNames.length)]}`
+                command_text: `/usr/bin/${processNames[Math.floor(Math.random() * processNames.length)]}`
             }));
 
             const response = await fetch(`${API_BASE_URL}/devices/${deviceId}/processes`, {

@@ -52,12 +52,12 @@ def test_device_registration():
     log("Registering device in devices backend...")
     
     payload = {
-        "id": TEST_DEVICE_ID,
-        "name": "Backend Communication Test Device",
-        "alert_type": "server",
+        "deviceid": TEST_DEVICE_ID,
+        "device_name": "Backend Communication Test Device",
+        "device_type": "server",
         "os": "CentOS 8",
         "current_user": "integration-test",
-        "location": "Backend Integration Test Suite",
+        "device_location": "Backend Integration Test Suite",
         "ip_address": "10.0.1.100",
         "mac_address": "11:22:33:44:55:66"
     }

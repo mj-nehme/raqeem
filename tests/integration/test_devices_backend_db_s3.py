@@ -52,12 +52,12 @@ def test_device_registration():
     log("Testing device registration...")
     
     payload = {
-        "id": TEST_DEVICE_ID,
-        "name": f"DB/S3 Test Device {TEST_DEVICE_ID}",
+        "deviceid": TEST_DEVICE_ID,
+        "device_name": f"DB/S3 Test Device {TEST_DEVICE_ID}",
         "device_type": "laptop",
         "os": "Ubuntu 22.04",
         "current_user": "test-user",
-        "location": "Integration Test Lab",
+        "device_location": "Integration Test Lab",
         "ip_address": "192.168.100.50",
         "mac_address": "AA:BB:CC:DD:EE:FF"
     }

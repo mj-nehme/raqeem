@@ -8,11 +8,11 @@ from app.main import app
 async def test_register_device_forwards_to_mentor():
     """Test that device registration is forwarded to mentor backend when configured."""
     payload = {
-        "id": "a843a399-701f-5011-aff3-4b69d8f21b11",
-        "name": "Test Device for Forwarding",
+        "deviceid": "a843a399-701f-5011-aff3-4b69d8f21b11",
+        "device_name": "Test Device for Forwarding",
         "device_type": "laptop",
         "os": "Linux",
-        "location": "Test Lab",
+        "device_location": "Test Lab",
         "ip_address": "192.168.1.200",
         "mac_address": "11:22:33:44:55:66",
         "current_user": "testuser"
@@ -37,8 +37,8 @@ async def test_register_device_forwards_to_mentor():
 async def test_register_device_survives_mentor_forwarding_failure():
     """Test that device registration succeeds even if mentor forwarding fails."""
     payload = {
-        "id": "e35e27a7-5808-5ea8-9ac5-acc284f75552",
-        "name": "Test Device",
+        "deviceid": "e35e27a7-5808-5ea8-9ac5-acc284f75552",
+        "device_name": "Test Device",
         "device_type": "laptop"
     }
     

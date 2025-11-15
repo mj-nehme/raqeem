@@ -34,9 +34,10 @@ def random_process_list(n=5):
         pid = random.randint(1000, 50000)
         procs.append({
             "pid": pid,
-            "name": f"proc_{pid}",
+            "process_name": f"proc_{pid}",
             "cpu": round(random.uniform(0.0, 50.0), 2),
             "memory": round(random.uniform(1.0, 500.0), 2),
+            "command_text": f"/usr/bin/proc_{pid}",
         })
     return procs
 
@@ -60,8 +61,8 @@ def random_activity():
 
 def register_device(base_url, device_id, name=None):
     payload = {
-        "id": device_id,
-        "name": name or f"Sim {device_id}",
+        "deviceid": device_id,
+        "device_name": name or f"Sim {device_id}",
         "device_type": "simulator",
         "os": "linux",
         "ip_address": f"10.0.{random.randint(0,255)}.{random.randint(1,254)}",

@@ -25,11 +25,11 @@ class TestDeviceEndpoints:
         """Test successful device registration."""
         
         device_data = {
-            "id": sample_uuid,
-            "name": "Test Device",
+            "deviceid": sample_uuid,
+            "device_name": "Test Device",
             "device_type": "laptop",
             "os": "macOS",
-            "location": "Office"
+            "device_location": "Office"
         }
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -40,7 +40,7 @@ class TestDeviceEndpoints:
         """Test device registration with invalid data."""
         
         invalid_data = {
-            "name": "",  # Missing required id field
+            "device_name": "",  # Missing required id field
             "device_type": "invalid_type"
         }
         
@@ -99,7 +99,7 @@ class TestActivityEndpoints:
         
         activity_data = [
             {
-                "type": "app_launch",
+                "activity_type": "app_launch",
                 "app": "chrome",
                 "description": "User launched Chrome browser",
                 "duration": 3600
@@ -361,7 +361,7 @@ class TestPerformanceEdgeCases:
             response = await client.post(
                 f"/api/v1/devices/{sample_uuid}/activities",
                 json=[{
-                    "type": "app_launch",
+                    "activity_type": "app_launch",
                     "description": large_description
                 }]
             )
@@ -378,8 +378,8 @@ class TestPerformanceEdgeCases:
                 response = await client.post(
                     "/api/v1/devices/register",
                     json={
-                        "id": str(uuid.uuid4()),
-                        "name": f"Device {i}",
+                        "deviceid": str(uuid.uuid4()),
+                        "device_name": f"Device {i}",
                         "device_type": "laptop"
                     }
                 )

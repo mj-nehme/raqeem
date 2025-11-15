@@ -1,5 +1,30 @@
 # 📡 API Documentation
 
+## ⚠️ Breaking Change Notice
+
+**All API field names now use canonical lowercase underscore naming.**
+
+Legacy field names are no longer supported and will result in a `400 Bad Request` error with a clear migration message.
+
+### Field Name Changes
+
+| Legacy Field | Canonical Field | Context |
+|-------------|----------------|---------|
+| `id` | `deviceid` | Device registration |
+| `name` | `device_name` | Device info |
+| `name` | `process_name` | Process info |
+| `location` | `device_location` | Device info |
+| `type` | `activity_type` | Activities |
+| `type` | `alert_type` | Alerts |
+| `command` | `command_text` | Processes and commands |
+
+**Example Error Response:**
+```json
+{
+  "detail": "unsupported legacy field: name; use device_name"
+}
+```
+
 ## Overview
 
 Raqeem provides two REST APIs for device monitoring and management. This guide covers authentication, common patterns, and example requests for both APIs.
@@ -176,11 +201,11 @@ POST /api/v1/devices/register
 Content-Type: application/json
 
 {
-  "id": "device-001",
-  "name": "John's Laptop",
+  "deviceid": "device-001",
+  "device_name": "John's Laptop",
   "device_type": "laptop",
   "os": "macOS 14.0",
-  "location": "Office Building A",
+  "device_location": "Office Building A",
   "ip_address": "192.168.1.100",
   "mac_address": "00:1B:63:84:45:E6",
   "current_user": "john.doe"
@@ -190,14 +215,9 @@ Content-Type: application/json
 Response:
 ```json
 {
-  "id": "device-001",
-  "name": "John's Laptop",
-  "device_type": "laptop",
-  "os": "macOS 14.0",
-  "last_seen": "2024-11-04T10:30:00Z",
-  "is_online": true,
-  "location": "Office Building A",
-  "ip_address": "192.168.1.100",
+  "deviceid": "device-001",
+  "created": true
+}
   "mac_address": "00:1B:63:84:45:E6",
   "current_user": "john.doe"
 }
@@ -326,17 +346,17 @@ Content-Type: application/json
   "processes": [
     {
       "pid": 1234,
-      "name": "chrome",
+      "process_name": "chrome",
       "cpu": 15.5,
       "memory": 524288000,
-      "command": "/Applications/Chrome.app/Contents/MacOS/Chrome"
+      "command_text": "/Applications/Chrome.app/Contents/MacOS/Chrome"
     },
     {
       "pid": 5678,
-      "name": "vscode",
+      "process_name": "vscode",
       "cpu": 8.2,
       "memory": 312458240,
-      "command": "/usr/local/bin/code"
+      "command_text": "/usr/local/bin/code"
     }
   ]
 }
@@ -372,8 +392,8 @@ Response:
 ```json
 [
   {
-    "id": "device-001",
-    "name": "John's Laptop",
+    "deviceid": "device-001",
+    "device_name": "John's Laptop",
     "device_type": "laptop",
     "os": "macOS 14.0",
     "last_seen": "2024-11-04T10:30:00Z",
@@ -383,9 +403,9 @@ Response:
     "current_user": "john.doe"
   },
   {
-    "id": "device-002",
-    "name": "Server 1",
-    "type": "server",
+    "deviceid": "device-002",
+    "device_name": "Server 1",
+    "device_type": "server",
     "os": "Ubuntu 22.04",
     "last_seen": "2024-11-04T10:29:45Z",
     "is_online": true
@@ -504,10 +524,10 @@ Response:
     "deviceid": "device-001",
     "timestamp": "2024-11-04T10:30:00Z",
     "pid": 1234,
-    "name": "chrome",
+    "process_name": "chrome",
     "cpu": 15.5,
     "memory": 524288000,
-    "command": "/Applications/Chrome.app/Contents/MacOS/Chrome"
+    "command_text": "/Applications/Chrome.app/Contents/MacOS/Chrome"
   }
 ]
 ```
@@ -522,7 +542,7 @@ Content-Type: application/json
 
 {
   "deviceid": "device-001",
-  "command": "restart"
+  "command_text": "restart"
 }
 ```
 
@@ -531,7 +551,7 @@ Response:
 {
   "id": 1,
   "deviceid": "device-001",
-  "command": "restart",
+  "command_text": "restart",
   "status": "pending",
   "created_at": "2024-11-04T10:30:00Z"
 }
@@ -549,7 +569,7 @@ Response:
   {
     "id": 1,
     "deviceid": "device-001",
-    "command": "restart",
+    "command_text": "restart",
     "status": "pending",
     "created_at": "2024-11-04T10:30:00Z"
   }
@@ -698,8 +718,8 @@ X-RateLimit-Reset: 1699102800
 curl -X POST http://localhost:30080/api/v1/devices/register \
   -H "Content-Type: application/json" \
   -d '{
-    "id": "laptop-001",
-    "name": "Development Laptop",
+    "deviceid": "laptop-001",
+    "device_name": "Development Laptop",
     "device_type": "laptop",
     "os": "macOS 14.0"
   }'
@@ -775,8 +795,8 @@ response = requests.post(
     f"{BASE_URL}/devices/register",
     json={
         "id": DEVICE_ID,
-        "name": "Python Test Device",
-        "type": "server"
+        "device_name": "Python Test Device",
+        "device_type": "server"
     }
 )
 print(f"Device registered: {response.json()}")

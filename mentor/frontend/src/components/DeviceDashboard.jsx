@@ -105,12 +105,12 @@ export default function DeviceDashboard() {
         setLoading(true);
         try {
             const [metricsRes, processesRes, activitiesRes, alertsRes, screenshotsRes, commandsRes] = await Promise.all([
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/metrics`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/processes`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/activities`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/alerts`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/screenshots`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.id}/commands`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/metrics`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/processes`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/activities`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/alerts`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/screenshots`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/commands`),
             ]);
             const [metricsData, processesData, activitiesData, alertsData, screenshotsData, commandsData] = await Promise.all([
                 metricsRes.json(),
@@ -140,7 +140,7 @@ export default function DeviceDashboard() {
         const interval = setInterval(fetchDeviceDetails, 10000);
         return () => clearInterval(interval);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selectedDevice?.id]);
+    }, [selectedDevice?.deviceid]);
 
     const latestMetrics = metrics.length ? metrics[metrics.length - 1] : null;
     const chartData = useMemo(
@@ -155,7 +155,7 @@ export default function DeviceDashboard() {
     const processChartData = useMemo(
         () =>
             processes.slice(0, 5).map((p) => ({
-                name: String(p.name || '').substring(0, 15),
+                name: String(p.process_name || '').substring(0, 15),
                 cpu: Number(p.cpu || 0),
             })),
         [processes]
@@ -167,7 +167,7 @@ export default function DeviceDashboard() {
             await fetch(`${BACKEND_URL}/devices/commands`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ device_id: selectedDevice.id, command }),
+                body: JSON.stringify({ device_id: selectedDevice.deviceid, command_text: command }),
             });
             setCommand('');
         } catch (err) {
@@ -191,13 +191,13 @@ export default function DeviceDashboard() {
                             const isOnline = device.isOnline || device.is_online;
                             const isSelected = selectedDevice?.id === device.id;
                             return (
-                                <ListItem key={device.id} disablePadding>
+                                <ListItem key={device.deviceid} disablePadding>
                                     <ListItemButton selected={isSelected} onClick={() => setSelectedDevice(device)} sx={{ '&.Mui-selected': { bgcolor: 'action.selected' } }}>
                                         <ListItemIcon>
-                                            <Avatar sx={{ width: 32, height: 32, bgcolor: isOnline ? 'success.main' : 'error.main' }}>{getDeviceIcon(device.type || device.device_type)}</Avatar>
+                                            <Avatar sx={{ width: 32, height: 32, bgcolor: isOnline ? 'success.main' : 'error.main' }}>{getDeviceIcon(device.device_type)}</Avatar>
                                         </ListItemIcon>
                                         <ListItemText
-                                            primary={device.name}
+                                            primary={device.device_name}
                                             secondary={isOnline ? 'Online' : 'Offline'}
                                         />
                                     </ListItemButton>
@@ -217,12 +217,12 @@ export default function DeviceDashboard() {
                             <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                                 <Box>
                                     <Typography variant="h4" fontWeight={600} gutterBottom>
-                                        {selectedDevice.name}
+                                        {selectedDevice.device_name}
                                     </Typography>
                                     <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
                                         <Chip icon={<Circle sx={{ fontSize: 12 }} />} label={(selectedDevice.isOnline || selectedDevice.is_online) ? 'Online' : 'Offline'} color={(selectedDevice.isOnline || selectedDevice.is_online) ? 'success' : 'error'} size="small" />
                                         <Chip label={selectedDevice.os || 'Unknown OS'} size="small" variant="outlined" />
-                                        <Chip label={selectedDevice.type || selectedDevice.device_type || 'Unknown Type'} size="small" variant="outlined" />
+                                        <Chip label={selectedDevice.device_type || 'Unknown Type'} size="small" variant="outlined" />
                                     </Box>
                                 </Box>
                                 <IconButton onClick={fetchDeviceDetails} disabled={refreshing} aria-label="refresh">
@@ -367,7 +367,7 @@ export default function DeviceDashboard() {
                                                         <List>
                                                             {processes.slice(0, 15).map((proc) => (
                                                                 <ListItem key={proc.pid} divider>
-                                                                    <ListItemText primary={proc.name} secondary={`PID: ${proc.pid}`} />
+                                                                    <ListItemText primary={proc.process_name} secondary={`PID: ${proc.pid}`} />
                                                                     <Box sx={{ display: 'flex', gap: 2 }}>
                                                                         <Chip label={`CPU: ${Number(proc.cpu || 0).toFixed(1)}%`} size="small" />
                                                                         <Chip label={`MEM: ${Number((proc.memory || 0) / 1024 / 1024).toFixed(1)}MB`} size="small" />
@@ -386,9 +386,9 @@ export default function DeviceDashboard() {
                                                     ) : (
                                                         <List>
                                                             {activities.slice(0, 20).map((activity) => (
-                                                                <ListItem key={activity.id} divider>
+                                                                <ListItem key={activity.activityid} divider>
                                                                     <ListItemIcon><History /></ListItemIcon>
-                                                                    <ListItemText primary={activity.description} secondary={`${activity.type} • ${new Date(activity.timestamp).toLocaleString()}`} />
+                                                                    <ListItemText primary={activity.description} secondary={`${activity.activity_type} • ${new Date(activity.timestamp).toLocaleString()}`} />
                                                                 </ListItem>
                                                             ))}
                                                         </List>
@@ -405,7 +405,7 @@ export default function DeviceDashboard() {
                                                             {alerts.slice(0, 20).map((alert) => {
                                                                 const severity = alert.level === 'critical' || alert.level === 'error' ? 'error' : alert.level === 'warning' ? 'warning' : 'info';
                                                                 return (
-                                                                    <Alert key={alert.id} severity={severity} icon={severity === 'error' ? <Error /> : severity === 'warning' ? <Warning /> : <Info />}>
+                                                                    <Alert key={alert.alertid} severity={severity} icon={severity === 'error' ? <Error /> : severity === 'warning' ? <Warning /> : <Info />}>
                                                                         <Typography variant="body2" fontWeight={500}>{alert.message}</Typography>
                                                                         <Typography variant="caption" color="text.secondary">{new Date(alert.timestamp).toLocaleString()}</Typography>
                                                                     </Alert>
@@ -421,9 +421,9 @@ export default function DeviceDashboard() {
                                                     <Grid container spacing={2}>
                                                         {screenshots.length > 0 ? (
                                                             screenshots.slice(0, 12).map((screenshot) => (
-                                                                <Grid item xs={12} sm={6} md={4} key={screenshot.id}>
+                                                                <Grid item xs={12} sm={6} md={4} key={screenshot.screenshotid}>
                                                                     <Card>
-                                                                        <Box component="img" src={screenshot.screenshot_url || screenshot.url} alt={`Screenshot ${screenshot.id}`} sx={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }} onClick={() => window.open(screenshot.screenshot_url || screenshot.url, '_blank')} onError={(e) => { e.target.style.display = 'none'; }} />
+                                                                        <Box component="img" src={screenshot.screenshot_url || screenshot.url} alt={`Screenshot ${screenshot.screenshotid}`} sx={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }} onClick={() => window.open(screenshot.screenshot_url || screenshot.url, '_blank')} onError={(e) => { e.target.style.display = 'none'; }} />
                                                                         <CardContent>
                                                                             <Typography variant="caption" color="text.secondary">{new Date(screenshot.timestamp || screenshot.created_at).toLocaleString()}</Typography>
                                                                         </CardContent>
