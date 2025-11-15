@@ -59,17 +59,25 @@ func TestSetupTestDBAutoMigrationSuccess(t *testing.T) {
 
 // TestSetupTestDBSQLitePragmas tests SQLite pragma settings
 func TestSetupTestDBSQLitePragmas(t *testing.T) {
+	// This test is SQLite-specific. For PostgreSQL, we verify connection settings instead
 	db, err := SetupTestDB(t)
 	require.NotNil(t, db)
 	require.NoError(t, err)
 	defer CleanupTestDB(t, db)
 
-	// Check busy timeout is set
-	var busyTimeout int
-	err = db.Raw("PRAGMA busy_timeout").Scan(&busyTimeout).Error
+	// For PostgreSQL, verify the connection is working
+	sqlDB, err := db.DB()
+	require.NoError(t, err)
+	
+	// Verify connection is alive
+	err = sqlDB.Ping()
 	assert.NoError(t, err)
-	// Should be greater than 0 (we set it to 5000ms)
-	assert.Greater(t, busyTimeout, 0)
+	
+	// Verify we can execute a simple query
+	var result int
+	err = db.Raw("SELECT 1").Scan(&result).Error
+	assert.NoError(t, err)
+	assert.Equal(t, 1, result)
 }
 
 // TestSetupTestDBCacheSharing tests cache sharing mode
@@ -91,21 +99,27 @@ func TestSetupTestDBCacheSharing(t *testing.T) {
 
 // TestSetupTestDBConcurrentAccess tests concurrent access to test database
 func TestSetupTestDBConcurrentAccess(t *testing.T) {
-	db, err := SetupTestDB(t)
-	require.NotNil(t, db)
-	require.NoError(t, err)
-	defer CleanupTestDB(t, db)
+	// Use baseConnection for concurrent access since transaction-wrapped DB can't be used concurrently
+	if baseConnection == nil {
+		t.Skip("No base connection available")
+	}
+	
+	db := baseConnection
 
-	// Test concurrent reads and writes
+	// Test concurrent reads
 	done := make(chan bool, 3)
+	errors := make(chan error, 3)
 
 	for i := 0; i < 3; i++ {
 		go func(id int) {
-			// Try to query
+			// Try to query - use proper parameter binding for PostgreSQL
 			var result int
-			err := db.Raw("SELECT ?", id).Scan(&result).Error
-			assert.NoError(t, err)
-			assert.Equal(t, id, result)
+			err := db.Raw("SELECT $1::int", id).Scan(&result).Error
+			if err != nil {
+				errors <- err
+			} else if result != id {
+				errors <- fmt.Errorf("expected %d, got %d", id, result)
+			}
 			done <- true
 		}(i)
 	}
@@ -113,6 +127,13 @@ func TestSetupTestDBConcurrentAccess(t *testing.T) {
 	// Wait for all goroutines
 	for i := 0; i < 3; i++ {
 		<-done
+	}
+	
+	close(errors)
+	for err := range errors {
+		assert.NoError(t, err)
+	}
+}
 	}
 }
 

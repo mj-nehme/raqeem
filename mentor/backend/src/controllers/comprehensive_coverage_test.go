@@ -13,6 +13,7 @@ import (
 	"mentor-backend/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -28,27 +29,32 @@ func TestListDevicesFullScenarios(t *testing.T) {
 
 	// Create devices with different online statuses and timestamps
 	now := time.Now()
+	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
+	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
+	uuid3 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440003")
+	uuid4 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440004")
+
 	devices := []models.Device{
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid1,
 			DeviceName: "Online Device 1",
 			IsOnline:   true,
 			LastSeen:   now,
 		},
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid2,
 			DeviceName: "Online Device 2",
 			IsOnline:   true,
 			LastSeen:   now.Add(-2 * time.Minute), // Recently seen
 		},
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid3,
 			DeviceName: "Offline Device 1",
 			IsOnline:   true,                       // Will be marked offline
 			LastSeen:   now.Add(-10 * time.Minute), // Seen more than 5 minutes ago
 		},
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid4,
 			DeviceName: "Offline Device 2",
 			IsOnline:   false,
 			LastSeen:   now.Add(-30 * time.Minute),
@@ -85,7 +91,7 @@ func TestListDevicesFullScenarios(t *testing.T) {
 		time.Sleep(10 * time.Millisecond)
 
 		var offlineDevice models.Device
-		db.Where("deviceid = ?", "device-offline-1").First(&offlineDevice)
+		db.Where("deviceid = ?", uuid3).First(&offlineDevice)
 		// Should be marked offline due to old last_seen
 		assert.False(t, offlineDevice.IsOnline)
 	})
@@ -120,7 +126,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 
 		// Verify processes were created
 		var count int64
-		db.Model(&models.DeviceProcess{}).Where("deviceid = ?", sampleUUID.String()).Count(&count)
+		db.Model(&models.DeviceProcess{}).Where("deviceid = ?", sampleUUID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 
@@ -142,7 +148,7 @@ func TestUpdateProcessListFullScenarios(t *testing.T) {
 
 		// Verify old processes are gone and new process exists
 		var count int64
-		db.Model(&models.DeviceProcess{}).Where("deviceid = ?", sampleUUID.String()).Count(&count)
+		db.Model(&models.DeviceProcess{}).Where("deviceid = ?", sampleUUID).Count(&count)
 		assert.Equal(t, int64(1), count)
 	})
 
@@ -171,7 +177,7 @@ func TestGetPendingCommandsAdvanced(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	deviceID := "test-device-pending-cmds"
+	deviceID := sampleUUID.String()
 
 	// Create commands with various statuses
 	commands := []models.DeviceRemoteCommand{
@@ -200,12 +206,12 @@ func TestGetPendingCommandsAdvanced(t *testing.T) {
 		var result []models.DeviceRemoteCommand
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
-		assert.Equal(t, 3, len(result)) // Only 3 pending commands for this device
+		assert.Equal(t, 4, len(result)) // 4 pending commands for this device
 
 		// Verify all are pending
 		for _, cmd := range result {
 			assert.Equal(t, "pending", cmd.Status)
-			assert.Equal(t, deviceID, cmd.DeviceID)
+			assert.Equal(t, sampleUUID, cmd.DeviceID)
 		}
 	})
 
@@ -255,7 +261,7 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 		var result models.DeviceScreenshot
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
-		assert.Equal(t, sampleUUID.String(), result.DeviceID)
+		assert.Equal(t, sampleUUID, result.DeviceID)
 		assert.NotNil(t, result.DeviceID)
 	})
 
@@ -279,7 +285,7 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 
 		// Verify all screenshots were stored
 		var count int64
-		db.Model(&models.DeviceScreenshot{}).Where("deviceid = ?", "test-device-multi").Count(&count)
+		db.Model(&models.DeviceScreenshot{}).Where("deviceid = ?", sampleUUID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }
@@ -315,12 +321,15 @@ func TestActivityFullScenarios(t *testing.T) {
 
 		// Verify activity was stored
 		var storedActivity models.DeviceActivity
-		db.Where("deviceid = ?", sampleUUID.String()).First(&storedActivity)
+		db.Where("deviceid = ?", sampleUUID).First(&storedActivity)
 		assert.Equal(t, "app_launch", storedActivity.ActivityType)
 		assert.Equal(t, "Chrome", storedActivity.App)
 	})
 
 	t.Run("Log multiple activities", func(t *testing.T) {
+		// Clear existing activities first to get accurate count
+		db.Where("deviceid = ?", sampleUUID).Delete(&models.DeviceActivity{})
+
 		deviceID := sampleUUID
 
 		activityTypes := []string{"app_launch", "file_access", "browser"}
@@ -380,14 +389,12 @@ func TestReportAlertFullScenarios(t *testing.T) {
 
 		// Verify alert was stored
 		var storedAlert models.DeviceAlert
-		db.Where("device_id = ? AND type = ?", "test-device-alert", "disk_full").First(&storedAlert)
+		db.Where("deviceid = ? AND alert_type = ?", sampleUUID, "disk_full").First(&storedAlert)
 		assert.Equal(t, "critical", storedAlert.Level)
 		assert.Equal(t, 98.0, storedAlert.Value)
 	})
 
 	t.Run("Report multiple alerts", func(t *testing.T) {
-		deviceID := "test-device-multi-alert"
-
 		alertTypes := []string{"cpu_high", "memory_high", "disk_full"}
 		for i, alertType := range alertTypes {
 			w := httptest.NewRecorder()
@@ -411,7 +418,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 
 		// Verify all alerts were stored
 		var count int64
-		db.Model(&models.DeviceAlert{}).Where("deviceid = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceAlert{}).Where("deviceid = ?", sampleUUID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }

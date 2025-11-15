@@ -12,6 +12,7 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/models"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -115,7 +116,7 @@ func TestUpdateProcessList_ErrorCases(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-device-process-error"
+	deviceID := sampleUUID.String()
 
 	// Test invalid JSON
 	req, _ := http.NewRequest("POST", fmt.Sprintf("/devices/%s/processes", deviceID), bytes.NewBufferString(`{"invalid": json}`))
@@ -382,7 +383,7 @@ func TestGetPendingCommands_EdgeCases(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-device-pending-commands"
+	deviceID := sampleUUID.String()
 
 	// Test device with no commands
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/devices/%s/commands/pending", deviceID), nil)
@@ -433,8 +434,11 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Create devices with different last seen times
+	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440021")
+	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440022")
+	
 	oldDevice := models.Device{
-		DeviceID:   sampleUUID,
+		DeviceID:   uuid1,
 		DeviceName: "Old Device",
 		IsOnline:   true,
 		LastSeen:   time.Now().Add(-10 * time.Minute), // 10 minutes ago
@@ -442,7 +446,7 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	database.DB.Create(&oldDevice)
 
 	recentDevice := models.Device{
-		DeviceID:   sampleUUID,
+		DeviceID:   uuid2,
 		DeviceName: "Recent Device",
 		IsOnline:   true,
 		LastSeen:   time.Now().Add(-2 * time.Minute), // 2 minutes ago

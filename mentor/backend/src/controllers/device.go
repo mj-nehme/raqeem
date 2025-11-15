@@ -111,31 +111,28 @@ func UpdateProcessList(c *gin.Context) {
 		return
 	}
 
-	// Start transaction
-	tx := database.DB.Begin()
-
-	// Delete old processes for this device
-	if len(processes) > 0 {
-		if err := tx.Where("deviceid = ?", processes[0].DeviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+	// Use Transaction method which handles nested transactions (savepoints) automatically
+	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		// Delete old processes for this device
+		if len(processes) > 0 {
+			if err := tx.Where("deviceid = ?", processes[0].DeviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
+				return err
+			}
 		}
-	}
 
-	// Insert new processes
-	now := time.Now()
-	for i := range processes {
-		processes[i].Timestamp = now
-		if err := tx.Create(&processes[i]).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+		// Insert new processes
+		now := time.Now()
+		for i := range processes {
+			processes[i].Timestamp = now
+			if err := tx.Create(&processes[i]).Error; err != nil {
+				return err
+			}
 		}
-	}
 
-	// Commit transaction
-	if err := tx.Commit().Error; err != nil {
+		return nil
+	})
+
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
