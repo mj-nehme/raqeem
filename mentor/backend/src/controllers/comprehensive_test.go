@@ -436,8 +436,8 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Create devices with different last seen times
-	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440021")
-	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440022")
+	uuid1 := uuid.New()
+	uuid2 := uuid.New()
 	
 	oldDevice := models.Device{
 		DeviceID:   uuid1,

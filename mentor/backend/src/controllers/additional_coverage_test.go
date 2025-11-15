@@ -18,7 +18,9 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var sampleUUID, _ = uuid.Parse("550e8400-e29b-41d4-a716-446655440000")
+// sampleUUID provides a default UUID for tests that don't need uniqueness
+// Tests that run in parallel with -race should generate their own UUIDs
+var sampleUUID = uuid.MustParse("550e8400-e29b-41d4-a716-446655440000")
 
 // TestCreateRemoteCommandWithForwarding tests CreateRemoteCommand with DEVICES_API_URL set
 func TestCreateRemoteCommandWithForwarding(t *testing.T) {
@@ -47,12 +49,13 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 	defer func() { _ = os.Setenv("DEVICES_API_URL", originalURL) }()
 
 	t.Run("CreateCommand with forwarding to devices backend", func(t *testing.T) {
+		testUUID := uuid.New()
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-forward"}}
 
 		cmd := models.DeviceRemoteCommand{
-			DeviceID:    sampleUUID,
+			DeviceID:    testUUID,
 			CommandText: "get_info",
 			Status:      "pending",
 		}
@@ -88,6 +91,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 	})
 
 	t.Run("CreateCommand forwarding with failed backend", func(t *testing.T) {
+		testUUID := uuid.New()
 		// Set DEVICES_API_URL to non-existent server
 		_ = os.Setenv("DEVICES_API_URL", "http://localhost:99999")
 
@@ -96,7 +100,7 @@ func TestCreateRemoteCommandWithForwarding(t *testing.T) {
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-fail"}}
 
 		cmd := models.DeviceRemoteCommand{
-			DeviceID:    sampleUUID,
+			DeviceID:    testUUID,
 			CommandText: "get_info",
 			Status:      "pending",
 		}
@@ -131,12 +135,13 @@ func TestGetDeviceCommandsWithLimit(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	deviceID := sampleUUID.String()
+	testUUID := uuid.New()
+	deviceID := testUUID.String()
 
 	// Create multiple commands
 	for i := 0; i < 5; i++ {
 		cmd := models.DeviceRemoteCommand{
-			DeviceID:    sampleUUID,
+			DeviceID:    testUUID,
 			CommandText: "test_cmd",
 			Status:      "pending",
 			CreatedAt:   time.Now(),
@@ -198,11 +203,12 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 	database.DB = db
 
 	t.Run("Store screenshot with valid data", func(t *testing.T) {
+		testUUID := uuid.New()
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		screenshot := models.DeviceScreenshot{
-			DeviceID: sampleUUID,
+			DeviceID: testUUID,
 			Path:     "https://example.com/screenshot.png",
 		}
 		b, _ := json.Marshal(screenshot)
@@ -216,7 +222,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 		var result models.DeviceScreenshot
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
-		assert.Equal(t, sampleUUID, result.DeviceID)
+		assert.Equal(t, testUUID, result.DeviceID)
 		assert.Equal(t, "https://example.com/screenshot.png", result.Path)
 	})
 
@@ -245,11 +251,12 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 	})
 
 	t.Run("Store screenshot with minimal data", func(t *testing.T) {
+		testUUID := uuid.New()
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 
 		screenshot := models.DeviceScreenshot{
-			DeviceID: sampleUUID,
+			DeviceID: testUUID,
 		}
 		b, _ := json.Marshal(screenshot)
 		c.Request, _ = http.NewRequest("POST", "/screenshots", bytes.NewReader(b))
@@ -304,6 +311,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 	})
 
 	t.Run("UpdateProcessList with many processes", func(t *testing.T) {
+		testUUID := uuid.New()
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
 		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-many"}}
@@ -311,7 +319,7 @@ func TestUpdateProcessListEdgeCases(t *testing.T) {
 		processes := make([]models.DeviceProcess, 50)
 		for i := 0; i < 50; i++ {
 			processes[i] = models.DeviceProcess{
-				DeviceID:    sampleUUID,
+				DeviceID:    testUUID,
 				ProcessName: fmt.Sprintf("process%d", i),
 				PID:         i + 1,
 				CPU:         1.0,
@@ -343,10 +351,10 @@ func TestListDevicesWithQuery(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	// Create test devices
-	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440011")
-	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440012")
-	uuid3 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440013")
+	// Create test devices with unique UUIDs
+	uuid1 := uuid.New()
+	uuid2 := uuid.New()
+	uuid3 := uuid.New()
 	
 	devices := []models.Device{
 		{DeviceID: uuid1, DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true},
