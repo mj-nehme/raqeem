@@ -216,7 +216,7 @@ func TestStoreScreenshotComprehensive(t *testing.T) {
 		var result models.DeviceScreenshot
 		err := json.Unmarshal(w.Body.Bytes(), &result)
 		assert.NoError(t, err)
-		assert.Equal(t, "test-device-screenshot", result.DeviceID)
+		assert.Equal(t, sampleUUID, result.DeviceID)
 		assert.Equal(t, "https://example.com/screenshot.png", result.Path)
 	})
 
@@ -344,10 +344,14 @@ func TestListDevicesWithQuery(t *testing.T) {
 	database.DB = db
 
 	// Create test devices
+	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440011")
+	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440012")
+	uuid3 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440013")
+	
 	devices := []models.Device{
-		{DeviceID: sampleUUID, DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true},
-		{DeviceID: sampleUUID, DeviceName: "Device 2", DeviceType: "desktop", IsOnline: false},
-		{DeviceID: sampleUUID, DeviceName: "Device 3", DeviceType: "server", IsOnline: true},
+		{DeviceID: uuid1, DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true},
+		{DeviceID: uuid2, DeviceName: "Device 2", DeviceType: "desktop", IsOnline: false},
+		{DeviceID: uuid3, DeviceName: "Device 3", DeviceType: "server", IsOnline: true},
 	}
 	for _, d := range devices {
 		database.DB.Create(&d)

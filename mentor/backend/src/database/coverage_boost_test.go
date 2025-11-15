@@ -137,7 +137,7 @@ func TestTransactionRollback(t *testing.T) {
 
 	// Verify data exists in transaction
 	var count int64
-	db.Model(&models.Device{}).Where("device_id = ?", sampleUUID).Count(&count)
+	db.Model(&models.Device{}).Where("deviceid = ?", sampleUUID).Count(&count)
 	assert.Greater(t, count, int64(0), "Data should exist during test")
 
 	// Data will be rolled back automatically when test ends via t.Cleanup
