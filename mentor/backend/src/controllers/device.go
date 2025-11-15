@@ -94,6 +94,10 @@ func Activity(c *gin.Context) {
 		return
 	}
 
+	// Ensure primary key is set; rely on application generation instead of DB default
+	if activity.ActivityID == uuid.Nil {
+		activity.ActivityID = uuid.New()
+	}
 	activity.Timestamp = time.Now()
 
 	if err := database.DB.Create(&activity).Error; err != nil {
@@ -141,6 +145,9 @@ func UpdateProcessList(c *gin.Context) {
 		for i := range processes {
 			processes[i].DeviceID = deviceID
 			processes[i].Timestamp = now
+			if processes[i].ProcessID == uuid.Nil {
+				processes[i].ProcessID = uuid.New()
+			}
 			if err := tx.Create(&processes[i]).Error; err != nil {
 				return err
 			}
@@ -365,6 +372,10 @@ func CreateRemoteCommand(c *gin.Context) {
 		return
 	}
 
+	// Generate UUID if not provided (avoid reliance on DB default which may lack extension)
+	if cmd.CommandID == uuid.Nil {
+		cmd.CommandID = uuid.New()
+	}
 	cmd.Status = "pending"
 	cmd.CreatedAt = time.Now()
 
@@ -489,6 +500,9 @@ func ReportAlert(c *gin.Context) {
 		return
 	}
 
+	if alert.AlertID == uuid.Nil {
+		alert.AlertID = uuid.New()
+	}
 	alert.Timestamp = time.Now()
 
 	if err := database.DB.Create(&alert).Error; err != nil {
@@ -507,8 +521,10 @@ func StoreScreenshot(c *gin.Context) {
 		return
 	}
 
-	// Timestamp is set by database default, no need to set here
-	// This ensures consistency with other models and migration defaults
+	if screenshot.ScreenshotID == uuid.Nil {
+		screenshot.ScreenshotID = uuid.New()
+	}
+	// Timestamp is set by database default, so we do not override it here
 
 	if err := database.DB.Create(&screenshot).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

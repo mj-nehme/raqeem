@@ -14,6 +14,7 @@ import (
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
 // TestDB holds the test database connection
@@ -68,6 +69,7 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		log.Printf("Test database connection: host=%s port=%d dbname=%s", dbConfig.Host, dbConfig.Port, dbConfig.DBName)
 		baseConnection, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 			DisableForeignKeyConstraintWhenMigrating: true,
+			Logger:                                   logger.Default.LogMode(logger.Info),
 		})
 		if err != nil {
 			migrationError = fmt.Errorf("test database not available: %v", err)
@@ -81,37 +83,37 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 		if migrationError != nil {
 			return
 		}
-		
+
 		migrationError = baseConnection.AutoMigrate(&models.DeviceMetric{})
 		if migrationError != nil {
 			return
 		}
-		
+
 		migrationError = baseConnection.AutoMigrate(&models.DeviceProcess{})
 		if migrationError != nil {
 			return
 		}
-		
+
 		migrationError = baseConnection.AutoMigrate(&models.DeviceActivity{})
 		if migrationError != nil {
 			return
 		}
-		
+
 		migrationError = baseConnection.AutoMigrate(&models.DeviceRemoteCommand{})
 		if migrationError != nil {
 			return
 		}
-		
+
 		migrationError = baseConnection.AutoMigrate(&models.DeviceScreenshot{})
 		if migrationError != nil {
 			return
 		}
-		
+
 		migrationError = baseConnection.AutoMigrate(&models.DeviceAlert{})
 		if migrationError != nil {
 			return
 		}
-		
+
 		migrationError = baseConnection.AutoMigrate(&models.User{})
 	})
 

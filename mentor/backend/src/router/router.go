@@ -35,26 +35,80 @@ func (r *Router) SetupAllRoutes() {
 
 // setupCORS configures CORS middleware
 func (r *Router) setupCORS() {
-	frontendOrigin := os.Getenv("FRONTEND_ORIGIN")
+	// Support both legacy FRONTEND_ORIGIN and new FRONTEND_ORIGINS (comma-separated).
+	raw := os.Getenv("FRONTEND_ORIGINS")
+	if raw == "" {
+		raw = os.Getenv("FRONTEND_ORIGIN")
+	}
+
 	origins := []string{}
-	for _, o := range strings.Split(frontendOrigin, ",") {
+	for _, o := range strings.Split(raw, ",") {
 		if trimmed := strings.TrimSpace(o); trimmed != "" {
 			origins = append(origins, trimmed)
 		}
 	}
 
-	// If no origins specified, allow all origins to prevent panic
+	// Development fallback: if nothing specified, use explicit localhost not wildcard.
 	if len(origins) == 0 {
-		origins = []string{"*"}
+		origins = []string{"http://localhost:4000"}
+	}
+
+	wildcard := len(origins) == 1 && origins[0] == "*"
+
+	// Credentials only when not wildcard & env requests it.
+	allowCredEnv := strings.ToLower(os.Getenv("CORS_ALLOW_CREDENTIALS"))
+	allowCredentials := !wildcard && (allowCredEnv == "1" || allowCredEnv == "true" || allowCredEnv == "yes")
+
+	// Allow methods configurable via env, with safe defaults.
+	methodsRaw := os.Getenv("CORS_ALLOW_METHODS")
+	if methodsRaw == "" {
+		methodsRaw = "GET,POST,PUT,PATCH,DELETE,OPTIONS"
+	}
+	methods := []string{}
+	for _, m := range strings.Split(methodsRaw, ",") {
+		if trimmed := strings.ToUpper(strings.TrimSpace(m)); trimmed != "" {
+			methods = append(methods, trimmed)
+		}
+	}
+
+	// Allow headers configurable via env.
+	headersRaw := os.Getenv("CORS_ALLOW_HEADERS")
+	if headersRaw == "" {
+		headersRaw = "Origin,Content-Type,Accept,Authorization"
+	}
+	allowHeaders := []string{}
+	for _, h := range strings.Split(headersRaw, ",") {
+		if trimmed := strings.TrimSpace(h); trimmed != "" {
+			allowHeaders = append(allowHeaders, trimmed)
+		}
+	}
+
+	exposeRaw := os.Getenv("CORS_EXPOSE_HEADERS")
+	if exposeRaw == "" {
+		exposeRaw = "Content-Length"
+	}
+	exposeHeaders := []string{}
+	for _, e := range strings.Split(exposeRaw, ",") {
+		if trimmed := strings.TrimSpace(e); trimmed != "" {
+			exposeHeaders = append(exposeHeaders, trimmed)
+		}
+	}
+
+	maxAgeRaw := os.Getenv("CORS_MAX_AGE")
+	maxAge := 12 * time.Hour
+	if maxAgeRaw != "" {
+		if parsed, err := time.ParseDuration(maxAgeRaw + "s"); err == nil { // seconds input
+			maxAge = parsed
+		}
 	}
 
 	r.engine.Use(cors.New(cors.Config{
 		AllowOrigins:     origins,
-		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		MaxAge:           12 * time.Hour,
+		AllowMethods:     methods,
+		AllowHeaders:     allowHeaders,
+		ExposeHeaders:    exposeHeaders,
+		AllowCredentials: allowCredentials,
+		MaxAge:           maxAge,
 	}))
 }
 

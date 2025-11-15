@@ -320,7 +320,7 @@ func TestActivityFullScenarios(t *testing.T) {
 
 		// Verify activity was stored
 		var storedActivity models.DeviceActivity
-		db.Where("deviceid = ?", sampleUUID).First(&storedActivity)
+		db.Where("deviceid = ? AND activity_type = ? AND description = ? AND app = ?", sampleUUID, "app_launch", "Launched application", "Chrome").Order("timestamp desc").First(&storedActivity)
 		assert.Equal(t, "app_launch", storedActivity.ActivityType)
 		assert.Equal(t, "Chrome", storedActivity.App)
 	})
