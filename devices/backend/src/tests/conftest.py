@@ -5,7 +5,7 @@ import os
 import pytest
 import pytest_asyncio
 from app.db.base import Base
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 # Set required environment variables for testing
 TEST_ENV_VARS = {
@@ -42,9 +42,8 @@ async def reset_db_engine():
 
     # Recreate engine in the current event loop
     session.engine = create_async_engine(TEST_ENV_VARS["DATABASE_URL"], echo=True)
-    session.async_session = session.sessionmaker(
+    session.async_session = async_sessionmaker(
         bind=session.engine,
-        class_=session.AsyncSession,
         expire_on_commit=False,
     )
 
