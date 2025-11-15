@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // RegisterDevice registers a new device or updates existing device info
@@ -128,30 +129,27 @@ func UpdateProcessList(c *gin.Context) {
 		return
 	}
 
-	// Start transaction
-	tx := database.DB.Begin()
-
-	// Delete old processes for this device
-	if err := tx.Where("deviceid = ?", deviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
-		tx.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Insert new processes
-	now := time.Now()
-	for i := range processes {
-		processes[i].DeviceID = deviceID
-		processes[i].Timestamp = now
-		if err := tx.Create(&processes[i]).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
+	// Use a transaction to ensure atomicity
+	err := database.DB.Transaction(func(tx *gorm.DB) error {
+		// Delete old processes for this device
+		if err := tx.Where("deviceid = ?", deviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
+			return err
 		}
-	}
 
-	// Commit transaction
-	if err := tx.Commit().Error; err != nil {
+		// Insert new processes
+		now := time.Now()
+		for i := range processes {
+			processes[i].DeviceID = deviceID
+			processes[i].Timestamp = now
+			if err := tx.Create(&processes[i]).Error; err != nil {
+				return err
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

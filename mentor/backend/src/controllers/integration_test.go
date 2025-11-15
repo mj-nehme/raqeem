@@ -62,7 +62,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "integration-test-device-001"
+	deviceID := sampleUUID.String()
 
 	// 1. Register a new device
 	device := models.Device{
@@ -89,7 +89,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	var registerResponse models.Device
 	err := json.Unmarshal(w.Body.Bytes(), &registerResponse)
 	require.NoError(t, err)
-	assert.Equal(t, deviceID, registerResponse.DeviceID)
+	assert.Equal(t, sampleUUID, registerResponse.DeviceID)
 
 	// 2. Update device metrics
 	metrics := models.DeviceMetric{
@@ -301,7 +301,7 @@ func TestDeviceMetricIntegration(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "metrics-test-device"
+	deviceID := sampleUUID.String()
 
 	// Register device first
 	device := models.Device{
@@ -372,7 +372,7 @@ func TestAlertFlowIntegration(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "alert-test-device"
+	deviceID := sampleUUID.String()
 
 	// Register device
 	device := models.Device{
