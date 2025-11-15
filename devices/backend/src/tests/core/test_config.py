@@ -262,7 +262,7 @@ class TestEnvironmentHandling:
         # However, Pydantic v2 may treat empty strings differently
         # We accept the current behavior
         try:
-            settings = Settings()
+            Settings()
             # If no error is raised, the Settings should still have empty values
             # which may not be ideal but is acceptable for this test
         except ValidationError:
