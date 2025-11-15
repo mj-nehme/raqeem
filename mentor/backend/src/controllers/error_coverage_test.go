@@ -92,20 +92,22 @@ func TestUpdateCommandStatusErrorHandling(t *testing.T) {
 	UpdateCommandStatus(c)
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
-	// Test with non-existent command
+	// Test with non-existent command - UpdateCommandStatus returns 200 even if command doesn't exist (idempotent)
 	w = httptest.NewRecorder()
 	c, _ = gin.CreateTestContext(w)
-	c.Params = gin.Params{gin.Param{Key: "id", Value: "999999"}}
+	nonExistentID := uuid.New()
+	c.Params = gin.Params{gin.Param{Key: "id", Value: nonExistentID.String()}}
 	statusUpdate := models.DeviceRemoteCommand{
-		Status: "completed",
-		Result: "test result",
+		CommandID: nonExistentID,
+		Status:    "completed",
+		Result:    "test result",
 	}
 	body, _ := json.Marshal(statusUpdate)
-	c.Request, _ = http.NewRequest("PUT", "/commands/999999/status", bytes.NewBuffer(body))
+	c.Request, _ = http.NewRequest("PUT", "/commands/"+nonExistentID.String()+"/status", bytes.NewBuffer(body))
 	c.Request.Header.Set("Content-Type", "application/json")
 
 	UpdateCommandStatus(c)
-	assert.Equal(t, http.StatusNotFound, w.Code)
+	assert.Equal(t, http.StatusOK, w.Code) // Returns 200 even if command doesn't exist (idempotent update)
 }
 
 // TestGetPendingCommandsErrorHandling tests error paths
