@@ -48,12 +48,12 @@ def register_device():
     """Register a test device."""
     log(f"Registering device {TEST_DEVICE_ID}...")
     payload = {
-        "id": TEST_DEVICE_ID,
-        "name": f"E2E Test Device {TEST_DEVICE_ID}",
+        "deviceid": TEST_DEVICE_ID,
+        "device_name": f"E2E Test Device {TEST_DEVICE_ID}",
         "device_type": "laptop",
         "os": "macOS",
         "current_user": "e2e-test",
-        "location": "Test Lab",
+        "device_location": "Test Lab",
         "ip_address": "192.168.1.100",
         "mac_address": "00:11:22:33:44:55"
     }

@@ -8,12 +8,12 @@ class CommandCreate(BaseModel):
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "command": "get_info"
+                "command_text": "get_info"
             }
         }
     )
     
-    command: str = Field(..., min_length=1, max_length=500)
+    command_text: str = Field(..., min_length=1, max_length=500)
 
 
 class CommandResultSubmit(BaseModel):

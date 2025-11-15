@@ -15,10 +15,18 @@ router = APIRouter()
 
 @router.post("/register", status_code=200)
 async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
-    # payload expected to contain id and optional fields
-    device_id = payload.get("id") or payload.get("deviceid")
+    # Validate legacy fields and reject with clear error messages
+    if "id" in payload:
+        raise HTTPException(status_code=400, detail="unsupported legacy field: id; use deviceid")
+    if "name" in payload:
+        raise HTTPException(status_code=400, detail="unsupported legacy field: name; use device_name")
+    if "location" in payload:
+        raise HTTPException(status_code=400, detail="unsupported legacy field: location; use device_location")
+    
+    # payload expected to contain deviceid and optional fields
+    device_id = payload.get("deviceid")
     if not device_id:
-        raise HTTPException(status_code=400, detail="missing device id")
+        raise HTTPException(status_code=400, detail="missing required field: deviceid")
 
     # Upsert device row (simple read-then-update or insert)
     now = datetime.datetime.utcnow()
@@ -27,12 +35,12 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     existing = res.scalars().first()
     if existing:
         # update fields
-        existing.device_name = payload.get("name") or existing.device_name
+        existing.device_name = payload.get("device_name") or existing.device_name
         existing.device_type = payload.get("device_type") or existing.device_type
         existing.os = payload.get("os") or existing.os
         existing.last_seen = now
         existing.is_online = True
-        existing.device_location = payload.get("location") or existing.device_location
+        existing.device_location = payload.get("device_location") or existing.device_location
         existing.ip_address = payload.get("ip_address") or existing.ip_address
         existing.mac_address = payload.get("mac_address") or existing.mac_address
         existing.current_user = payload.get("current_user") or existing.current_user
@@ -42,12 +50,12 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     else:
         obj = dev_models.Device(
             deviceid=device_id,
-            device_name=payload.get("name"),
+            device_name=payload.get("device_name"),
             device_type=payload.get("device_type"),
             os=payload.get("os"),
             last_seen=now,
             is_online=True,
-            device_location=payload.get("location"),
+            device_location=payload.get("device_location"),
             ip_address=payload.get("ip_address"),
             mac_address=payload.get("mac_address"),
             current_user=payload.get("current_user"),
@@ -111,6 +119,13 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
 
 @router.post("/{device_id}/processes")
 async def post_processes(device_id: str, processes: List[dict], db: AsyncSession = Depends(get_db)):
+    # Validate legacy fields and reject with clear error messages
+    for p in processes:
+        if "name" in p:
+            raise HTTPException(status_code=400, detail="unsupported legacy field: name; use process_name")
+        if "command" in p:
+            raise HTTPException(status_code=400, detail="unsupported legacy field: command; use command_text")
+    
     # delete existing processes for device, then insert new ones
     await db.execute(dev_models.DeviceProcess.__table__.delete().where(dev_models.DeviceProcess.deviceid == device_id))
     to_add = []
@@ -119,10 +134,10 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
         to_add.append({
             "deviceid": device_id,
             "pid": p.get("pid"),
-            "process_name": p.get("name"),
+            "process_name": p.get("process_name"),
             "cpu": p.get("cpu"),
             "memory": p.get("memory"),
-            "command_text": p.get("command"),
+            "command_text": p.get("command_text"),
             "timestamp": now,
         })
     if to_add:
@@ -136,10 +151,10 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
                         {
                             "deviceid": device_id,
                             "pid": p.get("pid"),
-                            "name": p.get("name"),
+                            "process_name": p.get("process_name"),
                             "cpu": p.get("cpu"),
                             "memory": p.get("memory"),
-                            "command": p.get("command"),
+                            "command_text": p.get("command_text"),
                         }
                         for p in processes
                     ]
@@ -151,12 +166,17 @@ async def post_processes(device_id: str, processes: List[dict], db: AsyncSession
 
 @router.post("/{device_id}/activities")
 async def post_activity(device_id: str, activities: List[dict], db: AsyncSession = Depends(get_db)):
+    # Validate legacy fields and reject with clear error messages
+    for a in activities:
+        if "type" in a:
+            raise HTTPException(status_code=400, detail="unsupported legacy field: type; use activity_type")
+    
     to_add = []
     now = datetime.datetime.utcnow()
     for a in activities:
         to_add.append({
             "deviceid": device_id,
-            "activity_type": a.get("type"),
+            "activity_type": a.get("activity_type"),
             "description": a.get("description"),
             "app": a.get("app"),
             "duration": a.get("duration"),
@@ -172,7 +192,7 @@ async def post_activity(device_id: str, activities: List[dict], db: AsyncSession
                     for a in activities:
                         forward = {
                             "deviceid": device_id,
-                            "type": a.get("type"),
+                            "activity_type": a.get("activity_type"),
                             "description": a.get("description"),
                             "app": a.get("app"),
                             "duration": a.get("duration"),
@@ -185,13 +205,18 @@ async def post_activity(device_id: str, activities: List[dict], db: AsyncSession
 
 @router.post("/{device_id}/alerts")
 async def post_alerts(device_id: str, alerts: List[dict], db: AsyncSession = Depends(get_db)):
+    # Validate legacy fields and reject with clear error messages
+    for a in alerts:
+        if "type" in a:
+            raise HTTPException(status_code=400, detail="unsupported legacy field: type; use alert_type")
+    
     to_add = []
     now = datetime.datetime.utcnow()
     for a in alerts:
         to_add.append({
             "deviceid": device_id,
             "level": a.get("level"),
-            "alert_type": a.get("type"),
+            "alert_type": a.get("alert_type"),
             "message": a.get("message"),
             "value": a.get("value"),
             "threshold": a.get("threshold"),
@@ -208,7 +233,7 @@ async def post_alerts(device_id: str, alerts: List[dict], db: AsyncSession = Dep
                         payload = {
                             "deviceid": device_id,
                             "level": a.get("level"),
-                            "type": a.get("type"),
+                            "alert_type": a.get("alert_type"),
                             "message": a.get("message"),
                             "value": a.get("value"),
                             "threshold": a.get("threshold"),
@@ -229,13 +254,13 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
     devices = []
     for device in devices_list:
         devices.append({
-            "id": str(device.deviceid),
-            "name": device.device_name,
+            "deviceid": str(device.deviceid),
+            "device_name": device.device_name,
             "device_type": device.device_type,
             "os": device.os,
             "last_seen": device.last_seen.isoformat() if device.last_seen else None,
             "is_online": device.is_online,
-            "location": device.device_location,
+            "device_location": device.device_location,
             "ip_address": device.ip_address,
             "mac_address": device.mac_address,
             "current_user": device.current_user,
@@ -258,14 +283,14 @@ async def list_all_processes(db: AsyncSession = Depends(get_db)):
     processes = []
     for process in processes_list:
         processes.append({
-            "id": str(process.processid),
+            "processid": str(process.processid),
             "deviceid": str(process.deviceid),
             "timestamp": process.timestamp.isoformat() if process.timestamp else None,
             "pid": process.pid,
-            "name": process.process_name,
+            "process_name": process.process_name,
             "cpu": float(process.cpu) if process.cpu is not None else None,
             "memory": process.memory,
-            "command": process.command_text,
+            "command_text": process.command_text,
         })
     return processes
 
@@ -285,10 +310,10 @@ async def list_all_activities(db: AsyncSession = Depends(get_db)):
     activities = []
     for activity in activities_list:
         activities.append({
-            "id": str(activity.activityid),
+            "activityid": str(activity.activityid),
             "deviceid": str(activity.deviceid),
             "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
-            "type": activity.activity_type,
+            "activity_type": activity.activity_type,
             "description": activity.description,
             "app": activity.app,
             "duration": activity.duration,
@@ -311,11 +336,11 @@ async def list_all_alerts(db: AsyncSession = Depends(get_db)):
     alerts = []
     for alert in alerts_list:
         alerts.append({
-            "id": str(alert.alertid),
+            "alertid": str(alert.alertid),
             "deviceid": str(alert.deviceid),
             "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
             "level": alert.level,
-            "type": alert.alert_type,
+            "alert_type": alert.alert_type,
             "message": alert.message,
             "value": float(alert.value) if alert.value is not None else None,
             "threshold": float(alert.threshold) if alert.threshold is not None else None,
@@ -341,27 +366,13 @@ async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Device not found")
     
     return {
-        "id": str(device.deviceid),
-        "name": device.device_name,
+        "deviceid": str(device.deviceid),
+        "device_name": device.device_name,
         "device_type": device.device_type,
         "os": device.os,
         "last_seen": device.last_seen.isoformat() if device.last_seen else None,
         "is_online": device.is_online,
-        "location": device.device_location,
-        "ip_address": device.ip_address,
-        "mac_address": device.mac_address,
-        "current_user": device.current_user,
-    }
-
-
-    return {
-        "id": str(device.deviceid),
-        "name": device.device_name,
-        "device_type": device.device_type,
-        "os": device.os,
-        "last_seen": device.last_seen.isoformat() if device.last_seen else None,
-        "is_online": device.is_online,
-        "location": device.device_location,
+        "device_location": device.device_location,
         "ip_address": device.ip_address,
         "mac_address": device.mac_address,
         "current_user": device.current_user,
@@ -430,13 +441,13 @@ async def create_command(
     """Create a new command for a device (forwarded from mentor backend)"""
     # Validate command against whitelist
     allowed_commands = ["get_info", "status", "restart", "get_processes", "get_logs", "restart_service", "screenshot"]
-    command_base = payload.command.lower().split()[0] if payload.command else ""
+    command_base = payload.command_text.lower().split()[0] if payload.command_text else ""
     if command_base not in allowed_commands:
         raise HTTPException(status_code=400, detail=f"Command not allowed. Allowed commands: {', '.join(allowed_commands)}")
     
     command = dev_models.DeviceRemoteCommand(
         deviceid=device_id,
-        command_text=payload.command,
+        command_text=payload.command_text,
         status="pending",
         created_at=datetime.datetime.utcnow(),
     )
@@ -467,7 +478,7 @@ async def get_device_metrics(device_id: str, limit: int = 60, db: AsyncSession =
     metrics = []
     for metric in metrics_list:
         metrics.append({
-            "id": str(metric.metricid),
+            "metricid": str(metric.metricid),
             "deviceid": str(metric.deviceid),
             "timestamp": metric.timestamp.isoformat() if metric.timestamp else None,
             "cpu_usage": float(metric.cpu_usage) if metric.cpu_usage is not None else None,
@@ -503,14 +514,14 @@ async def get_device_processes(device_id: str, limit: int = 100, db: AsyncSessio
     processes = []
     for process in processes_list:
         processes.append({
-            "id": str(process.processid),
+            "processid": str(process.processid),
             "deviceid": str(process.deviceid),
             "timestamp": process.timestamp.isoformat() if process.timestamp else None,
             "pid": process.pid,
-            "name": process.process_name,
+            "process_name": process.process_name,
             "cpu": float(process.cpu) if process.cpu is not None else None,
             "memory": process.memory,
-            "command": process.command_text,
+            "command_text": process.command_text,
         })
     return processes
 
@@ -535,10 +546,10 @@ async def get_device_activities(device_id: str, limit: int = 100, db: AsyncSessi
     activities = []
     for activity in activities_list:
         activities.append({
-            "id": str(activity.activityid),
+            "activityid": str(activity.activityid),
             "deviceid": str(activity.deviceid),
             "timestamp": activity.timestamp.isoformat() if activity.timestamp else None,
-            "type": activity.activity_type,
+            "activity_type": activity.activity_type,
             "description": activity.description,
             "app": activity.app,
             "duration": activity.duration,
@@ -566,11 +577,11 @@ async def get_device_alerts(device_id: str, limit: int = 100, db: AsyncSession =
     alerts = []
     for alert in alerts_list:
         alerts.append({
-            "id": str(alert.alertid),
+            "alertid": str(alert.alertid),
             "deviceid": str(alert.deviceid),
             "timestamp": alert.timestamp.isoformat() if alert.timestamp else None,
             "level": alert.level,
-            "type": alert.alert_type,
+            "alert_type": alert.alert_type,
             "message": alert.message,
             "value": float(alert.value) if alert.value is not None else None,
             "threshold": float(alert.threshold) if alert.threshold is not None else None,
@@ -598,7 +609,7 @@ async def get_device_screenshots(device_id: str, limit: int = 50, db: AsyncSessi
     screenshots = []
     for screenshot in screenshots_list:
         screenshots.append({
-            "id": str(screenshot.screenshotid),
+            "screenshotid": str(screenshot.screenshotid),
             "deviceid": str(screenshot.deviceid),
             "timestamp": screenshot.timestamp.isoformat() if screenshot.timestamp else None,
             "path": screenshot.path,
