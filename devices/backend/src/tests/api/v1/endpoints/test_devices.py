@@ -483,7 +483,7 @@ async def test_get_device_by_id():
         data = response.json()
         assert data["id"] == device_id
         assert data["name"] == "Test Device"
-        assert data["type"] == "laptop"
+        assert data["device_type"] == "laptop"
         assert data["os"] == "Windows 11"
 
 
