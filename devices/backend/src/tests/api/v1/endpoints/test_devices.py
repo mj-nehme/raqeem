@@ -7,7 +7,7 @@ from app.main import app
 async def test_register_device_new():
     """Test registering a new device."""
     payload = {
-        "id": "test-device-001",
+        "id": "663903cd-f6ac-5211-8e93-4a0889840f94",
         "name": "Test Device",
         "device_type": "laptop",
         "os": "Windows 11",
@@ -20,7 +20,7 @@ async def test_register_device_new():
         response = await ac.post("/api/v1/devices/register", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["deviceid"] == "test-device-001"
+    assert data["deviceid"] == "663903cd-f6ac-5211-8e93-4a0889840f94"
     assert data.get("created") is True
 
 
@@ -29,7 +29,7 @@ async def test_register_device_update_existing():
     """Test updating an existing device."""
     # First register
     payload = {
-        "id": "test-device-002",
+        "id": "beedc88d-78d8-5564-8baa-eae0531f29dd",
         "name": "Device Original",
         "device_type": "desktop"
     }
@@ -39,7 +39,7 @@ async def test_register_device_update_existing():
         
         # Now update
         update_payload = {
-            "id": "test-device-002",
+            "id": "beedc88d-78d8-5564-8baa-eae0531f29dd",
             "name": "Device Updated",
             "device_type": "laptop"
         }
@@ -47,7 +47,7 @@ async def test_register_device_update_existing():
     
     assert response.status_code == 200
     data = response.json()
-    assert data["deviceid"] == "test-device-002"
+    assert data["deviceid"] == "beedc88d-78d8-5564-8baa-eae0531f29dd"
     assert data.get("updated") is True
 
 
@@ -68,20 +68,20 @@ async def test_register_device_missing_id():
 async def test_register_device_with_device_id_key():
     """Test registering device using device_id key instead of id."""
     payload = {
-        "deviceid": "test-device-003",
+        "deviceid": "1fc94cd2-8a8c-5cf6-a800-8a9a2d31640e",
         "name": "Test Device 3"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/devices/register", json=payload)
     assert response.status_code == 200
     data = response.json()
-    assert data["deviceid"] == "test-device-003"
+    assert data["deviceid"] == "1fc94cd2-8a8c-5cf6-a800-8a9a2d31640e"
 
 
 @pytest.mark.asyncio
 async def test_post_metrics():
     """Test posting device metrics."""
-    device_id = "test-device-metrics"
+    device_id = "9b3918c3-dc68-5c24-a2b1-64413d93e56d"
     payload = {
         "cpu_usage": 45.5,
         "cpu_temp": 65.0,
@@ -102,7 +102,7 @@ async def test_post_metrics():
 @pytest.mark.asyncio
 async def test_post_metrics_minimal():
     """Test posting metrics with minimal data."""
-    device_id = "test-device-metrics-min"
+    device_id = "08e9f7c6-2142-501e-9609-dfc16c0d8044"
     payload = {
         "cpu_usage": 25.0
     }
@@ -114,7 +114,7 @@ async def test_post_metrics_minimal():
 @pytest.mark.asyncio
 async def test_post_processes():
     """Test posting device processes."""
-    device_id = "test-device-proc"
+    device_id = "0e046a19-b4ce-5698-bb48-bd9c26fff1a8"
     processes = [
         {
             "pid": 1234,
@@ -141,7 +141,7 @@ async def test_post_processes():
 @pytest.mark.asyncio
 async def test_post_processes_empty():
     """Test posting empty processes list."""
-    device_id = "test-device-proc-empty"
+    device_id = "413d403e-8215-5db8-82f9-ed0cdc666484"
     processes = []
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(f"/api/v1/devices/{device_id}/processes", json=processes)
@@ -153,7 +153,7 @@ async def test_post_processes_empty():
 @pytest.mark.asyncio
 async def test_post_activities():
     """Test posting device activities."""
-    device_id = "test-device-act"
+    device_id = "cca4121f-cff9-5cf9-ac76-a48faca15128"
     activities = [
         {
             "activity_type": "app_launch",
@@ -178,7 +178,7 @@ async def test_post_activities():
 @pytest.mark.asyncio
 async def test_post_activities_empty():
     """Test posting empty activities list."""
-    device_id = "test-device-act-empty"
+    device_id = "c6a67fde-e80d-548c-b131-cead2959eba5"
     activities = []
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(f"/api/v1/devices/{device_id}/activities", json=activities)
@@ -190,7 +190,7 @@ async def test_post_activities_empty():
 @pytest.mark.asyncio
 async def test_post_alerts():
     """Test posting device alerts."""
-    device_id = "test-device-alert"
+    device_id = "a98287ca-f97b-5cd2-b2c7-3a4aced9d4c9"
     alerts = [
         {
             "level": "warning",
@@ -217,7 +217,7 @@ async def test_post_alerts():
 @pytest.mark.asyncio
 async def test_post_alerts_empty():
     """Test posting empty alerts list."""
-    device_id = "test-device-alert-empty"
+    device_id = "acda9ce0-04bb-58cb-8452-fbbcda08bdc9"
     alerts = []
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(f"/api/v1/devices/{device_id}/alerts", json=alerts)
@@ -231,7 +231,7 @@ async def test_list_devices():
     """Test listing all devices."""
     # First register a device
     payload = {
-        "id": "test-device-list",
+        "id": "f3e678cc-0726-5dc5-bfbf-a23da82627d6",
         "name": "Device for Listing",
         "device_type": "tablet",
         "os": "iOS"
@@ -247,7 +247,7 @@ async def test_list_devices():
     assert isinstance(data, list)
     # Check that our device is in the list
     device_ids = [d["id"] for d in data]
-    assert "test-device-list" in device_ids
+    assert "f3e678cc-0726-5dc5-bfbf-a23da82627d6" in device_ids
 
 
 @pytest.mark.asyncio
@@ -265,7 +265,7 @@ async def test_register_device_preserves_existing_fields():
     """Test that updating a device preserves fields not in update payload."""
     # First register with all fields
     initial_payload = {
-        "id": "test-device-preserve",
+        "id": "4fb793da-ab61-5e9b-9db3-b20b085fadaf",
         "name": "Original Name",
         "device_type": "laptop",
         "os": "Linux",
@@ -279,7 +279,7 @@ async def test_register_device_preserves_existing_fields():
         
         # Update with only name changed
         update_payload = {
-            "id": "test-device-preserve",
+            "id": "4fb793da-ab61-5e9b-9db3-b20b085fadaf",
             "name": "Updated Name"
         }
         response = await ac.post("/api/v1/devices/register", json=update_payload)
@@ -290,7 +290,7 @@ async def test_register_device_preserves_existing_fields():
 @pytest.mark.asyncio
 async def test_post_processes_replaces_existing():
     """Test that posting processes replaces existing ones for the device."""
-    device_id = "test-device-proc-replace"
+    device_id = "89006b63-1de6-5f65-a258-5bf69c0f4c15"
     
     # First batch of processes
     processes1 = [{"pid": 1111, "name": "process1", "cpu": 10.0, "memory": 100000}]
@@ -308,7 +308,7 @@ async def test_post_processes_replaces_existing():
 @pytest.mark.asyncio
 async def test_get_pending_commands():
     """Test getting pending commands for a device."""
-    device_id = "test-device-commands"
+    device_id = "e2985a22-c6f1-5fa4-b7cb-2e67ab6afaab"
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.get(f"/api/v1/devices/{device_id}/commands/pending")
     assert response.status_code == 200
@@ -319,7 +319,7 @@ async def test_get_pending_commands():
 @pytest.mark.asyncio
 async def test_create_command_success():
     """Test creating a command for a device."""
-    device_id = "test-device-cmd-create"
+    device_id = "4ce3a91e-b09d-57a5-8493-b5115b7d3e01"
     payload = {
         "command": "get_info"
     }
@@ -336,7 +336,7 @@ async def test_create_command_success():
 @pytest.mark.asyncio
 async def test_create_command_not_allowed():
     """Test creating a command with disallowed command fails."""
-    device_id = "test-device-cmd-fail"
+    device_id = "d8acd640-bbe1-53fa-b2b8-63aa9bed99de"
     payload = {
         "command": "rm -rf /"
     }
@@ -349,7 +349,7 @@ async def test_create_command_not_allowed():
 @pytest.mark.asyncio
 async def test_create_command_various_allowed():
     """Test creating commands with various allowed command types."""
-    device_id = "test-device-cmd-various"
+    device_id = "1aed9f08-fc44-57bf-a94f-76b58f110a30"
     allowed_commands = ["status", "restart", "get_processes", "get_logs", "restart_service", "screenshot"]
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -364,7 +364,7 @@ async def test_create_command_various_allowed():
 @pytest.mark.asyncio
 async def test_submit_command_result_success():
     """Test submitting command execution result."""
-    device_id = "test-device-cmd-result"
+    device_id = "015f9f53-05e9-5f15-82c9-69a7b208f452"
     
     # First create a command
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -404,7 +404,7 @@ async def test_submit_command_result_not_found():
 @pytest.mark.asyncio
 async def test_submit_command_result_failed_status():
     """Test submitting command result with failed status."""
-    device_id = "test-device-cmd-fail-result"
+    device_id = "5c667ba9-433f-5183-a521-f82d714cd68f"
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         # Create command
@@ -429,8 +429,8 @@ async def test_list_devices_multiple():
     """Test listing all devices."""
     # First register a couple of devices
     devices = [
-        {"id": "list-device-1", "name": "Device 1", "device_type": "laptop"},
-        {"id": "list-device-2", "name": "Device 2", "device_type": "desktop"}
+        {"id": "e061f400-39c3-51c7-8eb9-7a6672ba4d67", "name": "Device 1", "device_type": "laptop"},
+        {"id": "242a9259-3056-55ac-b13e-fc4d05674e90", "name": "Device 2", "device_type": "desktop"}
     ]
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -445,8 +445,8 @@ async def test_list_devices_multiple():
         assert isinstance(data, list)
         # At least our 2 devices should be there
         device_ids = [d["id"] for d in data]
-        assert "list-device-1" in device_ids
-        assert "list-device-2" in device_ids
+        assert "e061f400-39c3-51c7-8eb9-7a6672ba4d67" in device_ids
+        assert "242a9259-3056-55ac-b13e-fc4d05674e90" in device_ids
 
 
 @pytest.mark.asyncio
@@ -463,7 +463,7 @@ async def test_list_devices_with_existing():
 @pytest.mark.asyncio
 async def test_get_device_by_id():
     """Test getting a specific device by ID."""
-    device_id = "get-device-test"
+    device_id = "a600ae88-ccd2-5739-9464-2c26466ac29f"
     device_payload = {
         "id": device_id,
         "name": "Test Device",
@@ -500,7 +500,7 @@ async def test_post_metrics_with_forwarding():
     import os
     from unittest.mock import patch, AsyncMock
     
-    device_id = "test-device-forward"
+    device_id = "ce3b06af-dc71-5066-b9f1-f1a61edf28a1"
     payload = {
         "cpu_usage": 50.0,
         "memory_total": 16000000000,
@@ -525,7 +525,7 @@ async def test_post_alerts_with_forwarding():
     import os
     from unittest.mock import patch, AsyncMock
     
-    device_id = "test-device-alert-forward"
+    device_id = "88c34f3e-8b13-5615-94cd-569c8c4fff16"
     alerts = [
         {
             "level": "critical",
@@ -554,7 +554,7 @@ async def test_post_metrics_forwarding_failure_handled():
     import os
     from unittest.mock import patch
     
-    device_id = "test-device-forward-fail"
+    device_id = "0e8d587a-c984-59a3-8b95-7dc57fa0d676"
     payload = {
         "cpu_usage": 60.0
     }
@@ -571,7 +571,7 @@ async def test_post_metrics_forwarding_failure_handled():
 @pytest.mark.asyncio
 async def test_list_all_processes():
     """Test listing all processes across all devices."""
-    device_id = "test-device-processes-list"
+    device_id = "36299f7f-4fad-5c02-af2b-908af24438b2"
     
     # First post some processes
     processes = [
@@ -610,7 +610,7 @@ async def test_list_all_processes():
 @pytest.mark.asyncio
 async def test_list_all_activities():
     """Test listing all activities across all devices."""
-    device_id = "test-device-activities-list"
+    device_id = "d4543bcf-dc0c-5f6b-a49e-7b2cf1abb344"
     
     # First post some activities
     activities = [
@@ -647,7 +647,7 @@ async def test_list_all_activities():
 @pytest.mark.asyncio
 async def test_list_all_alerts():
     """Test listing all alerts across all devices."""
-    device_id = "test-device-alerts-list"
+    device_id = "6c66c466-af19-54c8-a19f-7de3d3c9f827"
     
     # First post some alerts
     alerts = [

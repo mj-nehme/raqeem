@@ -8,7 +8,7 @@ from app.main import app
 async def test_register_device_forwards_to_mentor():
     """Test that device registration is forwarded to mentor backend when configured."""
     payload = {
-        "id": "test-device-forward-001",
+        "id": "a843a399-701f-5011-aff3-4b69d8f21b11",
         "name": "Test Device for Forwarding",
         "device_type": "laptop",
         "os": "Linux",
@@ -29,7 +29,7 @@ async def test_register_device_forwards_to_mentor():
         
         assert response.status_code == 200
         data = response.json()
-        assert data["deviceid"] == "test-device-forward-001"
+        assert data["deviceid"] == "a843a399-701f-5011-aff3-4b69d8f21b11"
         # Verify that httpx client was called for forwarding (if MENTOR_API_URL is set)
 
 
@@ -37,7 +37,7 @@ async def test_register_device_forwards_to_mentor():
 async def test_register_device_survives_mentor_forwarding_failure():
     """Test that device registration succeeds even if mentor forwarding fails."""
     payload = {
-        "id": "test-device-forward-fail-001",
+        "id": "e35e27a7-5808-5ea8-9ac5-acc284f75552",
         "name": "Test Device",
         "device_type": "laptop"
     }
@@ -55,13 +55,13 @@ async def test_register_device_survives_mentor_forwarding_failure():
         # Registration should still succeed despite forwarding failure
         assert response.status_code == 200
         data = response.json()
-        assert data["deviceid"] == "test-device-forward-fail-001"
+        assert data["deviceid"] == "e35e27a7-5808-5ea8-9ac5-acc284f75552"
 
 
 @pytest.mark.asyncio
 async def test_metrics_forwarding_to_mentor():
     """Test that metrics are forwarded to mentor backend when configured."""
-    device_id = "test-device-metrics-forward"
+    device_id = "33f9ce74-d0ce-515e-bb95-2464e9faa707"
     payload = {
         "cpu_usage": 55.5,
         "cpu_temp": 70.0,

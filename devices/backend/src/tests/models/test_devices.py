@@ -28,7 +28,7 @@ class TestDevice:
     def test_device_instantiation(self):
         """Test creating Device instance with data."""
         device = Device(
-            deviceid="test-device-123",
+            deviceid="9309ab30-21fc-5a9c-b767-070108e7fac7",
             device_name="Test Device",
             device_type="laptop",
             os="macOS",
@@ -39,7 +39,7 @@ class TestDevice:
             current_user="testuser"
         )
         
-        assert str(device.deviceid) == "test-device-123"
+        assert str(device.deviceid) == "9309ab30-21fc-5a9c-b767-070108e7fac7"
         assert device.device_name == "Test Device"
         assert device.device_type == "laptop"
         assert device.os == "macOS"
@@ -78,7 +78,7 @@ class TestDeviceMetric:
     def test_device_metrics_instantiation(self):
         """Test creating DeviceMetric instance with data."""
         metrics = DeviceMetric(
-            deviceid="test-device-123",
+            deviceid="9309ab30-21fc-5a9c-b767-070108e7fac7",
             cpu_usage=50.5,
             cpu_temp=65.2,
             memory_total=8589934592,  # 8GB
@@ -90,7 +90,7 @@ class TestDeviceMetric:
             net_bytes_out=2048
         )
         
-        assert str(metrics.deviceid) == "test-device-123"
+        assert str(metrics.deviceid) == "9309ab30-21fc-5a9c-b767-070108e7fac7"
         assert metrics.cpu_usage == 50.5
         assert metrics.cpu_temp == 65.2
         assert metrics.memory_total == 8589934592
@@ -135,7 +135,7 @@ class TestProcess:
     def test_process_instantiation(self):
         """Test creating Process instance with data."""
         process = DeviceProcess(
-            deviceid="test-device-123",
+            deviceid="9309ab30-21fc-5a9c-b767-070108e7fac7",
             pid=1234,
             process_name="chrome",
             cpu=25.5,
@@ -143,7 +143,7 @@ class TestProcess:
             command_text="/usr/bin/chrome --enable-features=test"
         )
         
-        assert str(process.deviceid) == "test-device-123"
+        assert str(process.deviceid) == "9309ab30-21fc-5a9c-b767-070108e7fac7"
         assert process.pid == 1234
         assert process.process_name == "chrome"
         assert process.cpu == 25.5
@@ -174,14 +174,14 @@ class TestActivityLog:
     def test_activity_log_instantiation(self):
         """Test creating ActivityLog instance with data."""
         activity = DeviceActivity(
-            deviceid="test-device-123",
+            deviceid="9309ab30-21fc-5a9c-b767-070108e7fac7",
             activity_type="app_launch",
             description="User launched Chrome browser",
             app="chrome",
             duration=3600  # 1 hour
         )
         
-        assert str(activity.deviceid) == "test-device-123"
+        assert str(activity.deviceid) == "9309ab30-21fc-5a9c-b767-070108e7fac7"
         assert activity.activity_type == "app_launch"
         assert activity.description == "User launched Chrome browser"
         assert activity.app == "chrome"
@@ -212,7 +212,7 @@ class TestAlert:
     def test_alert_instantiation(self):
         """Test creating Alert instance with data."""
         alert = Alert(
-            deviceid="test-device-123",
+            deviceid="9309ab30-21fc-5a9c-b767-070108e7fac7",
             level="warning",
             alert_type="cpu",
             message="High CPU usage detected",
@@ -220,7 +220,7 @@ class TestAlert:
             threshold=80.0
         )
         
-        assert str(alert.deviceid) == "test-device-123"
+        assert str(alert.deviceid) == "9309ab30-21fc-5a9c-b767-070108e7fac7"
         assert alert.level == "warning"
         assert alert.alert_type == "cpu"
         assert alert.message == "High CPU usage detected"

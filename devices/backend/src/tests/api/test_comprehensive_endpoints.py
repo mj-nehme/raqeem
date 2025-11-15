@@ -370,6 +370,7 @@ class TestPerformanceEdgeCases:
         
     async def test_concurrent_requests_simulation(self, init_test_db):
         """Test multiple requests to same endpoint."""
+        import uuid
         
         responses = []
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
@@ -377,7 +378,7 @@ class TestPerformanceEdgeCases:
                 response = await client.post(
                     "/api/v1/devices/register",
                     json={
-                        "id": f"device-{i}",
+                        "id": str(uuid.uuid4()),
                         "name": f"Device {i}",
                         "device_type": "laptop"
                     }
