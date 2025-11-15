@@ -8,6 +8,7 @@ from app.schemas.commands import CommandCreate, CommandResultSubmit, CommandOut
 from app.core.config import settings
 import datetime
 import httpx
+from uuid import UUID
 
 router = APIRouter()
 
@@ -242,6 +243,31 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
     return devices
 
 
+@router.get("/{device_id}")
+async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
+    """Get a specific device by ID."""
+    res = await db.execute(
+        select(dev_models.Device).where(dev_models.Device.deviceid == device_id)
+    )
+    device = res.scalars().first()
+    
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    return {
+        "id": str(device.deviceid),
+        "name": device.device_name,
+        "device_type": device.device_type,
+        "os": device.os,
+        "last_seen": device.last_seen.isoformat() if device.last_seen else None,
+        "is_online": device.is_online,
+        "location": device.device_location,
+        "ip_address": device.ip_address,
+        "mac_address": device.mac_address,
+        "current_user": device.current_user,
+    }
+
+
 @router.get("/processes")
 async def list_all_processes(db: AsyncSession = Depends(get_db)):
     """Get all processes across all devices.
@@ -337,7 +363,7 @@ async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db
 
 @router.post("/commands/{command_id}/result")
 async def submit_command_result(
-    command_id: int, 
+    command_id: UUID, 
     payload: CommandResultSubmit, 
     db: AsyncSession = Depends(get_db)
 ):
@@ -372,7 +398,7 @@ async def submit_command_result(
             # Don't fail if forwarding fails
             pass
     
-    return {"status": "ok", "commandid": command_id}
+    return {"status": "ok", "commandid": str(command_id)}
 
 
 @router.post("/{device_id}/commands", response_model=CommandOut)

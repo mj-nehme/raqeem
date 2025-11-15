@@ -52,7 +52,7 @@ class TestDeviceRegistrationLogic:
         }
         
         assert payload.get("name") == "Test Device"
-        assert payload.get("type") == "laptop"
+        assert payload.get("device_type") == "laptop"
         assert payload.get("os") == "macOS"
         assert payload.get("location") == "Office"
         assert payload.get("ip_address") == "192.168.1.100"
@@ -159,8 +159,8 @@ class TestActivityLogValidation:
         }
         
         assert "deviceid" in activity_payload
-        assert "type" in activity_payload
-        assert activity_payload["type"] in ["app_launch", "file_access", "browser", "system"]
+        assert "activity_type" in activity_payload
+        assert activity_payload["activity_type"] in ["app_launch", "file_access", "browser", "system"]
         assert activity_payload["duration"] >= 0
     
     def test_activity_types(self):
@@ -212,7 +212,7 @@ class TestAlertValidation:
         
         assert "deviceid" in alert_payload
         assert "level" in alert_payload
-        assert "type" in alert_payload
+        assert "alert_type" in alert_payload
         assert "message" in alert_payload
         assert alert_payload["value"] > alert_payload["threshold"]
     

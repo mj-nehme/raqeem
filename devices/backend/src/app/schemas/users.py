@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from uuid import UUID
 from datetime import datetime
 
@@ -7,8 +7,7 @@ class UserCreate(BaseModel):
     name: str | None = None
 
 class UserOut(UserCreate):
+    model_config = ConfigDict(from_attributes=True)
+    
     id: UUID
     created_at: datetime
-
-    class Config:
-        orm_mode = True

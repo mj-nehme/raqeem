@@ -5,7 +5,6 @@ import httpx
 import logging
 
 from app.db.session import get_db
-from app.models.devices import DeviceScreenshot as ScreenshotModel
 from app.models import devices as dev_models
 from app.core.config import settings
 
@@ -30,11 +29,7 @@ async def create_screenshot(
         content = await file.read()
         file_size = len(content)
         
-        # Store in legacy screenshots table for backward compatibility
-        obj = ScreenshotModel(user_id=device_id, image_path=filename)
-        db.add(obj)
-        
-        # Also store in device_screenshots table with proper schema
+        # Store in device_screenshots table
         device_screenshot = dev_models.DeviceScreenshot(
             deviceid=device_id,
             path=filename,
@@ -43,6 +38,7 @@ async def create_screenshot(
         )
         db.add(device_screenshot)
         await db.commit()
+        await db.refresh(device_screenshot)
         
         # Forward to mentor backend if configured
         if settings.mentor_api_url:
@@ -66,9 +62,8 @@ async def create_screenshot(
                 pass
         
         return {
-            "id": str(obj.id),
-            "userid": str(obj.user_id),
-            "image_url": obj.image_path,
+            "id": str(device_screenshot.screenshotid),
+            "image_url": device_screenshot.path,
             "status": "success"
         }
     except Exception as e:
