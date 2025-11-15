@@ -20,7 +20,7 @@ class TestDeviceRegistrationLogic:
         assert device_id == "device-456"
         
         # Test with both fields (id takes precedence)
-        payload3 = {"deviceid": "device-123", "deviceid": "device-456", "device_name": "Test Device"}
+        payload3 = {"id": "device-123", "deviceid": "device-456", "device_name": "Test Device"}
         device_id = payload3.get("id") or payload3.get("deviceid")
         assert device_id == "device-123"
     
@@ -30,8 +30,8 @@ class TestDeviceRegistrationLogic:
             {},
             {"device_name": "Test Device"},
             {"deviceid": None},
-            {"deviceid": None},
-            {"deviceid": "", "deviceid": ""},
+            {"id": None},
+            {"deviceid": ""},
         ]
         
         for payload in payloads_without_id:
