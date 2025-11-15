@@ -13,6 +13,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 // RegisterDevice registers a new device or updates existing device info
@@ -111,18 +112,34 @@ func UpdateProcessList(c *gin.Context) {
 		return
 	}
 
-	// Use Transaction method which handles nested transactions (savepoints) automatically
+	// Get device ID from URL parameter if available, otherwise from first process
+	var deviceID uuid.UUID
+	if id := c.Param("id"); id != "" {
+		parsedID, err := uuid.Parse(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid device ID"})
+			return
+		}
+		deviceID = parsedID
+	} else if len(processes) > 0 {
+		deviceID = processes[0].DeviceID
+	} else {
+		// Empty process list without device ID - return success (nothing to do)
+		c.JSON(http.StatusOK, processes)
+		return
+	}
+
+	// Use a transaction to ensure atomicity
 	err := database.DB.Transaction(func(tx *gorm.DB) error {
 		// Delete old processes for this device
-		if len(processes) > 0 {
-			if err := tx.Where("deviceid = ?", processes[0].DeviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
-				return err
-			}
+		if err := tx.Where("deviceid = ?", deviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
+			return err
 		}
 
 		// Insert new processes
 		now := time.Now()
 		for i := range processes {
+			processes[i].DeviceID = deviceID
 			processes[i].Timestamp = now
 			if err := tx.Create(&processes[i]).Error; err != nil {
 				return err

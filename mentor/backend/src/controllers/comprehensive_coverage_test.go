@@ -29,20 +29,17 @@ func TestListDevicesFullScenarios(t *testing.T) {
 
 	// Create devices with different online statuses and timestamps
 	now := time.Now()
-	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
-	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
-	uuid3 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440003")
-	uuid4 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440004")
+	uuid3 := uuid.New() // Device that will be marked offline
 
 	devices := []models.Device{
 		{
-			DeviceID:   uuid1,
+			DeviceID:   uuid.New(),
 			DeviceName: "Online Device 1",
 			IsOnline:   true,
 			LastSeen:   now,
 		},
 		{
-			DeviceID:   uuid2,
+			DeviceID:   uuid.New(),
 			DeviceName: "Online Device 2",
 			IsOnline:   true,
 			LastSeen:   now.Add(-2 * time.Minute), // Recently seen
@@ -54,7 +51,7 @@ func TestListDevicesFullScenarios(t *testing.T) {
 			LastSeen:   now.Add(-10 * time.Minute), // Seen more than 5 minutes ago
 		},
 		{
-			DeviceID:   uuid4,
+			DeviceID:   uuid.New(),
 			DeviceName: "Offline Device 2",
 			IsOnline:   false,
 			LastSeen:   now.Add(-30 * time.Minute),
@@ -395,13 +392,15 @@ func TestReportAlertFullScenarios(t *testing.T) {
 	})
 
 	t.Run("Report multiple alerts", func(t *testing.T) {
+		testDeviceID := uuid.New()
+
 		alertTypes := []string{"cpu_high", "memory_high", "disk_full"}
 		for i, alertType := range alertTypes {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)
 
 			alert := models.DeviceAlert{
-				DeviceID:  sampleUUID,
+				DeviceID:  testDeviceID,
 				Level:     "warning",
 				AlertType: alertType,
 				Message:   "Alert for " + alertType,
@@ -418,7 +417,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 
 		// Verify all alerts were stored
 		var count int64
-		db.Model(&models.DeviceAlert{}).Where("deviceid = ?", sampleUUID).Count(&count)
+		db.Model(&models.DeviceAlert{}).Where("deviceid = ?", testDeviceID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }

@@ -50,7 +50,7 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 			t.Fatalf("failed to unmarshal response: %v", err)
 		}
 		if result.DeviceID != sampleUUID {
-			t.Errorf("expected device_id %s, got %s", sampleUUID, result.DeviceID)
+			t.Errorf("expected deviceid %s, got %s", sampleUUID, result.DeviceID)
 		}
 		if result.CommandText != "get_info" {
 			t.Errorf("expected command get_info, got %s", result.CommandText)

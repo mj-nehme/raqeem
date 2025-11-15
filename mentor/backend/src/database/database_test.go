@@ -234,10 +234,11 @@ func TestDatabaseMigrationIntegrity(t *testing.T) {
 }
 
 func TestDatabaseTransactionRollback(t *testing.T) {
-	// Skip this test if no base connection (means we're in CI without real DB)
-	if baseConnection == nil {
-		t.Skip("No base connection available for transaction test")
-	}
+	// Setup test database to ensure baseConnection is initialized
+	db, err := SetupTestDB(t)
+	require.NoError(t, err)
+	require.NotNil(t, db)
+	defer CleanupTestDB(t, db)
 	
 	// Use base connection to test transaction behavior (not the test's transaction)
 	// Create a fresh transaction for this test
@@ -250,7 +251,7 @@ func TestDatabaseTransactionRollback(t *testing.T) {
 		DeviceName: "Rollback Test Device",
 	}
 
-	err := tx.Create(&device).Error
+	err = tx.Create(&device).Error
 	assert.NoError(t, err)
 
 	// Rollback transaction
@@ -262,10 +263,11 @@ func TestDatabaseTransactionRollback(t *testing.T) {
 	assert.Equal(t, int64(0), count)
 }
 func TestConcurrentDatabaseAccess(t *testing.T) {
-	// Skip if no base connection
-	if baseConnection == nil {
-		t.Skip("No base connection available for concurrent test")
-	}
+	// Setup test database to ensure baseConnection is initialized
+	testDB, err := SetupTestDB(t)
+	require.NoError(t, err)
+	require.NotNil(t, testDB)
+	defer CleanupTestDB(t, testDB)
 	
 	// Use baseConnection instead of transaction-wrapped db for concurrent access
 	// Transactions cannot be safely used from multiple goroutines

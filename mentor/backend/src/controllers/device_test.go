@@ -34,13 +34,13 @@ func TestReportAndGetAlerts(t *testing.T) {
 	setupTestDB(t)
 
 	// Ensure clean slate for test device
-	deviceID := "test-device-go"
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceAlert{})
+	deviceID := sampleUUID
+	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceAlert{})
 
 	// Prepare gin context for ReportAlert
 	w := httptest.NewRecorder()
 	c, _ := gin.CreateTestContext(w)
-	c.Request, _ = http.NewRequest("POST", "/devices/"+deviceID+"/alerts", nil)
+	c.Request, _ = http.NewRequest("POST", "/devices/"+deviceID.String()+"/alerts", nil)
 
 	alert := models.DeviceAlert{
 		DeviceID:  sampleUUID,
@@ -63,8 +63,8 @@ func TestReportAndGetAlerts(t *testing.T) {
 	// Prepare gin context for GetDeviceAlert
 	w2 := httptest.NewRecorder()
 	c2, _ := gin.CreateTestContext(w2)
-	c2.Params = gin.Params{gin.Param{Key: "id", Value: deviceID}}
-	c2.Request, _ = http.NewRequest("GET", "/devices/"+deviceID+"/alerts", nil)
+	c2.Params = gin.Params{gin.Param{Key: "id", Value: deviceID.String()}}
+	c2.Request, _ = http.NewRequest("GET", "/devices/"+deviceID.String()+"/alerts", nil)
 
 	GetDeviceAlert(c2)
 	if w2.Code != http.StatusOK {
@@ -296,10 +296,10 @@ func TestStoreScreenshot(t *testing.T) {
 		t.Fatalf("AutoMigrate Screenshot failed: %v", err)
 	}
 
-	deviceID := "test-device-screenshot"
+	deviceID := sampleUUID
 
 	// Clean up any existing screenshots for this device
-	database.DB.Where("device_id = ?", deviceID).Delete(&models.DeviceScreenshot{})
+	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceScreenshot{})
 
 	// Prepare request
 	screenshot := models.DeviceScreenshot{
@@ -323,13 +323,13 @@ func TestStoreScreenshot(t *testing.T) {
 
 	// Verify screenshot was stored
 	var storedScreenshot models.DeviceScreenshot
-	result := database.DB.Where("device_id = ?", deviceID).First(&storedScreenshot)
+	result := database.DB.Where("deviceid = ?", deviceID).First(&storedScreenshot)
 	if result.Error != nil {
 		t.Fatalf("failed to retrieve stored screenshot: %v", result.Error)
 	}
 
 	if storedScreenshot.DeviceID != sampleUUID {
-		t.Errorf("expected device_id %s, got %s", deviceID, storedScreenshot.DeviceID)
+		t.Errorf("expected deviceid %s, got %s", deviceID, storedScreenshot.DeviceID)
 	}
 	if storedScreenshot.Path != screenshot.Path {
 		t.Errorf("expected path %s, got %s", screenshot.Path, storedScreenshot.Path)
