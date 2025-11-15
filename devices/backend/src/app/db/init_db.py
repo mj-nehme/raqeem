@@ -17,9 +17,8 @@ async def init_db():
     definitions (resolving previous mismatches where existing legacy tables
     had differing column names).
     """
-    global _INIT_DONE
-    if _INIT_DONE:
+    if getattr(init_db, "_done", False):
         return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    _INIT_DONE = True
+    init_db._done = True  # type: ignore[attr-defined]

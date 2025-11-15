@@ -1,8 +1,10 @@
-from sqlalchemy import Column, Float, Integer, BigInteger, TIMESTAMP, Boolean, Text
-from sqlalchemy.dialects.postgresql import UUID
-from app.db.base import Base
-import sqlalchemy.sql as sa
 import uuid
+
+import sqlalchemy.sql as sa
+from sqlalchemy import TIMESTAMP, BigInteger, Boolean, Column, Float, Integer, Text
+from sqlalchemy.dialects.postgresql import UUID
+
+from app.db.base import Base
 
 
 class Device(Base):
@@ -94,7 +96,7 @@ class DeviceRemoteCommand(Base):
 
 class DeviceScreenshot(Base):
     __tablename__ = "device_screenshots"
-    __table_args__ = {'extend_existing': True}
+    __table_args__ = {"extend_existing": True}
 
     screenshotid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     deviceid = Column(UUID(as_uuid=True), nullable=False)

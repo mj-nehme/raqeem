@@ -8,7 +8,7 @@ def test_base_exists():
 
 def test_base_has_metadata():
     """Test that base has metadata."""
-    assert hasattr(Base, 'metadata')
+    assert hasattr(Base, "metadata")
     assert Base.metadata is not None
 
 

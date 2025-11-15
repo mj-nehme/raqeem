@@ -1,10 +1,11 @@
-import os
-import pytest
-from httpx import AsyncClient, ASGITransport
-import respx
-import httpx
-from fastapi import status
 import io
+import os
+
+import httpx
+import pytest
+import respx
+from fastapi import status
+from httpx import ASGITransport, AsyncClient
 
 # Set minimal required env BEFORE importing app
 os.environ.setdefault("SECRET_KEY", "test-secret")
@@ -15,8 +16,8 @@ os.environ.setdefault("MINIO_SECRET_KEY", "miniosecret")
 os.environ.setdefault("MINIO_SECURE", "false")
 # DATABASE_URL and MENTOR_API_URL should be set by CI or developer env
 
-from app.main import app  # noqa: E402
-from app.db.init_db import init_db  # noqa: E402
+from app.db.init_db import init_db
+from app.main import app
 
 pytestmark = pytest.mark.asyncio
 
@@ -33,9 +34,7 @@ async def test_post_screenshot_is_saved_and_forwarded():
 
     # Mock mentor forwarding endpoint if configured
     mentor_api = os.getenv("MENTOR_API_URL", "http://localhost:8080").rstrip("/")
-    route = respx.post(f"{mentor_api}/devices/screenshots").mock(
-        return_value=httpx.Response(200, json={"ok": True})
-    )
+    route = respx.post(f"{mentor_api}/devices/screenshots").mock(return_value=httpx.Response(200, json={"ok": True}))
 
     await _ensure_db()
 
@@ -47,7 +46,7 @@ async def test_post_screenshot_is_saved_and_forwarded():
         response = await client.post(
             "/api/v1/screenshots/",
             data={"deviceid": device_id},
-            files={"file": ("screenshot.png", fake_image, "image/png")}
+            files={"file": ("screenshot.png", fake_image, "image/png")},
         )
         assert response.status_code == status.HTTP_201_CREATED
         body = response.json()
@@ -57,7 +56,7 @@ async def test_post_screenshot_is_saved_and_forwarded():
     # Ensure mentor forwarding was attempted
     assert route.called
     assert route.call_count == 1
-    
+
     # Verify the forwarded payload contains correct fields
     forwarded_request = route.calls[0].request
     forwarded_data = forwarded_request.json()

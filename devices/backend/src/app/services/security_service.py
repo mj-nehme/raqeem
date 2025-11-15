@@ -1,9 +1,13 @@
 import re
 
+MIN_PASSWORD_LEN = 8
+
+
 class SecurityService:
     """Stub SecurityService for tests."""
+
     def validate_password_strength(self, password: str) -> bool:
-        if len(password) < 8:
+        if len(password) < MIN_PASSWORD_LEN:
             return False
         has_upper = any(c.isupper() for c in password)
         has_lower = any(c.islower() for c in password)

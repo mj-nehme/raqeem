@@ -1,6 +1,6 @@
-from typing import Optional
-from pydantic import Field, AliasChoices
+from pydantic import AliasChoices, Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     # Pydantic v2: use SettingsConfigDict instead of inner Config
@@ -27,8 +27,7 @@ class Settings(BaseSettings):
     )  # 7 days default
 
     # Optional: mentor backend API base URL to forward alerts/ingestion
-    mentor_api_url: Optional[str] = Field(
-        default=None, validation_alias=AliasChoices("MENTOR_API_URL")
-    )
+    mentor_api_url: str | None = Field(default=None, validation_alias=AliasChoices("MENTOR_API_URL"))
 
-settings = Settings()
+
+settings = Settings()  # type: ignore[call-arg]

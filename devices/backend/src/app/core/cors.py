@@ -1,6 +1,8 @@
 import os
 import re
+
 from fastapi.middleware.cors import CORSMiddleware
+
 
 def setup_cors(app):
     """Configure CORS dynamically while keeping security sane.
@@ -55,13 +57,13 @@ def setup_cors(app):
 
     max_age = int(os.getenv("CORS_MAX_AGE", "600"))  # cache preflight for 10 minutes by default
 
-    cors_kwargs = dict(
-        allow_credentials=allow_credentials,
-        allow_methods=allow_methods,
-        allow_headers=allow_headers,
-        expose_headers=expose_headers,
-        max_age=max_age,
-    )
+    cors_kwargs = {
+        "allow_credentials": allow_credentials,
+        "allow_methods": allow_methods,
+        "allow_headers": allow_headers,
+        "expose_headers": expose_headers,
+        "max_age": max_age,
+    }
     if allow_origin_regex:
         cors_kwargs["allow_origin_regex"] = allow_origin_regex
     else:

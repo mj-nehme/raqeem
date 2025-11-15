@@ -1,7 +1,8 @@
-import pytest
-from httpx import AsyncClient, ASGITransport
-from app.main import app
 import io
+
+import pytest
+from app.main import app
+from httpx import ASGITransport, AsyncClient
 
 
 @pytest.mark.asyncio
@@ -10,15 +11,15 @@ async def test_create_screenshot_file_upload():
     # Create a fake image file
     fake_image = io.BytesIO(b"fake image content")
     fake_image.name = "test.png"
-    
+
     # Use a valid UUID for device_id
     device_id = "a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d"
-    
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(
             "/api/v1/screenshots/",
             data={"device_id": device_id},
-            files={"file": ("screenshot.png", fake_image, "image/png")}
+            files={"file": ("screenshot.png", fake_image, "image/png")},
         )
     assert response.status_code == 201
     data = response.json()
@@ -32,14 +33,14 @@ async def test_create_screenshot_file_upload_jpg():
     """Test uploading JPG screenshot file."""
     fake_image = io.BytesIO(b"fake jpg content")
     fake_image.name = "test.jpg"
-    
+
     # Use a valid UUID for device_id
     device_id = "b2c3d4e5-f6a7-4b5c-8d7e-9f0a1b2c3d4e"
-    
+
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(
             "/api/v1/screenshots/",
             data={"device_id": device_id},
-            files={"file": ("screenshot.jpg", fake_image, "image/jpeg")}
+            files={"file": ("screenshot.jpg", fake_image, "image/jpeg")},
         )
     assert response.status_code == 201

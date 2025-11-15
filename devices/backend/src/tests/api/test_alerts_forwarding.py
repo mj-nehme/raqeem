@@ -1,9 +1,10 @@
 import os
-import pytest
-from httpx import AsyncClient, ASGITransport
-import respx
+
 import httpx
+import pytest
+import respx
 from fastapi import status
+from httpx import ASGITransport, AsyncClient
 
 # Set minimal required env BEFORE importing app
 os.environ.setdefault("SECRET_KEY", "test-secret")
@@ -14,8 +15,8 @@ os.environ.setdefault("MINIO_SECRET_KEY", "miniosecret")
 os.environ.setdefault("MINIO_SECURE", "false")
 # DATABASE_URL and MENTOR_API_URL should be set by CI or developer env
 
-from app.main import app  # noqa: E402
-from app.db.init_db import init_db  # noqa: E402
+from app.db.init_db import init_db
+from app.main import app
 
 pytestmark = pytest.mark.asyncio
 

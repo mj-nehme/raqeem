@@ -1,8 +1,11 @@
-from sqlalchemy import Column, Text, TIMESTAMP
-from sqlalchemy.dialects.postgresql import UUID
-from app.db.base import Base
-import sqlalchemy.sql as sa
 import uuid
+
+import sqlalchemy.sql as sa
+from sqlalchemy import TIMESTAMP, Column, Text
+from sqlalchemy.dialects.postgresql import UUID
+
+from app.db.base import Base
+
 
 class User(Base):
     __tablename__ = "users"

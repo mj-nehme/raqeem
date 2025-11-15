@@ -1,10 +1,12 @@
 import os
+
 import pytest
 from dotenv import load_dotenv
-from sqlalchemy.ext.asyncio import create_async_engine
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
 
 load_dotenv()  # Load env vars from .env
+
 
 @pytest.mark.asyncio
 async def test_db_connection():

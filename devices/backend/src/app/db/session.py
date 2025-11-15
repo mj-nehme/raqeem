@@ -1,8 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.pool import NullPool
-from sqlalchemy.orm import sessionmaker
 import os
+
 from dotenv import load_dotenv
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.pool import NullPool
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,20 +21,20 @@ if DATABASE_URL and "$(POSTGRES_PASSWORD)" in DATABASE_URL:
     DATABASE_URL = f"postgresql+asyncpg://{user}:{password}@{host}:{port}/{db}"
 
 if not DATABASE_URL:
-    raise ValueError(
-        "DATABASE_URL environment variable is not set. "
-        "Please set it in .env file or environment variables."
+    _msg = (
+        "DATABASE_URL environment variable is not set. Please set it in .env file or environment variables."
     )
+    raise ValueError(_msg)
 
 # Use NullPool to avoid sharing asyncpg connections across different event loops in tests,
 # which can cause "Future attached to a different loop" and concurrent operation errors.
 engine = create_async_engine(DATABASE_URL, echo=True, poolclass=NullPool)
 
-async_session = sessionmaker(
+async_session = async_sessionmaker(
     bind=engine,
-    class_=AsyncSession,
     expire_on_commit=False,
 )
+
 
 # Dependency
 async def get_db():

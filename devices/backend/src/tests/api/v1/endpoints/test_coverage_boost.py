@@ -2,9 +2,10 @@
 Simple tests to boost coverage for endpoints that just need GET requests tested.
 These tests call endpoints without complex database setup.
 """
+
 import pytest
-from httpx import AsyncClient, ASGITransport
 from app.main import app
+from httpx import ASGITransport, AsyncClient
 
 
 # Test devices list endpoints

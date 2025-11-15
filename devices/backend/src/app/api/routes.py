@@ -1,8 +1,5 @@
+from app.api.v1.endpoints import devices, screenshots
 from fastapi import APIRouter
-from app.api.v1.endpoints import (
-    screenshots,
-    devices
-)
 
 api_router = APIRouter()
 

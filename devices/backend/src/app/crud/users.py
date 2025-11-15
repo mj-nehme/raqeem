@@ -1,7 +1,8 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import insert
 from app.models.users import User
 from app.schemas.users import UserCreate
+from sqlalchemy import insert
+from sqlalchemy.ext.asyncio import AsyncSession
+
 
 async def create_user(db: AsyncSession, user: UserCreate):
     stmt = insert(User).values(**user.model_dump()).returning(User)

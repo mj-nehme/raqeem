@@ -8,11 +8,17 @@ dynamic = ["version"]
 description = "Full-stack IoT device monitoring platform with real-time telemetry, alerts, and analytics"
 readme = "README.md"
 requires-python = ">=3.11"
-license = {text = "MIT"}
-authors = [
-    {name = "Raqeem Contributors"}
+license = { text = "MIT" }
+authors = [{ name = "Raqeem Contributors" }]
+keywords = [
+    "iot",
+    "monitoring",
+    "telemetry",
+    "fastapi",
+    "go",
+    "react",
+    "kubernetes",
 ]
-keywords = ["iot", "monitoring", "telemetry", "fastapi", "go", "react", "kubernetes"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -58,15 +64,78 @@ Repository = "https://github.com/mj-nehme/raqeem"
 "Bug Tracker" = "https://github.com/mj-nehme/raqeem/issues"
 
 [tool.setuptools.dynamic]
-version = {file = "VERSION"}
+version = { file = "VERSION" }
 
 [tool.ruff]
 line-length = 120
 target-version = "py311"
 
 [tool.ruff.lint]
-select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "DTZ", "T10", "EM", "ISC", "ICN", "PIE", "PYI", "RSE", "RET", "SIM", "TID", "TCH", "ARG", "PTH", "ERA", "PD", "PGH", "PL", "TRY", "RUF"]
+select = [
+    "E",
+    "F",
+    "W",
+    "I",
+    "N",
+    "UP",
+    "B",
+    "A",
+    "C4",
+    "DTZ",
+    "T10",
+    "EM",
+    "ISC",
+    "ICN",
+    "PIE",
+    "PYI",
+    "RSE",
+    "RET",
+    "SIM",
+    "TID",
+    "ARG",
+    "PTH",
+    "ERA",
+    "PD",
+    "PGH",
+    "PL",
+    "TRY",
+    "RUF",
+]
 ignore = ["E501", "TRY003", "PLR0913"]
+
+[tool.ruff.lint.per-file-ignores]
+"devices/backend/src/app/api/v1/endpoints/*.py" = ["B008"]
+"devices/backend/src/app/api/v1/endpoints/**/*.py" = ["B008"]
+"devices/backend/src/app/api/routes.py" = ["B008"]
+"devices/backend/src/app/models/devices.py" = ["RUF012"]
+"devices/backend/src/tests/**/*.py" = [
+    "PLR2004",
+    "PLC0415",
+    "DTZ001",
+    "DTZ003",
+    "DTZ005",
+    "SIM105",
+    "SIM117",
+    "ARG001",
+    "ARG002",
+    "N806",
+    "PLR1714",
+]
+"tests/**/*.py" = [
+    "PLR2004",
+    "RET505",
+    "PLR0911",
+    "DTZ001",
+    "DTZ003",
+    "DTZ005",
+    "W293",
+    "W291",
+    "I001",
+    "C420",
+    "RUF001",
+    "SIM102",
+    "TRY300",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests", "devices/backend/src/tests"]
@@ -87,3 +156,4 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = false
 ignore_missing_imports = true
+exclude = "(devices/backend/src/tests/|devices/backend/tools/|tests/)"

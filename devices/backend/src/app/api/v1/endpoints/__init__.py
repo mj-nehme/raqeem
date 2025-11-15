@@ -1,7 +1,6 @@
-from . import screenshots, devices
+from . import devices, screenshots
 
 __all__ = [
-	"screenshots",
-	"devices",
+    "devices",
+    "screenshots",
 ]
-

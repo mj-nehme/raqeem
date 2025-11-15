@@ -1,23 +1,24 @@
 # tests/conftest.py
 
 import os
+
 import pytest
 import pytest_asyncio
-from sqlalchemy.ext.asyncio import create_async_engine
 from app.db.base import Base
+from sqlalchemy.ext.asyncio import create_async_engine
 
 # Set required environment variables for testing
 TEST_ENV_VARS = {
-    'DATABASE_URL': 'postgresql+asyncpg://monitor:password@127.0.0.1:5432/monitoring_db',
-    'MINIO_ENDPOINT': 'localhost:9000',
-    'MINIO_ACCESS_KEY': 'minioadmin',
-    'MINIO_SECRET_KEY': 'minioadmin',
-    'MINIO_BUCKET_NAME': 'test-bucket',
-    'MINIO_SECURE': 'false',
-    'SECRET_KEY': 'test_jwt_secret_key_for_testing_purposes_only',
-    'ACCESS_TOKEN_EXPIRE_MINUTES': '30',
-    'MENTOR_API_URL': 'http://localhost:8080',
-    'REFRESH_TOKEN_EXPIRE_MINUTES': '10080'
+    "DATABASE_URL": "postgresql+asyncpg://monitor:password@127.0.0.1:5432/monitoring_db",
+    "MINIO_ENDPOINT": "localhost:9000",
+    "MINIO_ACCESS_KEY": "minioadmin",
+    "MINIO_SECRET_KEY": "minioadmin",
+    "MINIO_BUCKET_NAME": "test-bucket",
+    "MINIO_SECURE": "false",
+    "SECRET_KEY": "test_jwt_secret_key_for_testing_purposes_only",
+    "ACCESS_TOKEN_EXPIRE_MINUTES": "30",
+    "MENTOR_API_URL": "http://localhost:8080",
+    "REFRESH_TOKEN_EXPIRE_MINUTES": "10080",
 }
 
 # Apply test environment variables
@@ -34,21 +35,21 @@ async def reset_db_engine():
     """
     # Import here to avoid circular imports and ensure env vars are set
     from app.db import session
-    
+
     # Dispose the existing engine if it exists
     if session.engine:
         await session.engine.dispose()
-    
+
     # Recreate engine in the current event loop
-    session.engine = create_async_engine(TEST_ENV_VARS['DATABASE_URL'], echo=True)
+    session.engine = create_async_engine(TEST_ENV_VARS["DATABASE_URL"], echo=True)
     session.async_session = session.sessionmaker(
         bind=session.engine,
         class_=session.AsyncSession,
         expire_on_commit=False,
     )
-    
+
     yield
-    
+
     # Clean up after test
     await session.engine.dispose()
 
@@ -61,8 +62,8 @@ async def init_test_db():
     'Task got Future attached to a different loop' errors.
     """
     # Create a new engine in the current event loop
-    engine = create_async_engine(TEST_ENV_VARS['DATABASE_URL'], echo=False)
-    
+    engine = create_async_engine(TEST_ENV_VARS["DATABASE_URL"], echo=False)
+
     try:
         async with engine.begin() as conn:
             # Create all tables
