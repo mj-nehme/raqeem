@@ -7,11 +7,11 @@ from app.main import app
 async def test_register_device_new():
     """Test registering a new device."""
     payload = {
-        "id": "663903cd-f6ac-5211-8e93-4a0889840f94",
-        "name": "Test Device",
+        "deviceid": "663903cd-f6ac-5211-8e93-4a0889840f94",
+        "device_name": "Test Device",
         "device_type": "laptop",
         "os": "Windows 11",
-        "location": "Office A",
+        "device_location": "Office A",
         "ip_address": "192.168.1.100",
         "mac_address": "00:11:22:33:44:55",
         "current_user": "testuser"
@@ -30,8 +30,8 @@ async def test_register_device_update_existing():
     """Test updating an existing device."""
     # First register
     payload = {
-        "id": "beedc88d-78d8-5564-8baa-eae0531f29dd",
-        "name": "Device Original",
+        "deviceid": "beedc88d-78d8-5564-8baa-eae0531f29dd",
+        "device_name": "Device Original",
         "device_type": "desktop"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -40,8 +40,8 @@ async def test_register_device_update_existing():
         
         # Now update
         update_payload = {
-            "id": "beedc88d-78d8-5564-8baa-eae0531f29dd",
-            "name": "Device Updated",
+            "deviceid": "beedc88d-78d8-5564-8baa-eae0531f29dd",
+            "device_name": "Device Updated",
             "device_type": "laptop"
         }
         response = await ac.post("/api/v1/devices/register", json=update_payload)
@@ -54,23 +54,23 @@ async def test_register_device_update_existing():
 
 @pytest.mark.asyncio
 async def test_register_device_missing_id():
-    """Test registering device without id fails."""
+    """Test registering device without deviceid fails."""
     payload = {
-        "name": "Test Device",
+        "device_name": "Test Device",
         "device_type": "laptop"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/devices/register", json=payload)
     assert response.status_code == 400
-    assert "missing device id" in response.json()["detail"].lower()
+    assert "missing required field: deviceid" in response.json()["detail"].lower()
 
 
 @pytest.mark.asyncio
 async def test_register_device_with_device_id_key():
-    """Test registering device using device_id key instead of id."""
+    """Test registering device using deviceid key."""
     payload = {
         "deviceid": "1fc94cd2-8a8c-5cf6-a800-8a9a2d31640e",
-        "name": "Test Device 3"
+        "device_name": "Test Device 3"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post("/api/v1/devices/register", json=payload)
@@ -119,17 +119,17 @@ async def test_post_processes():
     processes = [
         {
             "pid": 1234,
-            "name": "chrome",
+            "process_name": "chrome",
             "cpu": 15.5,
             "memory": 500000000,
-            "command": "/usr/bin/chrome"
+            "command_text": "/usr/bin/chrome"
         },
         {
             "pid": 5678,
-            "name": "firefox",
+            "process_name": "firefox",
             "cpu": 10.2,
             "memory": 300000000,
-            "command": "/usr/bin/firefox"
+            "command_text": "/usr/bin/firefox"
         }
     ]
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -232,8 +232,8 @@ async def test_list_devices():
     """Test listing all devices."""
     # First register a device
     payload = {
-        "id": "f3e678cc-0726-5dc5-bfbf-a23da82627d6",
-        "name": "Device for Listing",
+        "deviceid": "f3e678cc-0726-5dc5-bfbf-a23da82627d6",
+        "device_name": "Device for Listing",
         "device_type": "tablet",
         "os": "iOS"
     }
@@ -266,11 +266,11 @@ async def test_register_device_preserves_existing_fields():
     """Test that updating a device preserves fields not in update payload."""
     # First register with all fields
     initial_payload = {
-        "id": "4fb793da-ab61-5e9b-9db3-b20b085fadaf",
-        "name": "Original Name",
+        "deviceid": "4fb793da-ab61-5e9b-9db3-b20b085fadaf",
+        "device_name": "Original Name",
         "device_type": "laptop",
         "os": "Linux",
-        "location": "Office",
+        "device_location": "Office",
         "ip_address": "192.168.1.50",
         "mac_address": "AA:BB:CC:DD:EE:FF",
         "current_user": "john"
@@ -280,8 +280,8 @@ async def test_register_device_preserves_existing_fields():
         
         # Update with only name changed
         update_payload = {
-            "id": "4fb793da-ab61-5e9b-9db3-b20b085fadaf",
-            "name": "Updated Name"
+            "deviceid": "4fb793da-ab61-5e9b-9db3-b20b085fadaf",
+            "device_name": "Updated Name"
         }
         response = await ac.post("/api/v1/devices/register", json=update_payload)
         assert response.status_code == 200
@@ -294,13 +294,13 @@ async def test_post_processes_replaces_existing():
     device_id = "89006b63-1de6-5f65-a258-5bf69c0f4c15"
     
     # First batch of processes
-    processes1 = [{"pid": 1111, "name": "process1", "cpu": 10.0, "memory": 100000}]
+    processes1 = [{"pid": 1111, "process_name": "process1", "cpu": 10.0, "memory": 100000}]
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(f"/api/v1/devices/{device_id}/processes", json=processes1)
         assert response.status_code == 200
         
         # Second batch - should replace first
-        processes2 = [{"pid": 2222, "name": "process2", "cpu": 20.0, "memory": 200000}]
+        processes2 = [{"pid": 2222, "process_name": "process2", "cpu": 20.0, "memory": 200000}]
         response = await ac.post(f"/api/v1/devices/{device_id}/processes", json=processes2)
         assert response.status_code == 200
         assert response.json()["inserted"] == 1
@@ -322,7 +322,7 @@ async def test_create_command_success():
     """Test creating a command for a device."""
     device_id = "4ce3a91e-b09d-57a5-8493-b5115b7d3e01"
     payload = {
-        "command": "get_info"
+        "command_text": "get_info"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=payload)
@@ -339,7 +339,7 @@ async def test_create_command_not_allowed():
     """Test creating a command with disallowed command fails."""
     device_id = "d8acd640-bbe1-53fa-b2b8-63aa9bed99de"
     payload = {
-        "command": "rm -rf /"
+        "command_text": "rm -rf /"
     }
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=payload)
@@ -355,7 +355,7 @@ async def test_create_command_various_allowed():
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         for cmd in allowed_commands:
-            payload = {"command": cmd}
+            payload = {"command_text": cmd}
             response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=payload)
             assert response.status_code == 200, f"Command {cmd} should be allowed"
             data = response.json()
@@ -369,7 +369,7 @@ async def test_submit_command_result_success():
     
     # First create a command
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        create_payload = {"command": "get_info"}
+        create_payload = {"command_text": "get_info"}
         create_response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=create_payload)
         assert create_response.status_code == 200
         command_id = create_response.json()["commandid"]
@@ -410,7 +410,7 @@ async def test_submit_command_result_failed_status():
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
         # Create command
-        create_payload = {"command": "get_info"}
+        create_payload = {"command_text": "get_info"}
         create_response = await ac.post(f"/api/v1/devices/{device_id}/commands", json=create_payload)
         command_id = create_response.json()["commandid"]
         
@@ -431,8 +431,8 @@ async def test_list_devices_multiple():
     """Test listing all devices."""
     # First register a couple of devices
     devices = [
-        {"id": "e061f400-39c3-51c7-8eb9-7a6672ba4d67", "name": "Device 1", "device_type": "laptop"},
-        {"id": "242a9259-3056-55ac-b13e-fc4d05674e90", "name": "Device 2", "device_type": "desktop"}
+        {"deviceid": "e061f400-39c3-51c7-8eb9-7a6672ba4d67", "device_name": "Device 1", "device_type": "laptop"},
+        {"deviceid": "242a9259-3056-55ac-b13e-fc4d05674e90", "device_name": "Device 2", "device_type": "desktop"}
     ]
     
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -467,8 +467,8 @@ async def test_get_device_by_id():
     """Test getting a specific device by ID."""
     device_id = "a600ae88-ccd2-5739-9464-2c26466ac29f"
     device_payload = {
-        "id": device_id,
-        "name": "Test Device",
+        "deviceid": device_id,
+        "device_name": "Test Device",
         "device_type": "laptop",
         "os": "Windows 11"
     }
@@ -579,17 +579,17 @@ async def test_list_all_processes():
     processes = [
         {
             "pid": 1111,
-            "name": "test-process-1",
+            "process_name": "test-process-1",
             "cpu": 10.5,
             "memory": 100000000,
-            "command": "/usr/bin/test1"
+            "command_text": "/usr/bin/test1"
         },
         {
             "pid": 2222,
-            "name": "test-process-2",
+            "process_name": "test-process-2",
             "cpu": 20.5,
             "memory": 200000000,
-            "command": "/usr/bin/test2"
+            "command_text": "/usr/bin/test2"
         }
     ]
     
