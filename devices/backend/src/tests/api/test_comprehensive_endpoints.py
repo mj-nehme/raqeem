@@ -59,7 +59,7 @@ class TestDeviceEndpoints:
         """Test getting specific device."""
         
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/devices/device-1")
+            response = await client.get(f"/api/v1/devices/{sample_uuid}")
             # Device might not exist, so 404 is acceptable
             assert response.status_code in [200, 404]
         
@@ -145,7 +145,7 @@ class TestScreenshotEndpoints:
                 'file': ('test.png', b'fake image data', 'image/png')
             }
             data = {
-                'device_id': 'device-1',
+                'device_id': sample_uuid,
                 'resolution': '1920x1080'
             }
             
