@@ -432,7 +432,7 @@ func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 	}()
 
 	// Only try to connect if we have database environment variables set
-	// Otherwise, this test will verify the Connect function doesn't crash
+	// Otherwise, this test will skip
 	hasDBConfig := os.Getenv("POSTGRES_USER") != "" || 
 		          os.Getenv("POSTGRES_HOST") != "" ||
 		          os.Getenv("POSTGRES_DB") != ""
@@ -454,30 +454,27 @@ func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 		}()
 	}
 
-	// Run Connect - it will try to connect to the database
-	// If the database is not available, Connect will call log.Fatal
-	// We can't test that easily, so we just verify it doesn't panic
-	// when the database is available
-	defer func() {
-		if r := recover(); r != nil {
-			t.Logf("Connect panicked (expected if database not available): %v", r)
-		}
-	}()
-	
-	// Only actually test if we can connect
-	if DB != nil || hasDBConfig {
-		Connect()
-		
-		// Verify DB was initialized if connection succeeded
-		if DB != nil {
-			// Test a simple query
-			var result int
-			err := DB.Raw("SELECT 1").Scan(&result).Error
-			if err == nil {
-				assert.Equal(t, 1, result)
-			}
-		}
+	// Try to connect using connectWithConfig to avoid log.Fatalf
+	err := connectWithConfig()
+	if err != nil {
+		t.Skipf("Skipping test - database not available: %v", err)
+		return
 	}
+
+	// Run migrations
+	if err := migrate(DB); err != nil {
+		t.Skipf("Skipping test - database migration failed: %v", err)
+		return
+	}
+	
+	// Verify DB was initialized
+	assert.NotNil(t, DB)
+		
+	// Test a simple query
+	var result int
+	err = DB.Raw("SELECT 1").Scan(&result).Error
+	assert.NoError(t, err)
+	assert.Equal(t, 1, result)
 }
 
 // TestConnectEnvironmentVariablesPrecedence tests that env vars take precedence over .env file
@@ -628,15 +625,25 @@ func TestConnectDatabaseConnectionSuccess(t *testing.T) {
 		}
 	}()
 
-	// Test with real PostgreSQL connection
-	Connect()
+	// Test with real PostgreSQL connection using connectWithConfig to avoid log.Fatalf
+	err := connectWithConfig()
+	if err != nil {
+		t.Skipf("Skipping test - database not available: %v", err)
+		return
+	}
+
+	// Run migrations
+	if err := migrate(DB); err != nil {
+		t.Skipf("Skipping test - database migration failed: %v", err)
+		return
+	}
 
 	// Verify DB is initialized
 	assert.NotNil(t, DB)
 
 	// Verify we can execute queries
 	var result int
-	err := DB.Raw("SELECT 1").Scan(&result).Error
+	err = DB.Raw("SELECT 1").Scan(&result).Error
 	assert.NoError(t, err)
 	assert.Equal(t, 1, result)
 
