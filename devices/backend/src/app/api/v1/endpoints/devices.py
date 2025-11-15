@@ -9,6 +9,7 @@ from app.core.config import settings
 import datetime
 import httpx
 from uuid import UUID
+import uuid
 
 router = APIRouter()
 
@@ -28,11 +29,20 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     if not device_id:
         raise HTTPException(status_code=400, detail="missing required field: deviceid")
 
-    # Upsert device row (simple read-then-update or insert)
+    final_id = device_id
+    generated = False
+    try:
+        UUID(str(device_id))
+    except Exception:
+        final_id = str(uuid.uuid4())
+        generated = True
+
     now = datetime.datetime.utcnow()
-    # try to find existing device
-    res = await db.execute(select(dev_models.Device).where(dev_models.Device.deviceid == device_id))
-    existing = res.scalars().first()
+    existing = None
+    if not generated:
+        res = await db.execute(select(dev_models.Device).where(dev_models.Device.deviceid == final_id))
+        existing = res.scalars().first()
+
     if existing:
         # update fields
         existing.device_name = payload.get("device_name") or existing.device_name
@@ -46,7 +56,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         existing.current_user = payload.get("current_user") or existing.current_user
         db.add(existing)
         await db.commit()
-        result = {"deviceid": device_id, "updated": True}
+        result = {"deviceid": final_id, "updated": True}
     else:
         obj = dev_models.Device(
             deviceid=device_id,
@@ -62,19 +72,20 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         )
         db.add(obj)
         await db.commit()
-        result = {"deviceid": device_id, "created": True}
-    
-    # Forward device registration to mentor backend if configured
-    # Note: Input is already validated by this endpoint, and mentor backend
-    # will perform its own validation via BindJSON
+        result = {"deviceid": final_id, "created": True}
+        if generated:
+            result["original_id"] = device_id
+            result["normalized"] = True
+
     if settings.mentor_api_url:
+        fwd = dict(payload)
+        fwd["deviceid"] = final_id
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                await client.post(f"{settings.mentor_api_url}/devices/register", json=payload)
+                await client.post(f"{settings.mentor_api_url}/devices/register", json=fwd)
         except Exception:
-            # Do not fail registration if forwarding fails
             pass
-    
+
     return result
 
 
@@ -373,6 +384,20 @@ async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
         "last_seen": device.last_seen.isoformat() if device.last_seen else None,
         "is_online": device.is_online,
         "device_location": device.device_location,
+        "ip_address": device.ip_address,
+        "mac_address": device.mac_address,
+        "current_user": device.current_user,
+    }
+
+
+    return {
+        "id": str(device.deviceid),
+        "name": device.device_name,
+        "device_type": device.device_type,
+        "os": device.os,
+        "last_seen": device.last_seen.isoformat() if device.last_seen else None,
+        "is_online": device.is_online,
+        "location": device.device_location,
         "ip_address": device.ip_address,
         "mac_address": device.mac_address,
         "current_user": device.current_user,
