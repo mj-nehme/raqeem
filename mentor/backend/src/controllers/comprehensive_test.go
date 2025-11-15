@@ -382,7 +382,7 @@ func TestGetPendingCommands_EdgeCases(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-device-pending-commands"
+	deviceID := sampleUUID.String()
 
 	// Test device with no commands
 	req, _ := http.NewRequest("GET", fmt.Sprintf("/devices/%s/commands/pending", deviceID), nil)
@@ -425,7 +425,9 @@ func TestGetPendingCommands_EdgeCases(t *testing.T) {
 	err = json.Unmarshal(w.Body.Bytes(), &commands)
 	require.NoError(t, err)
 	assert.Equal(t, 1, len(commands))
-	assert.Equal(t, "pending", commands[0].Status)
+	if len(commands) > 0 {
+		assert.Equal(t, "pending", commands[0].Status)
+	}
 }
 
 func TestDeviceOnlineStatusUpdate(t *testing.T) {

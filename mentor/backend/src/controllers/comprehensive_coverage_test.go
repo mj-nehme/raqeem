@@ -13,6 +13,7 @@ import (
 	"mentor-backend/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -30,25 +31,25 @@ func TestListDevicesFullScenarios(t *testing.T) {
 	now := time.Now()
 	devices := []models.Device{
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid.New(),
 			DeviceName: "Online Device 1",
 			IsOnline:   true,
 			LastSeen:   now,
 		},
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid.New(),
 			DeviceName: "Online Device 2",
 			IsOnline:   true,
 			LastSeen:   now.Add(-2 * time.Minute), // Recently seen
 		},
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid.New(),
 			DeviceName: "Offline Device 1",
 			IsOnline:   true,                       // Will be marked offline
 			LastSeen:   now.Add(-10 * time.Minute), // Seen more than 5 minutes ago
 		},
 		{
-			DeviceID:   sampleUUID,
+			DeviceID:   uuid.New(),
 			DeviceName: "Offline Device 2",
 			IsOnline:   false,
 			LastSeen:   now.Add(-30 * time.Minute),
@@ -380,13 +381,13 @@ func TestReportAlertFullScenarios(t *testing.T) {
 
 		// Verify alert was stored
 		var storedAlert models.DeviceAlert
-		db.Where("device_id = ? AND type = ?", "test-device-alert", "disk_full").First(&storedAlert)
+		db.Where("deviceid = ? AND alert_type = ?", sampleUUID, "disk_full").First(&storedAlert)
 		assert.Equal(t, "critical", storedAlert.Level)
 		assert.Equal(t, 98.0, storedAlert.Value)
 	})
 
 	t.Run("Report multiple alerts", func(t *testing.T) {
-		deviceID := "test-device-multi-alert"
+		testDeviceID := uuid.New()
 
 		alertTypes := []string{"cpu_high", "memory_high", "disk_full"}
 		for i, alertType := range alertTypes {
@@ -394,7 +395,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 			c, _ := gin.CreateTestContext(w)
 
 			alert := models.DeviceAlert{
-				DeviceID:  sampleUUID,
+				DeviceID:  testDeviceID,
 				Level:     "warning",
 				AlertType: alertType,
 				Message:   "Alert for " + alertType,
@@ -411,7 +412,7 @@ func TestReportAlertFullScenarios(t *testing.T) {
 
 		// Verify all alerts were stored
 		var count int64
-		db.Model(&models.DeviceAlert{}).Where("deviceid = ?", deviceID).Count(&count)
+		db.Model(&models.DeviceAlert{}).Where("deviceid = ?", testDeviceID).Count(&count)
 		assert.Equal(t, int64(3), count)
 	})
 }

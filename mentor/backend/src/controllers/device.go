@@ -111,21 +111,37 @@ func UpdateProcessList(c *gin.Context) {
 		return
 	}
 
+	// Get device ID from URL parameter if available, otherwise from first process
+	var deviceID uuid.UUID
+	if id := c.Param("id"); id != "" {
+		parsedID, err := uuid.Parse(id)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid device ID"})
+			return
+		}
+		deviceID = parsedID
+	} else if len(processes) > 0 {
+		deviceID = processes[0].DeviceID
+	} else {
+		// Empty process list without device ID - return success (nothing to do)
+		c.JSON(http.StatusOK, processes)
+		return
+	}
+
 	// Start transaction
 	tx := database.DB.Begin()
 
 	// Delete old processes for this device
-	if len(processes) > 0 {
-		if err := tx.Where("deviceid = ?", processes[0].DeviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
-			tx.Rollback()
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
+	if err := tx.Where("deviceid = ?", deviceID).Delete(&models.DeviceProcess{}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	// Insert new processes
 	now := time.Now()
 	for i := range processes {
+		processes[i].DeviceID = deviceID
 		processes[i].Timestamp = now
 		if err := tx.Create(&processes[i]).Error; err != nil {
 			tx.Rollback()
