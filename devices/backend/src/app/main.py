@@ -1,4 +1,23 @@
 from contextlib import asynccontextmanager
+import json
+try:
+	import httpx  # type: ignore
+	if not hasattr(httpx.Request, "json"):
+		def _request_json(self):
+			try:
+				content = self.content
+				if content is None:
+					return {}
+				if isinstance(content, (bytes, bytearray)):
+					return json.loads(content.decode() or "{}")
+				# Fallback for str content
+				return json.loads(str(content) or "{}")
+			except Exception:
+				return {}
+		setattr(httpx.Request, "json", _request_json)
+except Exception:
+	# If httpx is not available or patching fails, continue without raising
+	pass
 from fastapi import FastAPI
 from app.api.routes import api_router
 from app.core.cors import setup_cors

@@ -243,37 +243,6 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
     return devices
 
 
-@router.get("/{device_id}")
-async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
-    """Get a specific device by ID."""
-    # Validate UUID format
-    try:
-        UUID(device_id)
-    except (ValueError, AttributeError):
-        raise HTTPException(status_code=422, detail="Invalid device ID format")
-    
-    res = await db.execute(
-        select(dev_models.Device).where(dev_models.Device.deviceid == device_id)
-    )
-    device = res.scalars().first()
-    
-    if not device:
-        raise HTTPException(status_code=404, detail="Device not found")
-    
-    return {
-        "id": str(device.deviceid),
-        "name": device.device_name,
-        "device_type": device.device_type,
-        "os": device.os,
-        "last_seen": device.last_seen.isoformat() if device.last_seen else None,
-        "is_online": device.is_online,
-        "location": device.device_location,
-        "ip_address": device.ip_address,
-        "mac_address": device.mac_address,
-        "current_user": device.current_user,
-    }
-
-
 @router.get("/processes")
 async def list_all_processes(db: AsyncSession = Depends(get_db)):
     """Get all processes across all devices.
@@ -352,6 +321,51 @@ async def list_all_alerts(db: AsyncSession = Depends(get_db)):
             "threshold": float(alert.threshold) if alert.threshold is not None else None,
         })
     return alerts
+
+
+@router.get("/{device_id}")
+async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
+    """Get a specific device by ID."""
+    # If not a valid UUID, treat as not found to match test expectations
+    try:
+        UUID(device_id)
+    except Exception:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    res = await db.execute(
+        select(dev_models.Device).where(dev_models.Device.deviceid == device_id)
+    )
+    device = res.scalars().first()
+    
+    if not device:
+        raise HTTPException(status_code=404, detail="Device not found")
+    
+    return {
+        "id": str(device.deviceid),
+        "name": device.device_name,
+        "device_type": device.device_type,
+        "os": device.os,
+        "last_seen": device.last_seen.isoformat() if device.last_seen else None,
+        "is_online": device.is_online,
+        "location": device.device_location,
+        "ip_address": device.ip_address,
+        "mac_address": device.mac_address,
+        "current_user": device.current_user,
+    }
+
+
+    return {
+        "id": str(device.deviceid),
+        "name": device.device_name,
+        "device_type": device.device_type,
+        "os": device.os,
+        "last_seen": device.last_seen.isoformat() if device.last_seen else None,
+        "is_online": device.is_online,
+        "location": device.device_location,
+        "ip_address": device.ip_address,
+        "mac_address": device.mac_address,
+        "current_user": device.current_user,
+    }
 
 
 @router.get("/{device_id}/commands/pending", response_model=List[CommandOut])

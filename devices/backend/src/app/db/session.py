@@ -1,4 +1,5 @@
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.pool import NullPool
 from sqlalchemy.orm import sessionmaker
 import os
 from dotenv import load_dotenv
@@ -25,7 +26,9 @@ if not DATABASE_URL:
         "Please set it in .env file or environment variables."
     )
 
-engine = create_async_engine(DATABASE_URL, echo=True)
+# Use NullPool to avoid sharing asyncpg connections across different event loops in tests,
+# which can cause "Future attached to a different loop" and concurrent operation errors.
+engine = create_async_engine(DATABASE_URL, echo=True, poolclass=NullPool)
 
 async_session = sessionmaker(
     bind=engine,

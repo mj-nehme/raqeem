@@ -16,11 +16,16 @@ DEFAULT_SCREENSHOT_RESOLUTION = "800x600"
 
 @router.post("/", status_code=201)
 async def create_screenshot(
-    device_id: str = Form(...),
+    device_id: str | None = Form(None),
+    deviceid: str | None = Form(None),
     file: UploadFile = File(...),
     db: AsyncSession = Depends(get_db)
 ):
     try:
+        # Support both 'device_id' and 'deviceid' form field names
+        device_identifier = device_id or deviceid
+        if not device_identifier:
+            raise HTTPException(status_code=422, detail="device_id is required")
         # Generate unique filename
         file_id = str(uuid.uuid4())
         filename = f"{file_id}.png"
@@ -31,7 +36,7 @@ async def create_screenshot(
         
         # Store in device_screenshots table
         device_screenshot = dev_models.DeviceScreenshot(
-            deviceid=device_id,
+            deviceid=device_identifier,
             path=filename,
             resolution=DEFAULT_SCREENSHOT_RESOLUTION,
             size=file_size
@@ -45,7 +50,7 @@ async def create_screenshot(
             try:
                 async with httpx.AsyncClient(timeout=5.0) as client:
                     payload = {
-                        "deviceid": device_id,
+                        "deviceid": device_identifier,
                         "path": filename,
                         "resolution": DEFAULT_SCREENSHOT_RESOLUTION,
                         "size": file_size

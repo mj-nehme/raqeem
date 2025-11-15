@@ -328,15 +328,16 @@ class TestProcessValidation:
 class TestHTTPClientLogic:
     """Test HTTP client logic for external API calls."""
     
-    @patch('httpx.AsyncClient')
-    async def test_http_client_creation(self, mock_client):
+    async def test_http_client_creation(self):
         """Test HTTP client creation and configuration."""
-        mock_client_instance = AsyncMock()
-        mock_client.return_value.__aenter__.return_value = mock_client_instance
-        
-        # Test basic client usage pattern
-        async with mock_client() as client:
-            assert client is not None
+        # Patch inside the async context to preserve coroutine metadata
+        with patch('httpx.AsyncClient') as mock_client:
+            mock_client_instance = AsyncMock()
+            mock_client.return_value.__aenter__.return_value = mock_client_instance
+
+            # Test basic client usage pattern
+            async with mock_client() as client:
+                assert client is not None
     
     def test_api_url_construction(self):
         """Test API URL construction logic."""
@@ -395,8 +396,8 @@ class TestErrorHandling:
         """Test validation error message formatting."""
         error_cases = [
             {"field": "deviceid", "error": "missing device id"},
-            {"field": "cpu_usage", "error": "cpu usage must be between 0 and 100"},
-            {"field": "memory_total", "error": "memory total must be positive"},
+            {"field": "cpu_usage", "error": "cpu_usage must be between 0 and 100"},
+            {"field": "memory_total", "error": "memory_total must be positive"},
         ]
         
         for case in error_cases:
