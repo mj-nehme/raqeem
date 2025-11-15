@@ -8,6 +8,7 @@ from app.schemas.commands import CommandCreate, CommandResultSubmit, CommandOut
 from app.core.config import settings
 import datetime
 import httpx
+from uuid import UUID
 
 router = APIRouter()
 
@@ -337,7 +338,7 @@ async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db
 
 @router.post("/commands/{command_id}/result")
 async def submit_command_result(
-    command_id: int, 
+    command_id: UUID, 
     payload: CommandResultSubmit, 
     db: AsyncSession = Depends(get_db)
 ):
@@ -372,7 +373,7 @@ async def submit_command_result(
             # Don't fail if forwarding fails
             pass
     
-    return {"status": "ok", "commandid": command_id}
+    return {"status": "ok", "commandid": str(command_id)}
 
 
 @router.post("/{device_id}/commands", response_model=CommandOut)

@@ -389,7 +389,8 @@ async def test_submit_command_result_success():
 @pytest.mark.asyncio
 async def test_submit_command_result_not_found():
     """Test submitting result for non-existent command fails."""
-    command_id = 999999
+    # Use a valid UUID that doesn't exist in the database
+    command_id = "00000000-0000-0000-0000-000000000000"
     result_payload = {
         "status": "completed",
         "result": "Output",
