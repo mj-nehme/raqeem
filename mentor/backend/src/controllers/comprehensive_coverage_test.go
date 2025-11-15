@@ -263,6 +263,8 @@ func TestStoreScreenshotFullScenarios(t *testing.T) {
 	})
 
 	t.Run("Store multiple screenshots", func(t *testing.T) {
+		// Clean previous screenshots to ensure deterministic count
+		db.Where("deviceid = ?", sampleUUID).Delete(&models.DeviceScreenshot{})
 		for i := 0; i < 3; i++ {
 			w := httptest.NewRecorder()
 			c, _ := gin.CreateTestContext(w)

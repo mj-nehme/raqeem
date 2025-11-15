@@ -436,9 +436,9 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	defer cleanup()
 
 	// Create devices with different last seen times
-	uuid1 := uuid.New()
-	uuid2 := uuid.New()
-	
+	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440021")
+	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440022")
+
 	oldDevice := models.Device{
 		DeviceID:   uuid1,
 		DeviceName: "Old Device",
@@ -469,10 +469,10 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	// Find our test devices in the response
 	var oldDeviceResponse, recentDeviceResponse *models.Device
 	for i := range devices {
-		if devices[i].DeviceID == sampleUUID {
+		if devices[i].DeviceID == uuid1 {
 			oldDeviceResponse = &devices[i]
 		}
-		if devices[i].DeviceID == sampleUUID {
+		if devices[i].DeviceID == uuid2 {
 			recentDeviceResponse = &devices[i]
 		}
 	}
@@ -480,9 +480,7 @@ func TestDeviceOnlineStatusUpdate(t *testing.T) {
 	require.NotNil(t, oldDeviceResponse)
 	require.NotNil(t, recentDeviceResponse)
 
-	// Old device should be marked as offline
 	assert.False(t, oldDeviceResponse.IsOnline)
-	// Recent device should still be online
 	assert.True(t, recentDeviceResponse.IsOnline)
 }
 
@@ -556,7 +554,7 @@ func TestProcessListTransaction(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-device-process-transaction"
+	deviceID := sampleUUID.String()
 
 	// Create initial processes
 	initialProcesses := []models.DeviceProcess{
@@ -759,9 +757,9 @@ func TestDeviceLastSeenUpdate(t *testing.T) {
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusOK, w.Code)
 
-	// Check that device's last seen was updated
+	// Check that device's last seen was updated (query by actual UUID)
 	var updatedDevice models.Device
-	database.DB.Where("deviceid = ?", deviceID).First(&updatedDevice)
+	database.DB.Where("deviceid = ?", sampleUUID).First(&updatedDevice)
 	assert.True(t, updatedDevice.LastSeen.After(beforeUpdate))
 	assert.True(t, updatedDevice.IsOnline)
 }
@@ -770,7 +768,7 @@ func TestLargeDataHandling(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "test-device-large-data"
+	deviceID := sampleUUID.String()
 
 	// Test with large process list
 	largeProcessList := make([]models.DeviceProcess, 100)

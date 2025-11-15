@@ -12,6 +12,7 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/models"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -121,11 +122,11 @@ func TestListDevicesWithMultiple(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	// Create multiple devices
+	// Create multiple devices with distinct IDs
 	devices := []models.Device{
-		{DeviceID: sampleUUID, DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true, LastSeen: time.Now()},
-		{DeviceID: sampleUUID, DeviceName: "Device 2", DeviceType: "desktop", IsOnline: false, LastSeen: time.Now()},
-		{DeviceID: sampleUUID, DeviceName: "Device 3", DeviceType: "server", IsOnline: true, LastSeen: time.Now()},
+		{DeviceID: uuid.New(), DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true, LastSeen: time.Now()},
+		{DeviceID: uuid.New(), DeviceName: "Device 2", DeviceType: "desktop", IsOnline: false, LastSeen: time.Now()},
+		{DeviceID: uuid.New(), DeviceName: "Device 3", DeviceType: "server", IsOnline: true, LastSeen: time.Now()},
 	}
 
 	for _, device := range devices {
@@ -161,7 +162,6 @@ func TestGetDeviceMetricWithLimit(t *testing.T) {
 	// Create multiple metrics
 	for i := 0; i < 10; i++ {
 		metrics := models.DeviceMetric{
-			MetricID:  sampleUUID,
 			DeviceID:  sampleUUID,
 			CPUUsage:  float64(10 + i*5),
 			Timestamp: time.Now().Add(time.Duration(i) * time.Minute),

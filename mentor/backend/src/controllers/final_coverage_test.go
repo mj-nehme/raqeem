@@ -12,6 +12,7 @@ import (
 	"mentor-backend/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -152,7 +153,7 @@ func TestUpdateProcessListAdditionalEdgeCases(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	deviceID := "test-device-processes"
+	deviceID := sampleUUID.String()
 
 	t.Run("Update process list with valid data", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -197,9 +198,9 @@ func TestListDevicesAdditionalFilters(t *testing.T) {
 
 	// Create test devices
 	devices := []models.Device{
-		{DeviceID: sampleUUID, DeviceName: "Device 1", IsOnline: true, DeviceLocation: "lab1"},
-		{DeviceID: sampleUUID, DeviceName: "Device 2", IsOnline: false, DeviceLocation: "lab2"},
-		{DeviceID: sampleUUID, DeviceName: "Device 3", IsOnline: true, DeviceLocation: "lab1"},
+		{DeviceID: uuid.New(), DeviceName: "Device 1", IsOnline: true, DeviceLocation: "lab1"},
+		{DeviceID: uuid.New(), DeviceName: "Device 2", IsOnline: false, DeviceLocation: "lab2"},
+		{DeviceID: uuid.New(), DeviceName: "Device 3", IsOnline: true, DeviceLocation: "lab1"},
 	}
 	for _, d := range devices {
 		db.Create(&d)
@@ -299,7 +300,7 @@ func TestGetDeviceProcessesEdgeCases(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	deviceID := "test-device-get-processes"
+	deviceID := sampleUUID.String()
 
 	// Create test processes
 	processes := []models.DeviceProcess{
@@ -438,7 +439,7 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	deviceID := "test-device-pending"
+	deviceID := sampleUUID.String()
 
 	// Create test commands
 	commands := []models.DeviceRemoteCommand{

@@ -30,9 +30,10 @@ func TestCreateRemoteCommandComprehensive(t *testing.T) {
 	t.Run("Create command with valid payload", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Params = gin.Params{gin.Param{Key: "id", Value: "test-device-cmd"}}
+		c.Params = gin.Params{gin.Param{Key: "id", Value: sampleUUID.String()}}
 
 		cmd := models.DeviceRemoteCommand{
+			DeviceID:    sampleUUID,
 			CommandText: "get_info",
 		}
 		b, _ := json.Marshal(cmd)
@@ -219,7 +220,7 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	deviceID := "test-pending-device"
+	deviceID := sampleUUID.String()
 
 	t.Run("Get pending commands returns array", func(t *testing.T) {
 		// Create a pending command
@@ -254,8 +255,8 @@ func TestGetPendingCommandsComprehensive(t *testing.T) {
 	t.Run("Get pending commands for device with no commands", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Params = gin.Params{gin.Param{Key: "id", Value: "device-with-no-commands"}}
-		c.Request, _ = http.NewRequest("GET", "/devices/device-with-no-commands/commands/pending", nil)
+		c.Params = gin.Params{gin.Param{Key: "id", Value: sampleUUID.String()}}
+		c.Request, _ = http.NewRequest("GET", "/devices/"+sampleUUID.String()+"/commands/pending", nil)
 
 		GetPendingCommands(c)
 
@@ -343,10 +344,10 @@ func TestGetDeviceCommandsComprehensive(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	deviceID := "test-cmd-history-device"
+	deviceID := sampleUUID.String()
 
 	// Clean up first
-	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceRemoteCommand{})
+	database.DB.Where("deviceid = ?", sampleUUID).Delete(&models.DeviceRemoteCommand{})
 
 	t.Run("Get commands without limit parameter", func(t *testing.T) {
 		// Create some commands

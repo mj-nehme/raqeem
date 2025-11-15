@@ -13,6 +13,7 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/models"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +45,6 @@ func TestDataValidationAndSanitization(t *testing.T) {
 		{
 			name: "Device with minimum required fields",
 			device: map[string]interface{}{
-				"deviceid":    "minimal-device",
 				"device_name": "Minimal Device",
 			},
 			expectStatus: http.StatusOK,
@@ -52,7 +52,6 @@ func TestDataValidationAndSanitization(t *testing.T) {
 		{
 			name: "Device with unicode characters",
 			device: map[string]interface{}{
-				"deviceid":    "unicode-device-测试",
 				"device_name": "测试设备 Device Téléphone",
 				"device_type": "móvil",
 			},
@@ -61,7 +60,6 @@ func TestDataValidationAndSanitization(t *testing.T) {
 		{
 			name: "Device with long strings",
 			device: map[string]interface{}{
-				"deviceid":    "long-device-" + strings.Repeat("x", 100),
 				"device_name": strings.Repeat("Very Long Device Name ", 20),
 				"device_type": "laptop",
 			},
@@ -93,8 +91,12 @@ func TestDataValidationAndSanitization(t *testing.T) {
 				var response models.Device
 				err := json.Unmarshal(w.Body.Bytes(), &response)
 				require.NoError(t, err)
-				assert.Equal(t, tc.device["id"], response.DeviceID)
-				assert.Equal(t, tc.device["name"], response.DeviceName)
+				if v, ok := tc.device["deviceid"].(uuid.UUID); ok {
+					assert.Equal(t, v, response.DeviceID)
+				}
+				if v, ok := tc.device["device_name"].(string); ok {
+					assert.Equal(t, v, response.DeviceName)
+				}
 			}
 		})
 	}
@@ -104,7 +106,7 @@ func TestComplexQueryParameters(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "query-test-device"
+	deviceID := sampleUUID.String()
 
 	// Register device and add test data
 	device := models.Device{
@@ -119,7 +121,6 @@ func TestComplexQueryParameters(t *testing.T) {
 	baseTime := time.Now()
 	for i := 0; i < 20; i++ {
 		metrics := models.DeviceMetric{
-			MetricID:  sampleUUID,
 			DeviceID:  sampleUUID,
 			CPUUsage:  float64(10 + i*5),
 			Timestamp: baseTime.Add(time.Duration(i) * time.Minute),
@@ -377,8 +378,6 @@ func TestDeviceUpsertBehavior(t *testing.T) {
 	router, cleanup := setupTestRouterWithDB(t)
 	defer cleanup()
 
-	deviceID := "upsert-test-device"
-
 	// First registration
 	device1 := models.Device{
 		DeviceID:       sampleUUID,
@@ -425,8 +424,8 @@ func TestDeviceUpsertBehavior(t *testing.T) {
 	assert.True(t, response.IsOnline)    // Should be set to true
 	assert.NotZero(t, response.LastSeen) // Should be updated
 
-	// Verify only one device exists in database
+	// Verify only one device exists in database using correct UUID
 	var count int64
-	database.DB.Model(&models.Device{}).Where("deviceid = ?", deviceID).Count(&count)
+	database.DB.Model(&models.Device{}).Where("deviceid = ?", sampleUUID).Count(&count)
 	assert.Equal(t, int64(1), count)
 }
