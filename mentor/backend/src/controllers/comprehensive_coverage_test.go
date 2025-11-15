@@ -29,10 +29,7 @@ func TestListDevicesFullScenarios(t *testing.T) {
 
 	// Create devices with different online statuses and timestamps
 	now := time.Now()
-	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440001")
-	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440002")
-	uuid3 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440003")
-	uuid4 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440004")
+	uuid3 := uuid.New() // Device that will be marked offline
 
 	devices := []models.Device{
 		{
@@ -48,7 +45,7 @@ func TestListDevicesFullScenarios(t *testing.T) {
 			LastSeen:   now.Add(-2 * time.Minute), // Recently seen
 		},
 		{
-			DeviceID:   uuid.New(),
+			DeviceID:   uuid3,
 			DeviceName: "Offline Device 1",
 			IsOnline:   true,                       // Will be marked offline
 			LastSeen:   now.Add(-10 * time.Minute), // Seen more than 5 minutes ago
