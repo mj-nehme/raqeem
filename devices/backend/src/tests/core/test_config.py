@@ -282,9 +282,10 @@ class TestEnvironmentHandling:
         
         settings = Settings()
         
-        # Pydantic v2 automatically strips whitespace from string fields
-        assert settings.database_url == 'postgresql+asyncpg://test:test@localhost/test'
-        assert settings.minio_endpoint == 'http://localhost:9000'
-        assert settings.minio_access_key == 'test'
-        assert settings.minio_secret_key == 'test'
-        assert settings.secret_key == 'test-secret-key'
+        # Pydantic v2 BaseSettings does NOT automatically trim whitespace
+        # Values should be taken as-is from environment variables
+        assert settings.database_url == '  postgresql+asyncpg://test:test@localhost/test  '
+        assert settings.minio_endpoint == '  http://localhost:9000  '
+        assert settings.minio_access_key == '  test  '
+        assert settings.minio_secret_key == '  test  '
+        assert settings.secret_key == '  test-secret-key  '
