@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.pool import NullPool
+from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,9 +26,36 @@ if not DATABASE_URL:
     )
     raise ValueError(_msg)
 
-# Use NullPool to avoid sharing asyncpg connections across different event loops in tests,
-# which can cause "Future attached to a different loop" and concurrent operation errors.
-engine = create_async_engine(DATABASE_URL, echo=True, poolclass=NullPool)
+# Get connection pool settings from environment with sensible defaults
+pool_size = int(os.getenv("DB_POOL_SIZE", "10"))
+max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "20"))
+pool_timeout = int(os.getenv("DB_POOL_TIMEOUT", "30"))
+pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "3600"))  # 1 hour default
+pool_pre_ping = os.getenv("DB_POOL_PRE_PING", "true").lower() == "true"
+
+# Use NullPool in test mode to avoid sharing connections across event loops
+# Otherwise use QueuePool for production with better performance
+is_test_mode = os.getenv("PYTEST_CURRENT_TEST") is not None
+poolclass = NullPool if is_test_mode else AsyncAdaptedQueuePool
+
+# Build engine kwargs based on pool type
+engine_kwargs = {
+    "echo": os.getenv("DB_ECHO", "false").lower() == "true",
+    "poolclass": poolclass,
+}
+
+# Only add pool parameters for non-NullPool configurations
+if not is_test_mode:
+    engine_kwargs.update({
+        "pool_size": pool_size,
+        "max_overflow": max_overflow,
+        "pool_timeout": pool_timeout,
+        "pool_recycle": pool_recycle,
+        "pool_pre_ping": pool_pre_ping,
+    })
+
+# Create async engine with connection pooling for production
+engine = create_async_engine(DATABASE_URL, **engine_kwargs)
 
 async_session = async_sessionmaker(
     bind=engine,
@@ -44,3 +71,21 @@ sessionmaker = async_sessionmaker
 async def get_db():
     async with async_session() as session:
         yield session
+
+
+# Health check function
+async def health_check():
+    """Check database connectivity"""
+    try:
+        async with engine.connect() as conn:
+            await conn.execute("SELECT 1")
+        return True
+    except Exception:
+        return False
+
+
+# Shutdown function
+async def shutdown():
+    """Gracefully close database connections"""
+    await engine.dispose()
+

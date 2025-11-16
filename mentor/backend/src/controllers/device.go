@@ -7,6 +7,7 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/models"
 	"mentor-backend/s3"
+	"mentor-backend/util"
 	"net/http"
 	"os"
 	"time"
@@ -68,6 +69,16 @@ func RegisterDevice(c *gin.Context) {
 }
 
 // UpdateDeviceMetric stores new device metrics
+// @Summary Submit device metrics
+// @Description Store performance metrics for a device (CPU, memory, disk, network)
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param metrics body models.DeviceMetric true "Device metrics"
+// @Success 200 {object} models.DeviceMetric
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/metrics [post]
 func UpdateDeviceMetric(c *gin.Context) {
 	var metrics models.DeviceMetric
 	if err := c.BindJSON(&metrics); err != nil {
@@ -99,6 +110,16 @@ func UpdateDeviceMetric(c *gin.Context) {
 }
 
 // Activity stores a new activity log entry
+// @Summary Log device activity
+// @Description Record user activity on a device (file access, app usage, etc.)
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param activity body models.DeviceActivity true "Activity information"
+// @Success 200 {object} models.DeviceActivity
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/activity [post]
 func Activity(c *gin.Context) {
 	var activity models.DeviceActivity
 	if err := c.BindJSON(&activity); err != nil {
@@ -121,6 +142,16 @@ func Activity(c *gin.Context) {
 }
 
 // UpdateProcessList stores the current process list
+// @Summary Update device process list
+// @Description Replace the current process list for a device with a new snapshot
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param processes body []models.DeviceProcess true "List of running processes"
+// @Success 200 {array} models.DeviceProcess
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON or device ID"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/processes [post]
 func UpdateProcessList(c *gin.Context) {
 	var processes []models.DeviceProcess
 	if err := c.BindJSON(&processes); err != nil {
@@ -244,6 +275,16 @@ func GetDeviceMetric(c *gin.Context) {
 }
 
 // GetDeviceProcesses returns latest known processes for a specific device
+// @Summary Get device processes
+// @Description Get the latest process list for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID (UUID)"
+// @Param limit query int false "Number of records to return" default(100)
+// @Success 200 {array} models.DeviceProcess
+// @Failure 400 {object} map[string]string "Bad request - invalid limit parameter"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/{id}/processes [get]
 func GetDeviceProcesses(c *gin.Context) {
 	limit := DefaultProcessesLimit
 	if l := c.Query("limit"); l != "" {
@@ -276,6 +317,16 @@ func GetDeviceProcesses(c *gin.Context) {
 }
 
 // GetDeviceActivity returns recent activity logs for a device
+// @Summary Get device activities
+// @Description Get recent activity logs for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID (UUID)"
+// @Param limit query int false "Number of records to return" default(100)
+// @Success 200 {array} models.DeviceActivity
+// @Failure 400 {object} map[string]string "Bad request - invalid limit parameter"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/{id}/activities [get]
 func GetDeviceActivity(c *gin.Context) {
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -340,6 +391,16 @@ func GetDeviceAlert(c *gin.Context) {
 }
 
 // GetDeviceScreenshot returns recent screenshots metadata for a device
+// @Summary Get device screenshots
+// @Description Get recent screenshot metadata for a specific device with presigned URLs
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID (UUID)"
+// @Param limit query int false "Number of records to return" default(50)
+// @Success 200 {array} object "Array of screenshot metadata with presigned URLs"
+// @Failure 400 {object} map[string]string "Bad request - invalid limit parameter"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/{id}/screenshots [get]
 func GetDeviceScreenshot(c *gin.Context) {
 	limit := 50
 	if l := c.Query("limit"); l != "" {
@@ -385,6 +446,16 @@ func GetDeviceScreenshot(c *gin.Context) {
 }
 
 // CreateRemoteCommand queues a command for execution on a device
+// @Summary Create remote command
+// @Description Queue a command for execution on a specific device
+// @Tags commands
+// @Accept json
+// @Produce json
+// @Param command body models.DeviceRemoteCommand true "Command to execute"
+// @Success 200 {object} models.DeviceRemoteCommand
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/commands [post]
 func CreateRemoteCommand(c *gin.Context) {
 	var cmd models.DeviceRemoteCommand
 	if err := c.BindJSON(&cmd); err != nil {
@@ -416,14 +487,16 @@ func CreateRemoteCommand(c *gin.Context) {
 				fmt.Printf("Error marshaling command payload: %v\n", err)
 				return
 			}
-			client := &http.Client{Timeout: 5 * time.Second}
-			resp, err := client.Post(
+
+			// Use retry client for forwarding to devices backend
+			retryClient := util.NewHTTPClientWithRetry(5*time.Second, 3)
+			resp, err := retryClient.Post(
 				fmt.Sprintf("%s/devices/%s/commands", devicesAPIURL, cmd.DeviceID),
 				"application/json",
 				bytes.NewBuffer(jsonData),
 			)
 			if err != nil {
-				fmt.Printf("Error forwarding command to devices backend: %v\n", err)
+				fmt.Printf("Error forwarding command to devices backend after retries: %v\n", err)
 				return
 			}
 			defer func() {
@@ -441,6 +514,14 @@ func CreateRemoteCommand(c *gin.Context) {
 }
 
 // GetPendingCommands returns pending commands for a device
+// @Summary Get pending commands
+// @Description Get all pending remote commands for a specific device
+// @Tags commands
+// @Produce json
+// @Param id path string true "Device ID (UUID)"
+// @Success 200 {array} models.DeviceRemoteCommand
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/{id}/commands/pending [get]
 func GetPendingCommands(c *gin.Context) {
 	if _, err := uuid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusOK, []models.DeviceRemoteCommand{})
@@ -459,6 +540,16 @@ func GetPendingCommands(c *gin.Context) {
 }
 
 // GetDeviceCommands returns command history for a device
+// @Summary Get device command history
+// @Description Get command execution history for a specific device
+// @Tags commands
+// @Produce json
+// @Param id path string true "Device ID (UUID)"
+// @Param limit query int false "Number of records to return" default(100)
+// @Success 200 {array} models.DeviceRemoteCommand
+// @Failure 400 {object} map[string]string "Bad request - invalid limit parameter"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/{id}/commands [get]
 func GetDeviceCommands(c *gin.Context) {
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -486,6 +577,16 @@ func GetDeviceCommands(c *gin.Context) {
 }
 
 // UpdateCommandStatus updates command execution status
+// @Summary Update command status
+// @Description Update the execution status of a remote command
+// @Tags commands
+// @Accept json
+// @Produce json
+// @Param status body models.DeviceRemoteCommand true "Command status update"
+// @Success 200 {object} models.DeviceRemoteCommand
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /commands/status [post]
 func UpdateCommandStatus(c *gin.Context) {
 	var cmd models.DeviceRemoteCommand
 	if err := c.BindJSON(&cmd); err != nil {
@@ -513,6 +614,17 @@ func UpdateCommandStatus(c *gin.Context) {
 }
 
 // ReportAlert stores a new device alert
+// @Summary Report device alert
+// @Description Submit an alert from a device (threshold breach, error condition, etc.)
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param id path string true "Device ID (UUID)"
+// @Param alert body models.DeviceAlert true "Alert information"
+// @Success 200 {object} models.DeviceAlert
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/{id}/alerts [post]
 func ReportAlert(c *gin.Context) {
 	var alert models.DeviceAlert
 	if err := c.BindJSON(&alert); err != nil {
@@ -534,6 +646,16 @@ func ReportAlert(c *gin.Context) {
 }
 
 // StoreScreenshot stores screenshot metadata forwarded from devices backend
+// @Summary Store screenshot metadata
+// @Description Store screenshot metadata (typically forwarded from devices backend)
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param screenshot body models.DeviceScreenshot true "Screenshot metadata"
+// @Success 200 {object} models.DeviceScreenshot
+// @Failure 400 {object} map[string]string "Bad request - invalid JSON"
+// @Failure 500 {object} map[string]string "Internal server error"
+// @Router /devices/screenshots [post]
 func StoreScreenshot(c *gin.Context) {
 	var screenshot models.DeviceScreenshot
 	if err := c.BindJSON(&screenshot); err != nil {
@@ -555,6 +677,16 @@ func StoreScreenshot(c *gin.Context) {
 }
 
 // ListActivities returns all device activities (global, not per device)
+// @Summary List all activities
+// @Description Get a list of activities across all devices
+// @Tags activities
+// @Produce json
+// @Param userid query string false "Filter by user ID"
+// @Param location query string false "Filter by location"
+// @Param start_time query string false "Filter by start time (RFC3339 format)"
+// @Param end_time query string false "Filter by end time (RFC3339 format)"
+// @Success 200 {array} models.DeviceActivity
+// @Router /activities [get]
 func ListActivities(c *gin.Context) {
 	var activities []models.DeviceActivity
 	if err := database.DB.Order("timestamp desc").Find(&activities).Error; err != nil {

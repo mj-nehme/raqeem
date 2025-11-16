@@ -5,12 +5,14 @@ Complete guide to testing the Raqeem monitoring system for reliability and corre
 ## Test Pyramid
 
 ```
-         /\
-        /  \    E2E Integration Tests (Slowest, Most Comprehensive)
-       /----\
-      /      \  Integration/API Tests (Medium Speed)
-     /--------\
-    /__________\ Unit Tests (Fastest, Most Focused)
+            /\
+           /  \    Battle Tests (Production Stress/Load/Chaos)
+          /----\
+         /      \  E2E Integration Tests (Comprehensive Workflows)
+        /--------\
+       /          \  Integration/API Tests (Component Communication)
+      /------------\
+     /______________\ Unit Tests (Fastest, Most Focused)
 ```
 
 ## Quick Start
@@ -127,7 +129,45 @@ This:
 - Shows detailed logs on failure
 - Provides summary of test results
 
-### 4. CI Tests (GitHub Actions)
+### 4. Battle Tests (Production Readiness)
+
+Comprehensive stress, load, and chaos testing for production confidence:
+
+```bash
+# Install battle test dependencies
+pip install -r tests/battle/requirements.txt
+
+# Start services
+docker compose -f .github/docker-compose.test.yml up -d
+
+# Run all battle tests (takes 30-120 minutes)
+./tests/battle/run_battle_tests.sh
+
+# Or run individual tests
+python3 tests/battle/stress_test.py --devices 1000 --duration 300
+python3 tests/battle/load_test.py --concurrent-users 100 --duration 300
+python3 tests/battle/benchmark_test.py --samples 1000
+
+# Chaos tests (disruptive - restarts services)
+RUN_CHAOS_TESTS=true python3 tests/battle/chaos_test.py --scenarios all
+```
+
+**What Battle Tests Cover:**
+- 🔥 **Stress Testing**: 1000+ concurrent devices, high-volume ingestion, database stress
+- 📊 **Load Testing**: Sustained operations, frontend concurrency, alert pipeline
+- 💥 **Chaos Engineering**: Service failures, database disruptions, storage failures
+- ⚡ **Performance Benchmarking**: Latency baselines, throughput metrics, regression detection
+
+**Performance Targets:**
+- Device registration: <200ms p95
+- Telemetry ingestion: >500 msg/sec
+- Alert forwarding: <1s p95
+- Database queries: <100ms p95
+- Screenshot upload: <5s for 1MB
+
+See [tests/battle/README.md](../tests/battle/README.md) for detailed documentation.
+
+### 5. CI Tests (GitHub Actions)
 
 Automatically runs on every push/PR. To run locally:
 
@@ -171,6 +211,15 @@ act -j build-and-test
 | `test_e2e_system_flow` | **End-to-End System Flow**:<br>1. Multiple device scenarios<br>2. Normal and critical operations<br>3. Complete data flow pipeline<br>4. Cross-device verification | `tests/integration/test_e2e_system_flow.py` |
 | `test_alert_flow` | **Alert Pipeline (Legacy)**:<br>1. Device registration<br>2. Alert submission<br>3. Storage in devices DB<br>4. Forwarding to mentor<br>5. Storage in mentor DB<br>6. Retrieval from mentor API | `tests/integration/test_alert_flow.py` |
 
+### Battle Tests
+
+| Test | What It Validates | File |
+|------|------------------|------|
+| `stress_test` | **High-Volume Stress Testing**:<br>1. 1000+ device registration<br>2. Continuous telemetry ingestion<br>3. Concurrent alert generation<br>4. Bulk screenshot uploads<br>5. Database query performance | `tests/battle/stress_test.py` |
+| `load_test` | **Sustained Load Testing**:<br>1. Device lifecycle simulation<br>2. Frontend API concurrent access<br>3. Alert pipeline under load<br>4. Resource utilization | `tests/battle/load_test.py` |
+| `chaos_test` | **Chaos Engineering**:<br>1. Service restart and recovery<br>2. Database disruption<br>3. Storage failures<br>4. Concurrent disruptions | `tests/battle/chaos_test.py` |
+| `benchmark_test` | **Performance Benchmarking**:<br>1. Latency percentiles (p50, p95, p99)<br>2. Throughput metrics<br>3. Concurrent operations<br>4. Regression detection | `tests/battle/benchmark_test.py` |
+
 ## Testing Checklist (Before Release)
 
 ```bash
@@ -182,13 +231,18 @@ cd ../mentor/frontend && npm run test -- --run
 
 # 2. Run integration tests
 cd ../..
-./tests/integration/run_integration_tests.sh
+./tests/integration/run_all_integration_tests.sh
 
 # 3. Run smoke test on running system
 ./scripts/start.sh  # In one terminal
 python3 tests/smoke_test.py  # In another terminal
 
-# 4. Manual verification (optional)
+# 4. Run battle tests (production readiness)
+pip install -r tests/battle/requirements.txt
+docker compose -f .github/docker-compose.test.yml up -d
+./tests/battle/run_battle_tests.sh
+
+# 5. Manual verification (optional)
 # - Open device simulator: http://localhost:14000
 # - Register a device
 # - Send an alert
@@ -270,7 +324,7 @@ npm install  # in frontend directories
 **Docker issues:**
 ```bash
 # Clean up containers
-docker-compose -f .github/docker-compose.test.yml down -v
+docker compose -f .github/docker-compose.test.yml down -v
 
 # Remove old images
 docker system prune -a
@@ -279,8 +333,8 @@ docker system prune -a
 **Services not healthy:**
 ```bash
 # Check logs
-docker-compose -f .github/docker-compose.test.yml logs devices-backend
-docker-compose -f .github/docker-compose.test.yml logs mentor-backend
+docker compose -f .github/docker-compose.test.yml logs devices-backend
+docker compose -f .github/docker-compose.test.yml logs mentor-backend
 ```
 
 ### Smoke Test Fails
@@ -310,8 +364,23 @@ Expected test execution times:
 | Unit tests (Go) | ~0.5s | Fast compiled tests |
 | Unit tests (Frontend) | ~1s each | Vitest is quick |
 | Smoke test | ~10s | With running services |
-| Integration test | ~30-60s | Includes docker-compose up |
+| Integration test | ~30-60s | Includes docker compose up |
+| Battle tests (quick) | ~5-10min | Small load (100 devices) |
+| Battle tests (full) | ~30-120min | Full load (1000+ devices) |
 | Full CI pipeline | ~3-5min | Includes builds |
+
+### Battle Test Performance Targets
+
+| Metric | Target | Acceptable | Current |
+|--------|--------|------------|---------|
+| Device registration | <100ms p95 | <200ms p95 | Measured by benchmark |
+| Telemetry ingestion | >1000 msg/sec | >500 msg/sec | Measured by stress test |
+| Alert forwarding | <500ms p95 | <1s p95 | Measured by benchmark |
+| Database queries | <50ms p95 | <100ms p95 | Measured by benchmark |
+| Screenshot upload | <2s for 1MB | <5s for 1MB | Measured by benchmark |
+| API response time | <200ms p95 | <500ms p95 | Measured by benchmark |
+
+These targets are validated by the battle test suite and reported in test outputs.
 
 ## Test Coverage
 
