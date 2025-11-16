@@ -159,7 +159,8 @@ cat > postgres-prod-values.yaml <<EOF
 replicaCount: 1
 
 image:
-  repository: postgres
+  # Using explicit registry reference for official PostgreSQL image
+  repository: docker.io/library/postgres
   tag: "16"
 
 persistence:
@@ -225,7 +226,8 @@ cat > minio-prod-values.yaml <<EOF
 replicaCount: 1
 
 image:
-  repository: minio/minio
+  # Using Quay.io registry for MinIO (official MinIO registry)
+  repository: quay.io/minio/minio
   tag: "latest"
 
 persistence:
@@ -957,7 +959,7 @@ kubectl run debug -it --rm --image=curlimages/curl -n raqeem-prod -- \
 
 ```bash
 # Test database connectivity
-kubectl run psql -it --rm --image=postgres:16 -n raqeem-prod -- \
+kubectl run psql -it --rm --image=docker.io/library/postgres:16 -n raqeem-prod -- \
   psql -h postgres-service -U monitor -d monitoring_db
 
 # Check connection pool settings

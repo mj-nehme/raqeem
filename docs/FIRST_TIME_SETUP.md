@@ -82,7 +82,7 @@ The script will automatically:
 7. ✅ Register all services in discovery registry
 
 **First-time run will take 3-5 minutes** as it:
-- Pulls Docker images from Docker Hub
+- Pulls Docker images from official registries (docker.io for PostgreSQL, quay.io for MinIO, ghcr.io for Raqeem services)
 - Installs npm dependencies
 - Initializes databases
 
