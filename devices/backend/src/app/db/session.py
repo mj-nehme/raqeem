@@ -27,6 +27,12 @@ if not DATABASE_URL:
     raise ValueError(_msg)
 
 # Get connection pool settings from environment with sensible defaults
+# These settings tune the connection pool for production workloads:
+# - pool_size: Base number of connections maintained in the pool
+# - max_overflow: Additional connections that can be created on demand
+# - pool_timeout: Max seconds to wait for a connection from the pool
+# - pool_recycle: Seconds after which connections are recycled (prevents stale connections)
+# - pool_pre_ping: Test connections before use to detect dropped connections
 pool_size = int(os.getenv("DB_POOL_SIZE", "10"))
 max_overflow = int(os.getenv("DB_MAX_OVERFLOW", "20"))
 pool_timeout = int(os.getenv("DB_POOL_TIMEOUT", "30"))
@@ -34,7 +40,9 @@ pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "3600"))  # 1 hour default
 pool_pre_ping = os.getenv("DB_POOL_PRE_PING", "true").lower() == "true"
 
 # Use NullPool in test mode to avoid sharing connections across event loops
-# Otherwise use QueuePool for production with better performance
+# NullPool creates a new connection for each request and discards it after use,
+# which is safer for tests but has worse performance. In production, we use
+# QueuePool which maintains a pool of persistent connections for better performance.
 is_test_mode = os.getenv("PYTEST_CURRENT_TEST") is not None
 poolclass = NullPool if is_test_mode else AsyncAdaptedQueuePool
 
@@ -75,17 +83,31 @@ async def get_db():
 
 # Health check function
 async def health_check():
-    """Check database connectivity"""
+    """
+    Check database connectivity by executing a simple query.
+
+    This is used by health check endpoints to verify the database is accessible.
+    Returns True if the database responds successfully, False otherwise.
+    Uses a simple SELECT 1 query which is fast and doesn't require any tables.
+    """
     try:
         async with engine.connect() as conn:
             await conn.execute("SELECT 1")
-        return True
     except Exception:
         return False
+    else:
+        return True
 
 
 # Shutdown function
 async def shutdown():
-    """Gracefully close database connections"""
+    """
+    Gracefully close database connections and clean up resources.
+
+    This should be called during application shutdown to ensure all
+    database connections are properly closed and pool resources are released.
+    SQLAlchemy's dispose() waits for connections to be returned to the pool
+    before closing them, preventing abrupt disconnections.
+    """
     await engine.dispose()
 

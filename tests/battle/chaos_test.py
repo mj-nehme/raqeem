@@ -20,7 +20,6 @@ import subprocess
 import sys
 import time
 from datetime import datetime
-from typing import Optional
 
 import requests
 
@@ -73,14 +72,14 @@ class ChaosTestRunner:
         self.log(f"{name} failed to become healthy after {timeout}s", "ERROR")
         return False
 
-    def docker_compose_cmd(self, action: str, service: Optional[str] = None) -> tuple[bool, str]:
+    def docker_compose_cmd(self, action: str, service: str | None = None) -> tuple[bool, str]:
         """Execute docker compose command."""
         cmd = ["docker", "compose", "-f", self.compose_file, action]
         if service:
             cmd.append(service)
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=30, check=False)
             return result.returncode == 0, result.stdout + result.stderr
         except Exception as e:
             return False, str(e)
@@ -310,7 +309,6 @@ class ChaosTestRunner:
 
         # 4. Test screenshot upload after recovery
         # Note: This may fail if bucket doesn't exist, which is acceptable
-        functional = True
         self.log("MinIO restarted", "SUCCESS")
 
         return {

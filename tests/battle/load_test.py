@@ -22,7 +22,6 @@ import sys
 import time
 from collections import defaultdict
 from datetime import datetime
-from typing import Any
 
 import requests
 

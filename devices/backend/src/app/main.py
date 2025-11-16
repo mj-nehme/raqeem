@@ -49,7 +49,16 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    """Application lifespan manager for startup and shutdown events."""
+    """
+    Application lifespan manager for startup and shutdown procedures.
+
+    This context manager implements graceful shutdown by ensuring database
+    connections are properly closed when the application stops. This prevents
+    connection leaks and allows in-flight requests to complete before shutdown.
+
+    The lifespan pattern is preferred over startup/shutdown events as it
+    guarantees cleanup occurs even if the application crashes.
+    """
     # Startup
     logger.info("Starting Raqeem Devices Backend API")
     logger.info("API documentation available at /docs")
