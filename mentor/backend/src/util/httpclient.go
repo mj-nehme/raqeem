@@ -74,7 +74,9 @@ func (c *HTTPClientWithRetry) Do(req *http.Request) (*http.Response, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to read request body: %w", err)
 		}
-		req.Body.Close()
+		if err := req.Body.Close(); err != nil {
+			log.Printf("Failed to close request body: %v", err)
+		}
 	}
 
 	delay := c.baseDelay
@@ -94,7 +96,9 @@ func (c *HTTPClientWithRetry) Do(req *http.Request) (*http.Response, error) {
 
 		// Close response body if present to prevent resource leaks
 		if resp != nil && resp.Body != nil {
-			resp.Body.Close()
+			if err := resp.Body.Close(); err != nil {
+				log.Printf("Failed to close response body: %v", err)
+			}
 		}
 
 		// Don't sleep after last attempt - fail immediately
