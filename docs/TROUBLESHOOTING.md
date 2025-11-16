@@ -92,10 +92,10 @@ kubectl get events -n default | grep <pod-name>
 **If image pull failed**:
 ```bash
 # Check internet connection
-ping docker.io
+ping github.com
 
 # Manually pull image
-docker pull mjnehme/raqeem-devices-backend:latest
+docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
 
 # Check if image exists
 docker images | grep raqeem
@@ -269,11 +269,11 @@ docker images | grep raqeem
 
 **If authentication required**:
 ```bash
-# Create Docker registry secret
+# Create GitHub Container Registry secret
 kubectl create secret docker-registry regcred \
-  --docker-server=docker.io \
-  --docker-username=<username> \
-  --docker-password=<password> \
+  --docker-server=ghcr.io \
+  --docker-username=<github-username> \
+  --docker-password=<github-token> \
   -n default
 
 # Update deployment to use secret
@@ -911,16 +911,16 @@ docker build --check -t test-image .
 **Solutions**:
 ```bash
 # Check image name
-docker pull mjnehme/raqeem-devices-backend:latest
+docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
 
-# Login to Docker Hub if private
-docker login
+# Login to GitHub Container Registry if private
+echo $GITHUB_TOKEN | docker login ghcr.io -u <github-username> --password-stdin
 
 # Check internet connection
-ping docker.io
+ping github.com
 
-# Use docker.io prefix
-docker pull docker.io/mjnehme/raqeem-devices-backend:latest
+# Ensure image is public or you have access
+# Visit: https://github.com/mj-nehme/raqeem/pkgs/container/raqeem%2Fdevices-backend
 ```
 
 ## Development Environment
