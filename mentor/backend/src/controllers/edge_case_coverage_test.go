@@ -477,7 +477,7 @@ func setupTestDB(t *testing.T) {
 
 func teardownTestDB(t *testing.T) {
 	// Clean up after tests
-	database.DB.Exec("DELETE FROM remote_commands")
+	database.DB.Exec("DELETE FROM device_remote_commands")
 	database.DB.Exec("DELETE FROM device_screenshots")
 	database.DB.Exec("DELETE FROM device_alerts")
 	database.DB.Exec("DELETE FROM device_activities")
