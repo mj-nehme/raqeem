@@ -35,6 +35,10 @@ async_session = async_sessionmaker(
     expire_on_commit=False,
 )
 
+# Backwards-compatibility for tests expecting `session.sessionmaker`
+# to exist (alias to async_sessionmaker)
+sessionmaker = async_sessionmaker
+
 
 # Dependency
 async def get_db():
