@@ -39,7 +39,7 @@ echo ""
 
 # Find merged branches
 echo -e "${BLUE}🔍 Finding branches merged into ${BASE_BRANCH}...${NC}"
-MERGED_BRANCHES=$(git branch -r --merged origin/${BASE_BRANCH} | \
+MERGED_BRANCHES=$(git branch -r --merged origin/"${BASE_BRANCH}" | \
     grep -v "origin/${BASE_BRANCH}" | \
     grep -v "origin/HEAD" | \
     grep "origin/" | \
@@ -56,7 +56,7 @@ BRANCH_COUNT=$(echo "$MERGED_BRANCHES" | grep -c ^ || echo "0")
 echo -e "${YELLOW}📊 Found ${BRANCH_COUNT} merged branches:${NC}"
 echo ""
 echo "$MERGED_BRANCHES" | while read -r branch; do
-    if [ ! -z "$branch" ]; then
+    if [ -n "$branch" ]; then
         # Get the last commit date for this branch
         LAST_COMMIT_DATE=$(git log -1 --format="%ci" origin/"$branch" 2>/dev/null || echo "N/A")
         echo -e "   ${YELLOW}•${NC} $branch (last commit: ${LAST_COMMIT_DATE})"
@@ -73,7 +73,7 @@ fi
 # Check if we're doing this interactively
 if [ -t 0 ]; then
     echo -e "${YELLOW}⚠️  WARNING: This will delete ${BRANCH_COUNT} branches from the remote repository!${NC}"
-    read -p "Do you want to proceed? (yes/no): " CONFIRM
+    read -r -p "Do you want to proceed? (yes/no): " CONFIRM
     
     if [ "$CONFIRM" != "yes" ]; then
         echo -e "${RED}❌ Aborted by user${NC}"
@@ -87,8 +87,8 @@ echo -e "${BLUE}🗑️  Deleting merged branches...${NC}"
 DELETED_COUNT=0
 FAILED_COUNT=0
 
-echo "$MERGED_BRANCHES" | while read -r branch; do
-    if [ ! -z "$branch" ]; then
+while IFS= read -r branch; do
+    if [ -n "$branch" ]; then
         echo -n "Deleting $branch... "
         if git push origin --delete "$branch" 2>/dev/null; then
             echo -e "${GREEN}✅${NC}"
@@ -98,7 +98,7 @@ echo "$MERGED_BRANCHES" | while read -r branch; do
             FAILED_COUNT=$((FAILED_COUNT + 1))
         fi
     fi
-done
+done <<< "$MERGED_BRANCHES"
 
 echo ""
 echo -e "${BLUE}╔═══════════════════════════════════════════════════════════╗${NC}"
