@@ -56,6 +56,16 @@ func RegisterDevice(c *gin.Context) {
 }
 
 // UpdateDeviceMetric stores new device metrics
+// @Summary Submit device metrics
+// @Description Store system metrics for a device including CPU, memory, disk, and network usage
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param metrics body models.DeviceMetric true "Device metrics"
+// @Success 200 {object} models.DeviceMetric
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/metrics [post]
 func UpdateDeviceMetric(c *gin.Context) {
 	var metrics models.DeviceMetric
 	if err := c.BindJSON(&metrics); err != nil {
@@ -87,6 +97,16 @@ func UpdateDeviceMetric(c *gin.Context) {
 }
 
 // Activity stores a new activity log entry
+// @Summary Log device activity
+// @Description Store activity log entry for a device (user actions, app usage, etc.)
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param activity body models.DeviceActivity true "Device activity"
+// @Success 200 {object} models.DeviceActivity
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/activity [post]
 func Activity(c *gin.Context) {
 	var activity models.DeviceActivity
 	if err := c.BindJSON(&activity); err != nil {
@@ -109,6 +129,16 @@ func Activity(c *gin.Context) {
 }
 
 // UpdateProcessList stores the current process list
+// @Summary Update device process list
+// @Description Replace the current process list for a device with a new snapshot
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param processes body []models.DeviceProcess true "List of processes"
+// @Success 200 {array} models.DeviceProcess
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/processes [post]
 func UpdateProcessList(c *gin.Context) {
 	var processes []models.DeviceProcess
 	if err := c.BindJSON(&processes); err != nil {
@@ -228,6 +258,16 @@ func GetDeviceMetric(c *gin.Context) {
 }
 
 // GetDeviceProcesses returns latest known processes for a specific device
+// @Summary Get device processes
+// @Description Get the most recent process list for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID"
+// @Param limit query int false "Number of records to return" default(100)
+// @Success 200 {array} models.DeviceProcess
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/processes [get]
 func GetDeviceProcesses(c *gin.Context) {
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -256,6 +296,16 @@ func GetDeviceProcesses(c *gin.Context) {
 }
 
 // GetDeviceActivity returns recent activity logs for a device
+// @Summary Get device activities
+// @Description Get recent activity logs for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID"
+// @Param limit query int false "Number of records to return" default(100)
+// @Success 200 {array} models.DeviceActivity
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/activities [get]
 func GetDeviceActivity(c *gin.Context) {
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -320,6 +370,16 @@ func GetDeviceAlert(c *gin.Context) {
 }
 
 // GetDeviceScreenshot returns recent screenshots metadata for a device
+// @Summary Get device screenshots
+// @Description Get recent screenshot metadata for a specific device with presigned URLs
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID"
+// @Param limit query int false "Number of records to return" default(50)
+// @Success 200 {array} object "Array of screenshot objects with presigned URLs"
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/screenshots [get]
 func GetDeviceScreenshot(c *gin.Context) {
 	limit := 50
 	if l := c.Query("limit"); l != "" {
@@ -365,6 +425,16 @@ func GetDeviceScreenshot(c *gin.Context) {
 }
 
 // CreateRemoteCommand queues a command for execution on a device
+// @Summary Create remote command
+// @Description Queue a command for execution on a device
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param command body models.DeviceRemoteCommand true "Command to execute"
+// @Success 200 {object} models.DeviceRemoteCommand
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/commands [post]
 func CreateRemoteCommand(c *gin.Context) {
 	var cmd models.DeviceRemoteCommand
 	if err := c.BindJSON(&cmd); err != nil {
@@ -421,6 +491,14 @@ func CreateRemoteCommand(c *gin.Context) {
 }
 
 // GetPendingCommands returns pending commands for a device
+// @Summary Get pending commands
+// @Description Get all pending commands for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID"
+// @Success 200 {array} models.DeviceRemoteCommand
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/commands/pending [get]
 func GetPendingCommands(c *gin.Context) {
 	if _, err := uuid.Parse(c.Param("id")); err != nil {
 		c.JSON(http.StatusOK, []models.DeviceRemoteCommand{})
@@ -439,6 +517,16 @@ func GetPendingCommands(c *gin.Context) {
 }
 
 // GetDeviceCommands returns command history for a device
+// @Summary Get device commands
+// @Description Get command execution history for a specific device
+// @Tags devices
+// @Produce json
+// @Param id path string true "Device ID"
+// @Param limit query int false "Number of records to return" default(100)
+// @Success 200 {array} models.DeviceRemoteCommand
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/commands [get]
 func GetDeviceCommands(c *gin.Context) {
 	limit := 100
 	if l := c.Query("limit"); l != "" {
@@ -466,6 +554,16 @@ func GetDeviceCommands(c *gin.Context) {
 }
 
 // UpdateCommandStatus updates command execution status
+// @Summary Update command status
+// @Description Update the execution status and result of a remote command
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param command body models.DeviceRemoteCommand true "Command status update"
+// @Success 200 {object} models.DeviceRemoteCommand
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /commands/status [post]
 func UpdateCommandStatus(c *gin.Context) {
 	var cmd models.DeviceRemoteCommand
 	if err := c.BindJSON(&cmd); err != nil {
@@ -493,6 +591,17 @@ func UpdateCommandStatus(c *gin.Context) {
 }
 
 // ReportAlert stores a new device alert
+// @Summary Report device alert
+// @Description Submit a new alert for a device
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param id path string true "Device ID"
+// @Param alert body models.DeviceAlert true "Alert information"
+// @Success 200 {object} models.DeviceAlert
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/{id}/alerts [post]
 func ReportAlert(c *gin.Context) {
 	var alert models.DeviceAlert
 	if err := c.BindJSON(&alert); err != nil {
@@ -514,6 +623,16 @@ func ReportAlert(c *gin.Context) {
 }
 
 // StoreScreenshot stores screenshot metadata forwarded from devices backend
+// @Summary Store screenshot metadata
+// @Description Store screenshot metadata for a device
+// @Tags devices
+// @Accept json
+// @Produce json
+// @Param screenshot body models.DeviceScreenshot true "Screenshot metadata"
+// @Success 200 {object} models.DeviceScreenshot
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /devices/screenshots [post]
 func StoreScreenshot(c *gin.Context) {
 	var screenshot models.DeviceScreenshot
 	if err := c.BindJSON(&screenshot); err != nil {

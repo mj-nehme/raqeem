@@ -21,50 +21,52 @@
     "host": "localhost:30081",
     "basePath": "/",
     "paths": {
-        "/activities": {
-            "get": {
-                "description": "Get a list of activities with optional filtering by user_id, location, and time range",
+        "/commands/status": {
+            "post": {
+                "description": "Update the execution status and result of a remote command",
+                "consumes": [
+                    "application/json"
+                ],
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "activities"
+                    "devices"
                 ],
-                "summary": "List activities",
+                "summary": "Update command status",
                 "parameters": [
                     {
-                        "type": "string",
-                        "description": "Filter by user ID",
-                        "name": "userid",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by location",
-                        "name": "location",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by start time (RFC3339 format)",
-                        "name": "start_time",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Filter by end time (RFC3339 format)",
-                        "name": "end_time",
-                        "in": "query"
+                        "description": "Command status update",
+                        "name": "command",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceRemoteCommand"
+                        }
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "additionalProperties": true
+                            "$ref": "#/definitions/models.DeviceRemoteCommand"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     }
@@ -88,6 +90,220 @@
                             "type": "array",
                             "items": {
                                 "$ref": "#/definitions/models.Device"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/activity": {
+            "post": {
+                "description": "Store activity log entry for a device (user actions, app usage, etc.)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Log device activity",
+                "parameters": [
+                    {
+                        "description": "Device activity",
+                        "name": "activity",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceActivity"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceActivity"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/commands": {
+            "post": {
+                "description": "Queue a command for execution on a device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Create remote command",
+                "parameters": [
+                    {
+                        "description": "Command to execute",
+                        "name": "command",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceRemoteCommand"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceRemoteCommand"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/metrics": {
+            "post": {
+                "description": "Store system metrics for a device including CPU, memory, disk, and network usage",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Submit device metrics",
+                "parameters": [
+                    {
+                        "description": "Device metrics",
+                        "name": "metrics",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceMetric"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceMetric"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/processes": {
+            "post": {
+                "description": "Replace the current process list for a device with a new snapshot",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Update device process list",
+                "parameters": [
+                    {
+                        "description": "List of processes",
+                        "name": "processes",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceProcess"
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceProcess"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
                             }
                         }
                     },
@@ -132,6 +348,115 @@
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Device"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/screenshots": {
+            "post": {
+                "description": "Store screenshot metadata for a device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Store screenshot metadata",
+                "parameters": [
+                    {
+                        "description": "Screenshot metadata",
+                        "name": "screenshot",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceScreenshot"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceScreenshot"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/{id}/activities": {
+            "get": {
+                "description": "Get recent activity logs for a specific device",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get device activities",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Number of records to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceActivity"
+                            }
                         }
                     },
                     "400": {
@@ -210,6 +535,161 @@
                         }
                     }
                 }
+            },
+            "post": {
+                "description": "Submit a new alert for a device",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Report device alert",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Alert information",
+                        "name": "alert",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceAlert"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DeviceAlert"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/{id}/commands": {
+            "get": {
+                "description": "Get command execution history for a specific device",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get device commands",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Number of records to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceRemoteCommand"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/devices/{id}/commands/pending": {
+            "get": {
+                "description": "Get all pending commands for a specific device",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get pending commands",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceRemoteCommand"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
             }
         },
         "/devices/{id}/metrics": {
@@ -268,49 +748,157 @@
                     }
                 }
             }
-        }
-    },
-    "definitions": {
-        "models.DeviceAlert": {
-            "type": "object",
-            "properties": {
-                "deviceid": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "level": {
-                    "description": "info, warning, error, critical",
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                },
-                "threshold": {
-                    "description": "threshold that was exceeded",
-                    "type": "number"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "type": {
-                    "description": "cpu, memory, disk, network, security",
-                    "type": "string"
-                },
-                "value": {
-                    "description": "measured value that triggered alert",
-                    "type": "number"
+        },
+        "/devices/{id}/processes": {
+            "get": {
+                "description": "Get the most recent process list for a specific device",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get device processes",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 100,
+                        "description": "Number of records to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceProcess"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
                 }
             }
         },
+        "/devices/{id}/screenshots": {
+            "get": {
+                "description": "Get recent screenshot metadata for a specific device with presigned URLs",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "devices"
+                ],
+                "summary": "Get device screenshots",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Device ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Number of records to return",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Array of screenshot objects with presigned URLs",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
         "models.Device": {
             "type": "object",
             "properties": {
+                "activities": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceActivity"
+                    }
+                },
+                "alerts": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceAlert"
+                    }
+                },
+                "commands": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceRemoteCommand"
+                    }
+                },
                 "current_user": {
                     "type": "string"
                 },
-                "id": {
+                "device_location": {
+                    "type": "string"
+                },
+                "device_name": {
+                    "type": "string"
+                },
+                "device_type": {
+                    "type": "string"
+                },
+                "deviceid": {
                     "type": "string"
                 },
                 "ip_address": {
@@ -322,21 +910,91 @@
                 "last_seen": {
                     "type": "string"
                 },
-                "location": {
-                    "type": "string"
-                },
                 "mac_address": {
                     "type": "string"
                 },
-                "name": {
-                    "type": "string"
+                "metrics": {
+                    "description": "Relationships",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceMetric"
+                    }
                 },
                 "os": {
                     "type": "string"
                 },
-                "type": {
-                    "description": "laptop, desktop, mobile, etc.",
+                "processes": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceProcess"
+                    }
+                },
+                "screenshots": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.DeviceScreenshot"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.User"
+                    }
+                }
+            }
+        },
+        "models.DeviceActivity": {
+            "type": "object",
+            "properties": {
+                "activity_type": {
                     "type": "string"
+                },
+                "activityid": {
+                    "type": "string"
+                },
+                "app": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "deviceid": {
+                    "type": "string"
+                },
+                "duration": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeviceAlert": {
+            "type": "object",
+            "properties": {
+                "alert_type": {
+                    "type": "string"
+                },
+                "alertid": {
+                    "type": "string"
+                },
+                "deviceid": {
+                    "type": "string"
+                },
+                "level": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "threshold": {
+                    "type": "number"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
                 }
             }
         },
@@ -344,48 +1002,137 @@
             "type": "object",
             "properties": {
                 "cpu_temp": {
-                    "description": "celsius",
                     "type": "number"
                 },
                 "cpu_usage": {
-                    "description": "CPU metrics",
                     "type": "number"
                 },
                 "deviceid": {
                     "type": "string"
                 },
                 "disk_total": {
-                    "description": "Disk metrics",
                     "type": "integer"
                 },
                 "disk_used": {
-                    "description": "bytes",
                     "type": "integer"
                 },
-                "id": {
-                    "type": "string"
-                },
                 "memory_total": {
-                    "description": "Memory metrics",
                     "type": "integer"
                 },
                 "memory_used": {
-                    "description": "bytes",
                     "type": "integer"
                 },
+                "metricid": {
+                    "type": "string"
+                },
                 "net_bytes_in": {
-                    "description": "Network metrics",
                     "type": "integer"
                 },
                 "net_bytes_out": {
-                    "description": "bytes/sec",
                     "type": "integer"
                 },
                 "swap_used": {
-                    "description": "bytes",
                     "type": "integer"
                 },
                 "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeviceProcess": {
+            "type": "object",
+            "properties": {
+                "command_text": {
+                    "type": "string"
+                },
+                "cpu": {
+                    "type": "number"
+                },
+                "deviceid": {
+                    "type": "string"
+                },
+                "memory": {
+                    "type": "integer"
+                },
+                "pid": {
+                    "type": "integer"
+                },
+                "process_name": {
+                    "type": "string"
+                },
+                "processid": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeviceRemoteCommand": {
+            "type": "object",
+            "properties": {
+                "command_text": {
+                    "type": "string"
+                },
+                "commandid": {
+                    "type": "string"
+                },
+                "completed_at": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "deviceid": {
+                    "type": "string"
+                },
+                "exit_code": {
+                    "type": "integer"
+                },
+                "result": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.DeviceScreenshot": {
+            "type": "object",
+            "properties": {
+                "deviceid": {
+                    "type": "string"
+                },
+                "path": {
+                    "type": "string"
+                },
+                "resolution": {
+                    "type": "string"
+                },
+                "screenshotid": {
+                    "type": "string"
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deviceid": {
+                    "type": "string"
+                },
+                "userid": {
+                    "type": "string"
+                },
+                "username": {
                     "type": "string"
                 }
             }

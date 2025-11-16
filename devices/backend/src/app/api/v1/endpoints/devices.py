@@ -7,6 +7,17 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
 from app.schemas.commands import CommandCreate, CommandOut, CommandResultSubmit
+from app.schemas.devices import (
+    DeviceActivity,
+    DeviceAlert,
+    DeviceMetric,
+    DeviceProcess,
+    DeviceRegister,
+    DeviceRegisterResponse,
+    ErrorResponse,
+    InsertResponse,
+    SuccessResponse,
+)
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -14,26 +25,41 @@ from sqlalchemy.ext.asyncio import AsyncSession
 router = APIRouter()
 
 
-@router.post("/register", status_code=200)
-async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
-    # Validate legacy fields and reject with clear error messages
-    if "id" in payload:
-        raise HTTPException(status_code=400, detail="unsupported legacy field: id; use deviceid")
-    if "name" in payload:
-        raise HTTPException(status_code=400, detail="unsupported legacy field: name; use device_name")
-    if "location" in payload:
-        raise HTTPException(status_code=400, detail="unsupported legacy field: location; use device_location")
-
-    # payload expected to contain deviceid and optional fields
-    device_id = payload.get("deviceid")
-    if not device_id:
-        raise HTTPException(status_code=400, detail="missing required field: deviceid")
-
-    # Validate that deviceid is a valid UUID
-    try:
-        final_id = UUID(str(device_id))
-    except (ValueError, AttributeError, TypeError) as e:
-        raise HTTPException(status_code=400, detail=f"deviceid must be a valid UUID format: {e!s}") from e
+@router.post(
+    "/register",
+    status_code=200,
+    response_model=DeviceRegisterResponse,
+    summary="Register or update a device",
+    description="""
+    Register a new device or update an existing device's information.
+    
+    **Key Points:**
+    - Device ID must be a valid UUID
+    - If device exists, updates its information
+    - Automatically forwards registration to mentor backend (if configured)
+    - Updates device's last_seen timestamp and online status
+    
+    **Legacy Field Handling:**
+    - Legacy field 'id' → use 'deviceid'
+    - Legacy field 'name' → use 'device_name'
+    - Legacy field 'location' → use 'device_location'
+    """,
+    responses={
+        200: {
+            "description": "Device successfully registered or updated",
+            "model": DeviceRegisterResponse,
+        },
+        400: {
+            "description": "Invalid request (bad UUID, legacy fields, or missing deviceid)",
+            "model": ErrorResponse,
+        },
+    },
+)
+async def register_device(payload: DeviceRegister, db: AsyncSession = Depends(get_db)):
+    # Convert Pydantic model to dict for processing
+    payload_dict = payload.model_dump()
+    device_id = payload.deviceid
+    final_id = device_id
 
     now = datetime.datetime.now(datetime.UTC)
     res = await db.execute(select(dev_models.Device).where(dev_models.Device.deviceid == final_id))
@@ -41,60 +67,82 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
 
     if existing:
         # update fields
-        existing.device_name = payload.get("device_name") or existing.device_name
-        existing.device_type = payload.get("device_type") or existing.device_type
-        existing.os = payload.get("os") or existing.os
+        existing.device_name = payload.device_name or existing.device_name
+        existing.device_type = payload.device_type or existing.device_type
+        existing.os = payload.os or existing.os
         existing.last_seen = now  # type: ignore[assignment]
         existing.is_online = True  # type: ignore[assignment]
-        existing.device_location = payload.get("device_location") or existing.device_location
-        existing.ip_address = payload.get("ip_address") or existing.ip_address
-        existing.mac_address = payload.get("mac_address") or existing.mac_address
-        existing.current_user = payload.get("current_user") or existing.current_user
+        existing.device_location = payload.device_location or existing.device_location
+        existing.ip_address = payload.ip_address or existing.ip_address
+        existing.mac_address = payload.mac_address or existing.mac_address
+        existing.current_user = payload.current_user or existing.current_user
         db.add(existing)
         await db.commit()
         result = {"deviceid": final_id, "updated": True}
     else:
         obj = dev_models.Device(
             deviceid=device_id,
-            device_name=payload.get("device_name"),
-            device_type=payload.get("device_type"),
-            os=payload.get("os"),
+            device_name=payload.device_name,
+            device_type=payload.device_type,
+            os=payload.os,
             last_seen=now,
             is_online=True,
-            device_location=payload.get("device_location"),
-            ip_address=payload.get("ip_address"),
-            mac_address=payload.get("mac_address"),
-            current_user=payload.get("current_user"),
+            device_location=payload.device_location,
+            ip_address=payload.ip_address,
+            mac_address=payload.mac_address,
+            current_user=payload.current_user,
         )
         db.add(obj)
         await db.commit()
         result = {"deviceid": final_id, "created": True}
 
     if settings.mentor_api_url:
-        fwd = dict(payload)
-        fwd["deviceid"] = final_id
+        fwd = payload_dict.copy()
+        fwd["deviceid"] = str(final_id)
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
                 await client.post(f"{settings.mentor_api_url}/devices/register", json=fwd)
         except Exception:
             pass
 
-    return result
+    return DeviceRegisterResponse(deviceid=final_id, **result)
 
 
-@router.post("/{device_id}/metrics")
-async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends(get_db)):
+@router.post(
+    "/{device_id}/metrics",
+    response_model=SuccessResponse,
+    summary="Submit device metrics",
+    description="""
+    Submit system metrics for a device including CPU, memory, disk, and network usage.
+    
+    **Key Points:**
+    - All fields are optional
+    - Metrics are automatically forwarded to mentor backend (if configured)
+    - Timestamps are automatically recorded
+    
+    **Metrics Tracked:**
+    - CPU: usage percentage and temperature
+    - Memory: total, used, and swap
+    - Disk: total and used space
+    - Network: bytes in/out
+    """,
+    responses={
+        200: {"description": "Metrics successfully recorded", "model": SuccessResponse},
+        400: {"description": "Invalid request data", "model": ErrorResponse},
+    },
+)
+async def post_metrics(device_id: str, payload: DeviceMetric, db: AsyncSession = Depends(get_db)):
     obj = dev_models.DeviceMetric(
         deviceid=device_id,
-        cpu_usage=payload.get("cpu_usage"),
-        cpu_temp=payload.get("cpu_temp"),
-        memory_total=payload.get("memory_total"),
-        memory_used=payload.get("memory_used"),
-        swap_used=payload.get("swap_used"),
-        disk_total=payload.get("disk_total"),
-        disk_used=payload.get("disk_used"),
-        net_bytes_in=payload.get("net_bytes_in"),
-        net_bytes_out=payload.get("net_bytes_out"),
+        cpu_usage=payload.cpu_usage,
+        cpu_temp=payload.cpu_temp,
+        memory_total=payload.memory_total,
+        memory_used=payload.memory_used,
+        swap_used=payload.swap_used,
+        disk_total=payload.disk_total,
+        disk_used=payload.disk_used,
+        net_bytes_in=payload.net_bytes_in,
+        net_bytes_out=payload.net_bytes_out,
     )
     db.add(obj)
     await db.commit()
@@ -102,33 +150,37 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
     if settings.mentor_api_url:
         try:
             async with httpx.AsyncClient(timeout=5.0) as client:
-                forward = {
-                    "deviceid": device_id,
-                    "cpu_usage": payload.get("cpu_usage"),
-                    "cpu_temp": payload.get("cpu_temp"),
-                    "memory_total": payload.get("memory_total"),
-                    "memory_used": payload.get("memory_used"),
-                    "swap_used": payload.get("swap_used"),
-                    "disk_total": payload.get("disk_total"),
-                    "disk_used": payload.get("disk_used"),
-                    "net_bytes_in": payload.get("net_bytes_in"),
-                    "net_bytes_out": payload.get("net_bytes_out"),
-                }
+                forward = payload.model_dump()
+                forward["deviceid"] = device_id
                 await client.post(f"{settings.mentor_api_url}/devices/metrics", json=forward)
         except Exception:
             # Do not fail ingestion if forwarding fails
             pass
-    return {"status": "ok"}
+    return SuccessResponse(status="ok")
 
 
-@router.post("/{device_id}/processes")
-async def post_processes(device_id: str, processes: list[dict], db: AsyncSession = Depends(get_db)):
-    # Validate legacy fields and reject with clear error messages
-    for p in processes:
-        if "name" in p:
-            raise HTTPException(status_code=400, detail="unsupported legacy field: name; use process_name")
-        if "command" in p:
-            raise HTTPException(status_code=400, detail="unsupported legacy field: command; use command_text")
+@router.post(
+    "/{device_id}/processes",
+    response_model=InsertResponse,
+    summary="Update device process list",
+    description="""
+    Replace the current process list for a device with a new snapshot.
+    
+    **Key Points:**
+    - Replaces all existing processes for the device
+    - Use for periodic process list updates
+    - Automatically forwards to mentor backend (if configured)
+    
+    **Legacy Field Handling:**
+    - Legacy field 'name' → use 'process_name'
+    - Legacy field 'command' → use 'command_text'
+    """,
+    responses={
+        200: {"description": "Process list successfully updated", "model": InsertResponse},
+        400: {"description": "Invalid request data or legacy fields", "model": ErrorResponse},
+    },
+)
+async def post_processes(device_id: str, processes: list[DeviceProcess], db: AsyncSession = Depends(get_db)):
 
     # delete existing processes for device, then insert new ones
     _proc_table = cast("Any", dev_models.DeviceProcess.__table__)
@@ -136,14 +188,15 @@ async def post_processes(device_id: str, processes: list[dict], db: AsyncSession
     to_add = []
     now = datetime.datetime.now(datetime.UTC)
     for p in processes:
+        p_dict = p.model_dump()
         to_add.append(
             {
                 "deviceid": device_id,
-                "pid": p.get("pid"),
-                "process_name": p.get("process_name"),
-                "cpu": p.get("cpu"),
-                "memory": p.get("memory"),
-                "command_text": p.get("command_text"),
+                "pid": p_dict.get("pid"),
+                "process_name": p_dict.get("process_name"),
+                "cpu": p_dict.get("cpu"),
+                "memory": p_dict.get("memory"),
+                "command_text": p_dict.get("command_text"),
                 "timestamp": now,
             }
         )
@@ -155,33 +208,42 @@ async def post_processes(device_id: str, processes: list[dict], db: AsyncSession
         if settings.mentor_api_url:
             try:
                 async with httpx.AsyncClient(timeout=5.0) as client:
-                    forward = [
-                        {
-                            "deviceid": device_id,
-                            "pid": p.get("pid"),
-                            "process_name": p.get("process_name"),
-                            "cpu": p.get("cpu"),
-                            "memory": p.get("memory"),
-                            "command_text": p.get("command_text"),
-                        }
-                        for p in processes
-                    ]
+                    forward = [p.model_dump() for p in processes]
+                    for proc in forward:
+                        proc["deviceid"] = device_id
                     await client.post(f"{settings.mentor_api_url}/devices/processes", json=forward)
             except Exception:
                 pass
-    return {"inserted": len(to_add)}
+    return InsertResponse(inserted=len(to_add))
 
 
-@router.post("/{device_id}/activities")
-async def post_activity(device_id: str, activities: list[dict], db: AsyncSession = Depends(get_db)):
-    # If legacy field 'type' is provided, treat as validation issue (422) instead of 400
-    for a in activities:
-        if "type" in a and not a.get("activity_type"):
-            # Non-empty legacy 'type' should be rejected as bad request (400)
-            if (a.get("type") or "") != "":
-                raise HTTPException(status_code=400, detail="unsupported legacy field: type; use activity_type")
-            # Empty legacy 'type' is treated as validation error (422)
-            raise HTTPException(status_code=422, detail="invalid field: use activity_type instead of type")
+@router.post(
+    "/{device_id}/activities",
+    response_model=InsertResponse,
+    summary="Log device activities",
+    description="""
+    Submit one or more activity logs for a device.
+    
+    **Key Points:**
+    - Activities track user actions and app usage
+    - All activities are timestamped automatically
+    - Automatically forwards to mentor backend (if configured)
+    
+    **Activity Types:**
+    - app_usage: Application usage tracking
+    - system_event: System-level events
+    - user_action: User interactions
+    
+    **Legacy Field Handling:**
+    - Legacy field 'type' → use 'activity_type'
+    """,
+    responses={
+        200: {"description": "Activities successfully logged", "model": InsertResponse},
+        400: {"description": "Invalid request data or legacy fields", "model": ErrorResponse},
+        422: {"description": "Validation error", "model": ErrorResponse},
+    },
+)
+async def post_activity(device_id: str, activities: list[DeviceActivity], db: AsyncSession = Depends(get_db)):
 
     to_add = []
     now = datetime.datetime.now(datetime.UTC)
