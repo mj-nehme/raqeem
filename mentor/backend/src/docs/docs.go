@@ -1222,3 +1222,8 @@ var SwaggerInfo = &swag.Spec{
 func init() {
 	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
 }
+
+// getDocTemplate returns the swagger documentation template for testing purposes
+func getDocTemplate() string {
+	return docTemplate
+}

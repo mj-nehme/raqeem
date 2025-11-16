@@ -458,7 +458,7 @@ func TestListActivitiesEdgeCases(t *testing.T) {
 
 // Helper functions
 func setupTestDB(t *testing.T) {
-	database.InitDB()
+	database.Connect()
 	
 	// Clean up tables
 	database.DB.Exec("DELETE FROM remote_commands")

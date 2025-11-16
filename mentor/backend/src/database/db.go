@@ -104,16 +104,6 @@ func getEnvInt(key string, defaultValue int) int {
 	return defaultValue
 }
 
-// getEnvInt retrieves an integer environment variable with a default value
-func getEnvInt(key string, defaultValue int) int {
-	if val := os.Getenv(key); val != "" {
-		if intVal, err := strconv.Atoi(val); err == nil {
-			return intVal
-		}
-	}
-	return defaultValue
-}
-
 // connectWithConfig attempts to connect to the database and returns an error if it fails.
 // This function is separated for testing purposes.
 func connectWithConfig() error {
