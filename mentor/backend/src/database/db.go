@@ -99,6 +99,12 @@ func connectWithConfig() error {
 	}
 
 	// Configure connection pool for better performance and reliability
+	// Connection pooling prevents connection exhaustion and reduces latency by reusing connections.
+	// These parameters balance resource usage with availability:
+	// - MaxOpenConns: Total connections (active + idle). Prevents overwhelming the database.
+	// - MaxIdleConns: Connections kept alive when not in use. Reduces connection setup overhead.
+	// - ConnMaxLifetime: Max age of connections. Prevents stale connections and helps with load balancing.
+	// - ConnMaxIdleTime: Max idle time before closing. Frees resources for idle connections.
 	sqlDB, err := DB.DB()
 	if err != nil {
 		return fmt.Errorf("failed to get database instance: %v", err)
@@ -119,7 +125,11 @@ func connectWithConfig() error {
 	return nil
 }
 
-// connectWithRetry attempts to connect with exponential backoff retry logic
+// connectWithRetry attempts to connect with exponential backoff retry logic.
+// This function implements resilience against transient database failures during startup,
+// such as when the database container is still initializing or during network issues.
+// The exponential backoff prevents overwhelming the database with rapid connection attempts
+// while still providing fast recovery when the database becomes available.
 func connectWithRetry(maxRetries int, initialDelay time.Duration) error {
 	var err error
 	delay := initialDelay
@@ -134,6 +144,7 @@ func connectWithRetry(maxRetries int, initialDelay time.Duration) error {
 			log.Printf("Database connection attempt %d/%d failed: %v. Retrying in %v...", attempt, maxRetries, err, delay)
 			time.Sleep(delay)
 			// Exponential backoff with cap at 30 seconds
+			// This prevents excessive delays while still avoiding rapid retries
 			delay *= 2
 			if delay > 30*time.Second {
 				delay = 30 * time.Second
@@ -159,7 +170,10 @@ func Connect() {
 	}
 }
 
-// HealthCheck verifies the database connection is alive
+// HealthCheck verifies the database connection is alive and responsive.
+// This is used by health check endpoints to validate database availability.
+// It uses a timeout to prevent blocking indefinitely if the database is unresponsive.
+// Returns nil if healthy, or an error describing the problem.
 func HealthCheck() error {
 	if DB == nil {
 		return fmt.Errorf("database connection not initialized")
@@ -170,7 +184,8 @@ func HealthCheck() error {
 		return fmt.Errorf("failed to get database instance: %v", err)
 	}
 
-	// Ping with timeout
+	// Ping with timeout to avoid blocking indefinitely
+	// A 2-second timeout is sufficient for most database health checks
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
@@ -181,7 +196,10 @@ func HealthCheck() error {
 	return nil
 }
 
-// Shutdown gracefully closes the database connection
+// Shutdown gracefully closes the database connection.
+// This should be called during application shutdown to ensure all connections
+// are properly closed and resources are released. It waits for active connections
+// to complete their work before closing, preventing data loss or corruption.
 func Shutdown() error {
 	if DB == nil {
 		return nil
