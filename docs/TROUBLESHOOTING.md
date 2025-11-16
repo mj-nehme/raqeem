@@ -964,7 +964,7 @@ pytest tests/api/test_alerts_forwarding.py::test_post_alerts_is_saved_and_forwar
 docker run -d --name test-db \
   -e POSTGRES_PASSWORD=password \
   -p 5432:5432 \
-  postgres:16
+  docker.io/library/postgres:16
 
 # Update test configuration
 # Check conftest.py or test setup

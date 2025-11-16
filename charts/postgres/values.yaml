@@ -1,7 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: postgres
+  # Using explicit registry reference for official PostgreSQL image
+  repository: docker.io/library/postgres
   tag: "15"
   pullPolicy: IfNotPresent
 

@@ -1,4 +1,5 @@
-FROM python:3.10-slim
+# Using explicit registry reference for official Python image
+FROM docker.io/library/python:3.10-slim
 
 # Version and metadata
 LABEL version="0.0.6"
