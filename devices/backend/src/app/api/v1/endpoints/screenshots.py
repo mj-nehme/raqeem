@@ -5,6 +5,7 @@ import httpx
 from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
+from app.schemas.devices import ErrorResponse
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -15,7 +16,51 @@ logger = logging.getLogger(__name__)
 DEFAULT_SCREENSHOT_RESOLUTION = "800x600"
 
 
-@router.post("/", status_code=201)
+@router.post(
+    "/",
+    status_code=201,
+    responses={
+        201: {
+            "description": "Screenshot uploaded successfully",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "id": "123e4567-e89b-12d3-a456-426614174000",
+                        "image_url": "123e4567-e89b-12d3-a456-426614174000.png",
+                        "status": "success",
+                    }
+                }
+            },
+        },
+        422: {
+            "description": "Validation error - missing required fields",
+            "model": ErrorResponse,
+        },
+        500: {
+            "description": "Internal server error during upload",
+            "model": ErrorResponse,
+        },
+    },
+    summary="Upload a device screenshot",
+    description="""
+    Upload a screenshot image file for a device.
+    
+    This endpoint:
+    - Accepts PNG or JPG image files
+    - Generates a unique identifier for each screenshot
+    - Stores screenshot metadata in the database
+    - Forwards metadata to mentor backend if configured
+    
+    **Form Fields:**
+    - `device_id` or `deviceid`: Device identifier (required)
+    - `file`: Image file to upload (required)
+    
+    **Supported formats:** PNG, JPG/JPEG
+    
+    **Returns:** Screenshot identifier and image URL/path
+    """,
+    tags=["Screenshots"],
+)
 async def create_screenshot(
     device_id: str | None = Form(None),
     deviceid: str | None = Form(None),

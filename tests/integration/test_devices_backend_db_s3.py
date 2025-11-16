@@ -62,25 +62,16 @@ def test_device_registration():
         "mac_address": "AA:BB:CC:DD:EE:FF"
     }
     
-    try:
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/devices/register",
-            json=payload,
-            timeout=5
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        if result.get("deviceid") == TEST_DEVICE_ID:
-            log(f"✓ Device registered successfully: {result}", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Device registration returned unexpected data: {result}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Device registration failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/devices/register",
+        json=payload,
+        timeout=5
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Device registered successfully: {result}", "SUCCESS")
+    assert result.get("deviceid") == TEST_DEVICE_ID, f"Unexpected deviceid in result: {result}"
 
 
 def test_metrics_storage():
@@ -99,25 +90,16 @@ def test_metrics_storage():
         "net_bytes_out": 512000
     }
     
-    try:
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/metrics",
-            json=payload,
-            timeout=5
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        if result.get("inserted", 0) >= 1:
-            log(f"✓ Metrics stored successfully: {result}", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Metrics storage returned unexpected data: {result}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Metrics storage failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/metrics",
+        json=payload,
+        timeout=5
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Metrics stored successfully: {result}", "SUCCESS")
+    assert result.get("inserted", 0) >= 1, f"Expected at least 1 metric inserted, got: {result}"
 
 
 def test_activity_storage():
@@ -139,25 +121,16 @@ def test_activity_storage():
         }
     ]
     
-    try:
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/activities",
-            json=activities,
-            timeout=5
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        if result.get("inserted", 0) == 2:
-            log(f"✓ Activities stored successfully: {result}", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Activity storage returned unexpected count: {result}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Activity storage failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/activities",
+        json=activities,
+        timeout=5
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Activities stored successfully: {result}", "SUCCESS")
+    assert result.get("inserted", 0) == 2, f"Expected 2 activities inserted, got: {result}"
 
 
 def test_alert_storage():
@@ -181,25 +154,16 @@ def test_alert_storage():
         }
     ]
     
-    try:
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/alerts",
-            json=alerts,
-            timeout=5
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        if result.get("inserted", 0) == 2:
-            log(f"✓ Alerts stored successfully: {result}", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Alert storage returned unexpected count: {result}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Alert storage failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/alerts",
+        json=alerts,
+        timeout=5
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Alerts stored successfully: {result}", "SUCCESS")
+    assert result.get("inserted", 0) == 2, f"Expected 2 alerts inserted, got: {result}"
 
 
 def test_screenshot_upload_to_s3():
@@ -209,26 +173,19 @@ def test_screenshot_upload_to_s3():
     # Create a fake image file
     fake_image = io.BytesIO(b"fake image content for integration test")
     
-    try:
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/screenshots/",
-            data={"deviceid": TEST_DEVICE_ID},
-            files={"file": ("integration-test.png", fake_image, "image/png")},
-            timeout=10
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        if result.get("status") == "success" and "id" in result and "image_url" in result:
-            log(f"✓ Screenshot uploaded to S3 successfully: {result}", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Screenshot upload returned unexpected data: {result}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Screenshot upload failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/screenshots/",
+        data={"deviceid": TEST_DEVICE_ID},
+        files={"file": ("integration-test.png", fake_image, "image/png")},
+        timeout=10
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Screenshot uploaded to S3 successfully: {result}", "SUCCESS")
+    assert result.get("status") == "success", f"Expected success status, got: {result}"
+    assert "id" in result, f"Expected 'id' in result, got: {result}"
+    assert "image_url" in result, f"Expected 'image_url' in result, got: {result}"
 
 
 def run_integration_test():

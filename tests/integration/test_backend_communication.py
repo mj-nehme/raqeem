@@ -62,25 +62,16 @@ def test_device_registration():
         "mac_address": "11:22:33:44:55:66"
     }
     
-    try:
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/devices/register",
-            json=payload,
-            timeout=5
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        if result.get("deviceid") == TEST_DEVICE_ID:
-            log(f"✓ Device registered: {result}", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Unexpected registration response: {result}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Device registration failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/devices/register",
+        json=payload,
+        timeout=5
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Device registered: {result}", "SUCCESS")
+    assert result.get("deviceid") == TEST_DEVICE_ID, f"Unexpected deviceid in response: {result}"
 
 
 def test_alert_forwarding():
@@ -112,26 +103,17 @@ def test_alert_forwarding():
         }
     ]
     
-    try:
-        # Submit alerts to devices backend
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/alerts",
-            json=alerts,
-            timeout=5
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        if result.get("inserted", 0) == 3:
-            log(f"✓ Alerts submitted to devices backend: {result}", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Unexpected alert submission response: {result}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Alert submission failed: {e}", "ERROR")
-        return False
+    # Submit alerts to devices backend
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/alerts",
+        json=alerts,
+        timeout=5
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Alerts submitted to devices backend: {result}", "SUCCESS")
+    assert result.get("inserted", 0) == 3, f"Expected 3 alerts to be inserted, got: {result}"
 
 
 def test_alert_retrieval_from_mentor():
@@ -141,46 +123,34 @@ def test_alert_retrieval_from_mentor():
     # Wait for forwarding to complete
     time.sleep(2)
     
-    try:
-        response = requests.get(
-            f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
-            timeout=5
-        )
-        response.raise_for_status()
-        alerts = response.json()
-        
-        if not isinstance(alerts, list):
-            log(f"✗ Unexpected response format: {type(alerts)}", "ERROR")
-            return False
-        
-        # Check that we have at least our 3 test alerts
-        test_messages = [
-            "System update available",
-            "Disk space running low",
-            "Critical service unavailable"
-        ]
-        
-        found_alerts = {msg: False for msg in test_messages}
-        
-        for alert in alerts:
-            msg = alert.get("message")
-            if msg in found_alerts:
-                found_alerts[msg] = True
-                log(f"  ✓ Found alert: {msg} (level: {alert.get('level')}, type: {alert.get('type')})")
-        
-        all_found = all(found_alerts.values())
-        
-        if all_found:
-            log(f"✓ All {len(test_messages)} alerts forwarded successfully", "SUCCESS")
-            return True
-        else:
-            missing = [msg for msg, found in found_alerts.items() if not found]
-            log(f"✗ Missing alerts: {missing}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Alert retrieval from mentor failed: {e}", "ERROR")
-        return False
+    response = requests.get(
+        f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
+        timeout=5
+    )
+    response.raise_for_status()
+    alerts = response.json()
+    
+    assert isinstance(alerts, list), f"Expected list response, got: {type(alerts)}"
+    
+    # Check that we have at least our 3 test alerts
+    test_messages = [
+        "System update available",
+        "Disk space running low",
+        "Critical service unavailable"
+    ]
+    
+    found_alerts = {msg: False for msg in test_messages}
+    
+    for alert in alerts:
+        msg = alert.get("message")
+        if msg in found_alerts:
+            found_alerts[msg] = True
+            log(f"  ✓ Found alert: {msg} (level: {alert.get('level')}, type: {alert.get('type')})")
+    
+    missing = [msg for msg, found in found_alerts.items() if not found]
+    assert not missing, f"Missing alerts in mentor backend: {missing}"
+    
+    log(f"✓ All {len(test_messages)} alerts forwarded successfully", "SUCCESS")
 
 
 def test_data_consistency():
@@ -196,63 +166,51 @@ def test_data_consistency():
         "threshold": 40.0
     }
     
-    try:
-        # Submit to devices backend
-        response = requests.post(
-            f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/alerts",
-            json=[test_alert],
-            timeout=5
-        )
-        response.raise_for_status()
-        
-        # Wait for forwarding
-        time.sleep(2)
-        
-        # Retrieve from mentor backend
-        response = requests.get(
-            f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
-            timeout=5
-        )
-        response.raise_for_status()
-        alerts = response.json()
-        
-        # Find our test alert
-        found_alert = None
-        for alert in alerts:
-            if alert.get("message") == "Backend consistency test alert":
-                found_alert = alert
-                break
-        
-        if found_alert:
-            # Verify all fields match
-            checks = [
-                (found_alert.get("deviceid") == TEST_DEVICE_ID, "deviceid"),
-                (found_alert.get("level") == "error", "level"),
-                (found_alert.get("type") == "consistency_check", "type"),
-                (found_alert.get("value") == 42.42, "value"),
-                (found_alert.get("threshold") == 40.0, "threshold"),
-            ]
-            
-            all_passed = True
-            for passed, field in checks:
-                if passed:
-                    log(f"  ✓ {field} matches")
-                else:
-                    log(f"  ✗ {field} mismatch", "ERROR")
-                    all_passed = False
-            
-            if all_passed:
-                log("✓ Data consistency verified", "SUCCESS")
-                return True
-            else:
-                return False
-        else:
-            log("✗ Consistency test alert not found in mentor backend", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Data consistency test failed: {e}", "ERROR")
-        return False
+    # Submit to devices backend
+    response = requests.post(
+        f"{DEVICES_BACKEND_URL}/api/v1/devices/{TEST_DEVICE_ID}/alerts",
+        json=[test_alert],
+        timeout=5
+    )
+    response.raise_for_status()
+    
+    # Wait for forwarding
+    time.sleep(2)
+    
+    # Retrieve from mentor backend
+    response = requests.get(
+        f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
+        timeout=5
+    )
+    response.raise_for_status()
+    alerts = response.json()
+    
+    # Find our test alert
+    found_alert = None
+    for alert in alerts:
+        if alert.get("message") == "Backend consistency test alert":
+            found_alert = alert
+            break
+    
+    assert found_alert is not None, "Consistency test alert not found in mentor backend"
+    
+    # Verify all fields match
+    assert found_alert.get("deviceid") == TEST_DEVICE_ID, f"deviceid mismatch: {found_alert.get('deviceid')}"
+    log("  ✓ deviceid matches")
+    
+    assert found_alert.get("level") == "error", f"level mismatch: {found_alert.get('level')}"
+    log("  ✓ level matches")
+    
+    assert found_alert.get("type") == "consistency_check", f"type mismatch: {found_alert.get('type')}"
+    log("  ✓ type matches")
+    
+    assert found_alert.get("value") == 42.42, f"value mismatch: {found_alert.get('value')}"
+    log("  ✓ value matches")
+    
+    assert found_alert.get("threshold") == 40.0, f"threshold mismatch: {found_alert.get('threshold')}"
+    log("  ✓ threshold matches")
+    
+    log("✓ Data consistency verified", "SUCCESS")
 
 
 def run_integration_test():

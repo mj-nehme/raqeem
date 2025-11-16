@@ -187,22 +187,73 @@ info:
     url: https://github.com/mj-nehme/raqeem
   description: |-
     Device management and monitoring dashboard API for Raqeem IoT platform
-    Provides endpoints for device listing, metrics retrieval, alert management, and remote command execution
+
+    ## Overview
+    The Mentor Backend provides a centralized dashboard for monitoring and managing IoT devices.
+    It aggregates telemetry data, provides device management capabilities, and enables remote command execution.
+
+    ## Key Features
+    - **Device Management**: View and manage all registered devices
+    - **Metrics Monitoring**: Real-time performance metrics visualization
+    - **Activity Tracking**: User activity logs and audit trails
+    - **Alert Management**: Centralized alert aggregation and monitoring
+    - **Remote Commands**: Execute commands on devices remotely
+    - **Screenshot Viewing**: Access device screenshots with presigned URLs
+
+    ## Data Flow
+    The Mentor Backend typically receives data forwarded from the Devices Backend.
+    It provides query endpoints for frontends and management dashboards.
+
+    ## Authentication
+    Currently, the API does not require authentication.
+    Authentication and authorization will be added in future releases.
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
   title: Raqeem Mentor Backend API
   version: "1.0"
 paths:
+  /activities:
+    get:
+      description: Get a list of activities across all devices
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: userid
+        type: string
+      - description: Filter by location
+        in: query
+        name: location
+        type: string
+      - description: Filter by start time (RFC3339 format)
+        in: query
+        name: start_time
+        type: string
+      - description: Filter by end time (RFC3339 format)
+        in: query
+        name: end_time
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.DeviceActivity'
+            type: array
+      summary: List all activities
+      tags:
+      - activities
   /commands/status:
     post:
       consumes:
       - application/json
-      description: Update the execution status and result of a remote command
+      description: Update the execution status of a remote command
       parameters:
       - description: Command status update
         in: body
-        name: command
+        name: status
         required: true
         schema:
           $ref: '#/definitions/models.DeviceRemoteCommand'
@@ -214,20 +265,20 @@ paths:
           schema:
             $ref: '#/definitions/models.DeviceRemoteCommand'
         "400":
-          description: Bad Request
+          description: Bad request - invalid JSON
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
       summary: Update command status
       tags:
-      - devices
+      - commands
   /devices:
     get:
       description: Get a list of all registered devices with their current status
@@ -253,7 +304,7 @@ paths:
     get:
       description: Get recent activity logs for a specific device
       parameters:
-      - description: Device ID
+      - description: Device ID (UUID)
         in: path
         name: id
         required: true
@@ -273,13 +324,13 @@ paths:
               $ref: '#/definitions/models.DeviceActivity'
             type: array
         "400":
-          description: Bad Request
+          description: Bad request - invalid limit parameter
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -328,9 +379,10 @@ paths:
     post:
       consumes:
       - application/json
-      description: Submit a new alert for a device
+      description: Submit an alert from a device (threshold breach, error condition,
+        etc.)
       parameters:
-      - description: Device ID
+      - description: Device ID (UUID)
         in: path
         name: id
         required: true
@@ -349,13 +401,13 @@ paths:
           schema:
             $ref: '#/definitions/models.DeviceAlert'
         "400":
-          description: Bad Request
+          description: Bad request - invalid JSON
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -367,7 +419,7 @@ paths:
     get:
       description: Get command execution history for a specific device
       parameters:
-      - description: Device ID
+      - description: Device ID (UUID)
         in: path
         name: id
         required: true
@@ -387,25 +439,25 @@ paths:
               $ref: '#/definitions/models.DeviceRemoteCommand'
             type: array
         "400":
-          description: Bad Request
+          description: Bad request - invalid limit parameter
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
-      summary: Get device commands
+      summary: Get device command history
       tags:
-      - devices
+      - commands
   /devices/{id}/commands/pending:
     get:
-      description: Get all pending commands for a specific device
+      description: Get all pending remote commands for a specific device
       parameters:
-      - description: Device ID
+      - description: Device ID (UUID)
         in: path
         name: id
         required: true
@@ -420,14 +472,14 @@ paths:
               $ref: '#/definitions/models.DeviceRemoteCommand'
             type: array
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
       summary: Get pending commands
       tags:
-      - devices
+      - commands
   /devices/{id}/metrics:
     get:
       description: Get recent metrics for a specific device
@@ -468,9 +520,9 @@ paths:
       - devices
   /devices/{id}/processes:
     get:
-      description: Get the most recent process list for a specific device
+      description: Get the latest process list for a specific device
       parameters:
-      - description: Device ID
+      - description: Device ID (UUID)
         in: path
         name: id
         required: true
@@ -490,13 +542,13 @@ paths:
               $ref: '#/definitions/models.DeviceProcess'
             type: array
         "400":
-          description: Bad Request
+          description: Bad request - invalid limit parameter
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -509,7 +561,7 @@ paths:
       description: Get recent screenshot metadata for a specific device with presigned
         URLs
       parameters:
-      - description: Device ID
+      - description: Device ID (UUID)
         in: path
         name: id
         required: true
@@ -523,19 +575,19 @@ paths:
       - application/json
       responses:
         "200":
-          description: Array of screenshot objects with presigned URLs
+          description: Array of screenshot metadata with presigned URLs
           schema:
             items:
               type: object
             type: array
         "400":
-          description: Bad Request
+          description: Bad request - invalid limit parameter
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -547,10 +599,9 @@ paths:
     post:
       consumes:
       - application/json
-      description: Store activity log entry for a device (user actions, app usage,
-        etc.)
+      description: Record user activity on a device (file access, app usage, etc.)
       parameters:
-      - description: Device activity
+      - description: Activity information
         in: body
         name: activity
         required: true
@@ -564,13 +615,13 @@ paths:
           schema:
             $ref: '#/definitions/models.DeviceActivity'
         "400":
-          description: Bad Request
+          description: Bad request - invalid JSON
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -582,7 +633,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Queue a command for execution on a device
+      description: Queue a command for execution on a specific device
       parameters:
       - description: Command to execute
         in: body
@@ -598,26 +649,25 @@ paths:
           schema:
             $ref: '#/definitions/models.DeviceRemoteCommand'
         "400":
-          description: Bad Request
+          description: Bad request - invalid JSON
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
             type: object
       summary: Create remote command
       tags:
-      - devices
+      - commands
   /devices/metrics:
     post:
       consumes:
       - application/json
-      description: Store system metrics for a device including CPU, memory, disk,
-        and network usage
+      description: Store performance metrics for a device (CPU, memory, disk, network)
       parameters:
       - description: Device metrics
         in: body
@@ -633,13 +683,13 @@ paths:
           schema:
             $ref: '#/definitions/models.DeviceMetric'
         "400":
-          description: Bad Request
+          description: Bad request - invalid JSON
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -653,7 +703,7 @@ paths:
       - application/json
       description: Replace the current process list for a device with a new snapshot
       parameters:
-      - description: List of processes
+      - description: List of running processes
         in: body
         name: processes
         required: true
@@ -671,13 +721,13 @@ paths:
               $ref: '#/definitions/models.DeviceProcess'
             type: array
         "400":
-          description: Bad Request
+          description: Bad request - invalid JSON or device ID
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -723,7 +773,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Store screenshot metadata for a device
+      description: Store screenshot metadata (typically forwarded from devices backend)
       parameters:
       - description: Screenshot metadata
         in: body
@@ -739,13 +789,13 @@ paths:
           schema:
             $ref: '#/definitions/models.DeviceScreenshot'
         "400":
-          description: Bad Request
+          description: Bad request - invalid JSON
           schema:
             additionalProperties:
               type: string
             type: object
         "500":
-          description: Internal Server Error
+          description: Internal server error
           schema:
             additionalProperties:
               type: string
@@ -757,3 +807,10 @@ schemes:
 - http
 - https
 swagger: "2.0"
+tags:
+- description: Device registration, status, and telemetry endpoints
+  name: devices
+- description: Remote command execution and status tracking
+  name: commands
+- description: Activity logging and retrieval across all devices
+  name: activities

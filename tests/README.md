@@ -28,11 +28,24 @@ Complete end-to-end test with docker-compose:
 
 ```
 tests/
-├── smoke_test.py              # Quick health + alert flow test
-├── integration/
-│   ├── run_integration_tests.sh  # Integration test runner
-│   └── test_alert_flow.py        # E2E alert pipeline test
-└── README.md                  # This file
+├── smoke_test.py                 # Quick health + alert flow test
+├── integration/                  # Integration tests
+│   ├── run_integration_tests.sh     # Integration test runner
+│   ├── run_all_integration_tests.sh # Comprehensive test runner
+│   ├── test_alert_flow.py           # E2E alert pipeline test
+│   ├── test_backend_communication.py
+│   ├── test_devices_backend_db_s3.py
+│   ├── test_mentor_backend_db_s3.py
+│   └── test_e2e_system_flow.py
+├── battle/                       # Battle tests (stress, load, chaos)
+│   ├── README.md                    # Battle test documentation
+│   ├── run_battle_tests.sh          # Battle test runner
+│   ├── stress_test.py               # High-volume stress testing
+│   ├── load_test.py                 # Sustained load testing
+│   ├── chaos_test.py                # Chaos engineering tests
+│   ├── benchmark_test.py            # Performance benchmarking
+│   └── requirements.txt             # Battle test dependencies
+└── README.md                     # This file
 ```
 
 ## What Each Test Does
@@ -86,7 +99,38 @@ python3 tests/integration/test_alert_flow.py
 docker-compose -f .github/docker-compose.test.yml down -v
 ```
 
-### NEW: Comprehensive Integration Test Suite
+### Battle Tests (Production Readiness)
+
+**Purpose**: Comprehensive stress, load, and chaos testing for production confidence  
+**Duration**: ~30-120 minutes (configurable)  
+**Requirements**: Docker and docker-compose, battle test dependencies
+
+Tests:
+- 🔥 **Stress Testing**: 1000+ concurrent devices, high-volume ingestion
+- 📊 **Load Testing**: Sustained operations, frontend concurrency
+- 💥 **Chaos Engineering**: Service failures, database disruptions, network issues
+- ⚡ **Performance Benchmarking**: Baseline metrics, regression detection
+
+Usage:
+```bash
+# Install dependencies
+pip install -r tests/battle/requirements.txt
+
+# Run all battle tests (quick version)
+./tests/battle/run_battle_tests.sh
+
+# Run individual tests
+python3 tests/battle/stress_test.py --devices 1000 --duration 300
+python3 tests/battle/load_test.py --concurrent-users 100 --duration 300
+python3 tests/battle/benchmark_test.py --samples 1000
+
+# Run chaos tests (disruptive - will restart services)
+RUN_CHAOS_TESTS=true python3 tests/battle/chaos_test.py --scenarios all
+```
+
+See [battle/README.md](battle/README.md) for detailed documentation.
+
+### Comprehensive Integration Test Suite
 
 **Purpose**: Complete test coverage for all system communication patterns  
 **Duration**: ~3-5 minutes (includes all tests)  

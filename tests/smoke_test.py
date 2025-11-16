@@ -38,47 +38,40 @@ def test_alert_flow(devices_url, mentor_url):
     
     # 1. Register device
     log("Registering test device...")
-    try:
-        response = requests.post(
-            f"{devices_url}/api/v1/devices/register",
-            json={
-                "id": device_id,
-                "name": "Smoke Test Device",
-                "device_type": "laptop",
-                "os": "Test OS"
-            },
-            timeout=5
-        )
-        response.raise_for_status()
-        log("Device registered", "SUCCESS")
-    except Exception as e:
-        log(f"Device registration failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{devices_url}/api/v1/devices/register",
+        json={
+            "id": device_id,
+            "name": "Smoke Test Device",
+            "device_type": "laptop",
+            "os": "Test OS"
+        },
+        timeout=5
+    )
+    response.raise_for_status()
+    log("Device registered", "SUCCESS")
     
     # 2. Send alert
     log("Sending test alert...")
-    try:
-        response = requests.post(
-            f"{devices_url}/api/v1/devices/{device_id}/alerts",
-            json=[{
-                "level": "info",
-                "alert_type": "smoke_test",
-                "message": "Smoke test alert",
-                "value": 50,
-                "threshold": 80
-            }],
-            timeout=5
-        )
-        response.raise_for_status()
-        log("Alert sent", "SUCCESS")
-    except Exception as e:
-        log(f"Alert send failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{devices_url}/api/v1/devices/{device_id}/alerts",
+        json=[{
+            "level": "info",
+            "alert_type": "smoke_test",
+            "message": "Smoke test alert",
+            "value": 50,
+            "threshold": 80
+        }],
+        timeout=5
+    )
+    response.raise_for_status()
+    log("Alert sent", "SUCCESS")
     
     # 3. Check alert in mentor backend (with retry)
     log("Checking alert in mentor backend...")
     time.sleep(2)  # Give forwarding time
     
+    found = False
     for attempt in range(3):
         try:
             response = requests.get(
@@ -89,12 +82,11 @@ def test_alert_flow(devices_url, mentor_url):
             alerts = response.json()
             
             if isinstance(alerts, list) and len(alerts) > 0:
-                found = any(a.get("message") == "Smoke test alert" for a in alerts)
-                if found:
+                if any(a.get("message") == "Smoke test alert" for a in alerts):
                     log("Alert found in mentor backend", "SUCCESS")
-                    return True
-                else:
-                    log(f"Alert not found (attempt {attempt + 1}/3)", "WARN")
+                    found = True
+                    break
+                log(f"Alert not found (attempt {attempt + 1}/3)", "WARN")
             else:
                 log(f"No alerts yet (attempt {attempt + 1}/3)", "WARN")
             
@@ -105,8 +97,7 @@ def test_alert_flow(devices_url, mentor_url):
             if attempt < 2:
                 time.sleep(2)
     
-    log("Alert was not found in mentor backend after 3 attempts", "ERROR")
-    return False
+    assert found, "Alert was not found in mentor backend after 3 attempts"
 
 def main():
     """Run smoke tests."""

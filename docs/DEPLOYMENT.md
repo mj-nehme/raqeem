@@ -289,7 +289,7 @@ cat > devices-backend-prod-values.yaml <<EOF
 replicaCount: 3  # Multiple replicas for HA
 
 image:
-  repository: mjnehme/raqeem-devices-backend
+  repository: ghcr.io/mj-nehme/raqeem/devices-backend
   tag: "v1.0.0"  # Use specific version
   pullPolicy: IfNotPresent
 
@@ -356,7 +356,7 @@ cat > mentor-backend-prod-values.yaml <<EOF
 replicaCount: 3  # Multiple replicas for HA
 
 image:
-  repository: mjnehme/raqeem-mentor-backend
+  repository: ghcr.io/mj-nehme/raqeem/mentor-backend
   tag: "v1.0.0"
   pullPolicy: IfNotPresent
 
@@ -1007,7 +1007,7 @@ spec:
     spec:
       containers:
       - name: migrate
-        image: mjnehme/raqeem-devices-backend:v1.1.0
+        image: ghcr.io/mj-nehme/raqeem/devices-backend:v1.1.0
         command: ["alembic", "upgrade", "head"]
         env:
         - name: DATABASE_URL

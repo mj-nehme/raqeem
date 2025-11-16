@@ -23,9 +23,58 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/activities": {
+            "get": {
+                "description": "Get a list of activities across all devices",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "activities"
+                ],
+                "summary": "List all activities",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Filter by user ID",
+                        "name": "userid",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by location",
+                        "name": "location",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by start time (RFC3339 format)",
+                        "name": "start_time",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter by end time (RFC3339 format)",
+                        "name": "end_time",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.DeviceActivity"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/commands/status": {
             "post": {
-                "description": "Update the execution status and result of a remote command",
+                "description": "Update the execution status of a remote command",
                 "consumes": [
                     "application/json"
                 ],
@@ -33,13 +82,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "devices"
+                    "commands"
                 ],
                 "summary": "Update command status",
                 "parameters": [
                     {
                         "description": "Command status update",
-                        "name": "command",
+                        "name": "status",
                         "in": "body",
                         "required": true,
                         "schema": {
@@ -55,7 +104,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid JSON",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -64,7 +113,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -109,7 +158,7 @@ const docTemplate = `{
         },
         "/devices/activity": {
             "post": {
-                "description": "Store activity log entry for a device (user actions, app usage, etc.)",
+                "description": "Record user activity on a device (file access, app usage, etc.)",
                 "consumes": [
                     "application/json"
                 ],
@@ -122,7 +171,7 @@ const docTemplate = `{
                 "summary": "Log device activity",
                 "parameters": [
                     {
-                        "description": "Device activity",
+                        "description": "Activity information",
                         "name": "activity",
                         "in": "body",
                         "required": true,
@@ -139,7 +188,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid JSON",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -148,7 +197,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -161,7 +210,7 @@ const docTemplate = `{
         },
         "/devices/commands": {
             "post": {
-                "description": "Queue a command for execution on a device",
+                "description": "Queue a command for execution on a specific device",
                 "consumes": [
                     "application/json"
                 ],
@@ -169,7 +218,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "devices"
+                    "commands"
                 ],
                 "summary": "Create remote command",
                 "parameters": [
@@ -191,7 +240,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid JSON",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -200,7 +249,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -213,7 +262,7 @@ const docTemplate = `{
         },
         "/devices/metrics": {
             "post": {
-                "description": "Store system metrics for a device including CPU, memory, disk, and network usage",
+                "description": "Store performance metrics for a device (CPU, memory, disk, network)",
                 "consumes": [
                     "application/json"
                 ],
@@ -243,7 +292,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid JSON",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -252,7 +301,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -278,7 +327,7 @@ const docTemplate = `{
                 "summary": "Update device process list",
                 "parameters": [
                     {
-                        "description": "List of processes",
+                        "description": "List of running processes",
                         "name": "processes",
                         "in": "body",
                         "required": true,
@@ -301,7 +350,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid JSON or device ID",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -310,7 +359,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -375,7 +424,7 @@ const docTemplate = `{
         },
         "/devices/screenshots": {
             "post": {
-                "description": "Store screenshot metadata for a device",
+                "description": "Store screenshot metadata (typically forwarded from devices backend)",
                 "consumes": [
                     "application/json"
                 ],
@@ -405,7 +454,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid JSON",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -414,7 +463,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -438,7 +487,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -462,7 +511,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid limit parameter",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -471,7 +520,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -539,7 +588,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Submit a new alert for a device",
+                "description": "Submit an alert from a device (threshold breach, error condition, etc.)",
                 "consumes": [
                     "application/json"
                 ],
@@ -553,7 +602,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -576,7 +625,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid JSON",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -585,7 +634,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -603,13 +652,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "devices"
+                    "commands"
                 ],
-                "summary": "Get device commands",
+                "summary": "Get device command history",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -633,7 +682,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid limit parameter",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -642,7 +691,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -655,18 +704,18 @@ const docTemplate = `{
         },
         "/devices/{id}/commands/pending": {
             "get": {
-                "description": "Get all pending commands for a specific device",
+                "description": "Get all pending remote commands for a specific device",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
-                    "devices"
+                    "commands"
                 ],
                 "summary": "Get pending commands",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -683,7 +732,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -753,7 +802,7 @@ const docTemplate = `{
         },
         "/devices/{id}/processes": {
             "get": {
-                "description": "Get the most recent process list for a specific device",
+                "description": "Get the latest process list for a specific device",
                 "produces": [
                     "application/json"
                 ],
@@ -764,7 +813,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -788,7 +837,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid limit parameter",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -797,7 +846,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -821,7 +870,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Device ID",
+                        "description": "Device ID (UUID)",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -836,7 +885,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "Array of screenshot objects with presigned URLs",
+                        "description": "Array of screenshot metadata with presigned URLs",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -845,7 +894,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Bad Request",
+                        "description": "Bad request - invalid limit parameter",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -854,7 +903,7 @@ const docTemplate = `{
                         }
                     },
                     "500": {
-                        "description": "Internal Server Error",
+                        "description": "Internal server error",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -1139,7 +1188,21 @@ const docTemplate = `{
                 }
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "description": "Device registration, status, and telemetry endpoints",
+            "name": "devices"
+        },
+        {
+            "description": "Remote command execution and status tracking",
+            "name": "commands"
+        },
+        {
+            "description": "Activity logging and retrieval across all devices",
+            "name": "activities"
+        }
+    ]
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
@@ -1149,7 +1212,7 @@ var SwaggerInfo = &swag.Spec{
 	BasePath:         "/",
 	Schemes:          []string{"http", "https"},
 	Title:            "Raqeem Mentor Backend API",
-	Description:      "Device management and monitoring dashboard API for Raqeem IoT platform\nProvides endpoints for device listing, metrics retrieval, alert management, and remote command execution",
+	Description:      "Device management and monitoring dashboard API for Raqeem IoT platform\n\n## Overview\nThe Mentor Backend provides a centralized dashboard for monitoring and managing IoT devices.\nIt aggregates telemetry data, provides device management capabilities, and enables remote command execution.\n\n## Key Features\n- **Device Management**: View and manage all registered devices\n- **Metrics Monitoring**: Real-time performance metrics visualization\n- **Activity Tracking**: User activity logs and audit trails\n- **Alert Management**: Centralized alert aggregation and monitoring\n- **Remote Commands**: Execute commands on devices remotely\n- **Screenshot Viewing**: Access device screenshots with presigned URLs\n\n## Data Flow\nThe Mentor Backend typically receives data forwarded from the Devices Backend.\nIt provides query endpoints for frontends and management dashboards.\n\n## Authentication\nCurrently, the API does not require authentication.\nAuthentication and authorization will be added in future releases.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

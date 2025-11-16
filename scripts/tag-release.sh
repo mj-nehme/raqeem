@@ -95,33 +95,33 @@ print_info "Building Docker images..."
 echo ""
 
 print_info "  Building Devices Backend..."
-docker build -t jaafarn/raqeem-devices-backend:${VERSION} \
-             -t jaafarn/raqeem-devices-backend:${VERSION}-${GIT_COMMIT} \
-             -t jaafarn/raqeem-devices-backend:latest \
+docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION} \
+             -t ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT} \
+             -t ghcr.io/mj-nehme/raqeem/devices-backend:latest \
              devices/backend/
 
 print_info "  Building Mentor Backend..."
-docker build -t jaafarn/raqeem-mentor-backend:${VERSION} \
-             -t jaafarn/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT} \
-             -t jaafarn/raqeem-mentor-backend:latest \
+docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION} \
+             -t ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT} \
+             -t ghcr.io/mj-nehme/raqeem/mentor-backend:latest \
              mentor/backend/
 
 print_success "Images built successfully"
 echo ""
 
 # Push images to registry
-print_info "Pushing images to Docker Hub..."
+print_info "Pushing images to GitHub Container Registry..."
 echo ""
 
 print_info "  Pushing Devices Backend images..."
-docker push jaafarn/raqeem-devices-backend:${VERSION}
-docker push jaafarn/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}
-docker push jaafarn/raqeem-devices-backend:latest
+docker push ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}
+docker push ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT}
+docker push ghcr.io/mj-nehme/raqeem/devices-backend:latest
 
 print_info "  Pushing Mentor Backend images..."
-docker push jaafarn/raqeem-mentor-backend:${VERSION}
-docker push jaafarn/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}
-docker push jaafarn/raqeem-mentor-backend:latest
+docker push ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}
+docker push ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT}
+docker push ghcr.io/mj-nehme/raqeem/mentor-backend:latest
 
 print_success "Images pushed successfully"
 echo ""
@@ -156,14 +156,14 @@ git commit -m "chore: release ${VERSION}
 - Built and tagged Docker images: ${VERSION}
 - Git commit: ${GIT_COMMIT}
 - Updated Helm charts to use ${VERSION}
-- Images pushed to Docker Hub
+- Images pushed to GitHub Container Registry (GHCR)
 "
 
 git tag -a "${VERSION}" -m "Release ${VERSION}
 
 Docker Images:
-- jaafarn/raqeem-devices-backend:${VERSION}
-- jaafarn/raqeem-mentor-backend:${VERSION}
+- ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}
+- ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}
 
 Git Commit: ${GIT_COMMIT}
 "
@@ -177,13 +177,13 @@ print_success "Release ${VERSION} created successfully!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📦 Docker Images Tagged:"
-echo "  • jaafarn/raqeem-devices-backend:${VERSION}"
-echo "  • jaafarn/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • jaafarn/raqeem-devices-backend:latest"
+echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:latest"
 echo ""
-echo "  • jaafarn/raqeem-mentor-backend:${VERSION}"
-echo "  • jaafarn/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • jaafarn/raqeem-mentor-backend:latest"
+echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:latest"
 echo ""
 echo "📝 Changes Committed:"
 echo "  • Helm charts updated to use ${VERSION}"

@@ -58,7 +58,7 @@ This will verify:
 # This will:
 # - Validate code
 # - Build images with v1.0.0 tags
-# - Push to Docker Hub
+# - Push to GitHub Container Registry (GHCR)
 # - Update Helm charts
 # - Create git tag
 ./scripts/tag-release.sh v1.0.0
@@ -67,13 +67,13 @@ This will verify:
 **What happens:**
 ```
 📦 Docker Images Tagged:
-  • jaafarn/raqeem-devices-backend:v1.0.0
-  • jaafarn/raqeem-devices-backend:v1.0.0-86e6e44
-  • jaafarn/raqeem-devices-backend:latest
+  • ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
+  • ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44
+  • ghcr.io/mj-nehme/raqeem/devices-backend:latest
 
-  • jaafarn/raqeem-mentor-backend:v1.0.0
-  • jaafarn/raqeem-mentor-backend:v1.0.0-86e6e44
-  • jaafarn/raqeem-mentor-backend:latest
+  • ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0
+  • ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0-86e6e44
+  • ghcr.io/mj-nehme/raqeem/mentor-backend:latest
 
 🏷️  Git Tag: v1.0.0
 ```
@@ -108,9 +108,9 @@ When you run `./scripts/tag-release.sh v1.0.0`, it creates **ONE image** but giv
 
 ```bash
 # These all point to THE SAME IMAGE:
-jaafarn/raqeem-devices-backend:v1.0.0           # Semantic version
-jaafarn/raqeem-devices-backend:v1.0.0-86e6e44   # Version + git SHA
-jaafarn/raqeem-devices-backend:latest           # Latest tag
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0           # Semantic version
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44   # Version + git SHA
+ghcr.io/mj-nehme/raqeem/devices-backend:latest           # Latest tag
 ```
 
 **Analogy:** Like having three bookmarks pointing to the same webpage.
@@ -127,24 +127,24 @@ jaafarn/raqeem-devices-backend:latest           # Latest tag
 ### What's Built Right Now
 ```bash
 # Check local images
-docker images | grep jaafarn
+docker images | grep raqeem
 
 # You have:
-jaafarn/raqeem-devices-backend:86e6e44    # Git commit SHA
-jaafarn/raqeem-devices-backend:latest     # Latest tag
-jaafarn/raqeem-mentor-backend:86e6e44  # Git commit SHA  
-jaafarn/raqeem-mentor-backend:latest   # Latest tag
+ghcr.io/mj-nehme/raqeem/devices-backend:86e6e44    # Git commit SHA
+ghcr.io/mj-nehme/raqeem/devices-backend:latest     # Latest tag
+ghcr.io/mj-nehme/raqeem/mentor-backend:86e6e44  # Git commit SHA  
+ghcr.io/mj-nehme/raqeem/mentor-backend:latest   # Latest tag
 ```
 
 ### What Will Be Built When You Run tag-release.sh
 ```bash
 # Will ADD these tags (same images, new tags):
-jaafarn/raqeem-devices-backend:v1.0.0
-jaafarn/raqeem-devices-backend:v1.0.0-86e6e44
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44
 # (latest gets updated)
 
-jaafarn/raqeem-mentor-backend:v1.0.0
-jaafarn/raqeem-mentor-backend:v1.0.0-86e6e44
+ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0
+ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0-86e6e44
 # (latest gets updated)
 ```
 
@@ -203,21 +203,23 @@ echo "IMAGE_TAG=v1.0.0" > .deploy/tag.env
 
 ---
 
-## Repository Naming (Fixed!)
+## Container Registry (Updated!)
 
-**Before (inconsistent):**
+**Before (v0.1.x - DockerHub):**
 ```
-jaafarn/mentor-backend          ⚠️ Old name
-jaafarn/raqeem-user-backend     ⚠️ Old name
-```
-
-**After (consistent):**
-```
-jaafarn/raqeem-mentor-backend   ✅ Correct
-jaafarn/raqeem-devices-backend  ✅ Correct
+jaafarn/raqeem-devices-backend   ⚠️ Deprecated
+jaafarn/raqeem-mentor-backend    ⚠️ Deprecated
 ```
 
-Both Helm charts now use the `raqeem-*` naming convention.
+**After (v0.2.0+ - GitHub Container Registry):**
+```
+ghcr.io/mj-nehme/raqeem/devices-backend   ✅ Current
+ghcr.io/mj-nehme/raqeem/mentor-backend    ✅ Current
+```
+
+All images are now hosted on GitHub Container Registry (GHCR) for better integration, security, and reliability.
+
+See [GHCR Migration Guide](GHCR_MIGRATION.md) for details.
 
 ---
 
