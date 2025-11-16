@@ -50,24 +50,15 @@ def test_device_listing():
     """Test device listing from database."""
     log("Testing device listing...")
     
-    try:
-        response = requests.get(
-            f"{MENTOR_BACKEND_URL}/devices",
-            timeout=5
-        )
-        response.raise_for_status()
-        devices = response.json()
-        
-        if isinstance(devices, list):
-            log(f"✓ Device listing successful: found {len(devices)} device(s)", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Device listing returned unexpected format: {type(devices)}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Device listing failed: {e}", "ERROR")
-        return False
+    response = requests.get(
+        f"{MENTOR_BACKEND_URL}/devices",
+        timeout=5
+    )
+    response.raise_for_status()
+    devices = response.json()
+    
+    log(f"✓ Device listing successful: found {len(devices)} device(s)", "SUCCESS")
+    assert isinstance(devices, list), f"Expected list response, got: {type(devices)}"
 
 
 def test_alert_submission():
@@ -85,21 +76,17 @@ def test_alert_submission():
         "threshold": 100.0
     }
     
-    try:
-        response = requests.post(
-            f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
-            json=alert_payload,
-            timeout=5
-        )
-        response.raise_for_status()
-        result = response.json()
-        
-        log(f"✓ Alert submitted successfully: {result}", "SUCCESS")
-        return True
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Alert submission failed: {e}", "ERROR")
-        return False
+    response = requests.post(
+        f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
+        json=alert_payload,
+        timeout=5
+    )
+    response.raise_for_status()
+    result = response.json()
+    
+    log(f"✓ Alert submitted successfully: {result}", "SUCCESS")
+    # Just verify we got a response, the exact format may vary
+    assert result is not None, "Expected non-None response from alert submission"
 
 
 def test_alert_retrieval():
@@ -109,108 +96,81 @@ def test_alert_retrieval():
     # Wait a bit for the alert to be stored
     time.sleep(1)
     
-    try:
-        response = requests.get(
-            f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
-            timeout=5
-        )
-        response.raise_for_status()
-        alerts = response.json()
-        
-        if isinstance(alerts, list):
-            # Look for our test alert
-            found = False
-            for alert in alerts:
-                if alert.get("message") == "Network latency detected in mentor backend test":
-                    found = True
-                    log(f"✓ Alert retrieved successfully: {alert}", "SUCCESS")
-                    
-                    # Verify fields
-                    checks = [
-                        (alert.get("deviceid") == TEST_DEVICE_ID, "device_id matches"),
-                        (alert.get("level") == "warning", "level is warning"),
-                        (alert.get("type") == "network_latency", "type is network_latency"),
-                        (alert.get("value") == 150.5, "value is 150.5"),
-                        (alert.get("threshold") == 100.0, "threshold is 100.0"),
-                    ]
-                    
-                    all_passed = True
-                    for passed, description in checks:
-                        if passed:
-                            log(f"  ✓ {description}")
-                        else:
-                            log(f"  ✗ {description}", "ERROR")
-                            all_passed = False
-                    
-                    return all_passed
-            
-            if not found:
-                log("✗ Test alert not found in retrieved alerts", "ERROR")
-                return False
-        else:
-            log(f"✗ Alert retrieval returned unexpected format: {type(alerts)}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Alert retrieval failed: {e}", "ERROR")
-        return False
+    response = requests.get(
+        f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/alerts",
+        timeout=5
+    )
+    response.raise_for_status()
+    alerts = response.json()
+    
+    assert isinstance(alerts, list), f"Expected list response, got: {type(alerts)}"
+    
+    # Look for our test alert
+    found_alert = None
+    for alert in alerts:
+        if alert.get("message") == "Network latency detected in mentor backend test":
+            found_alert = alert
+            break
+    
+    assert found_alert is not None, "Test alert not found in retrieved alerts"
+    log(f"✓ Alert retrieved successfully: {found_alert}", "SUCCESS")
+    
+    # Verify fields
+    assert found_alert.get("deviceid") == TEST_DEVICE_ID, f"device_id mismatch: {found_alert.get('deviceid')}"
+    log("  ✓ device_id matches")
+    
+    assert found_alert.get("level") == "warning", f"level mismatch: {found_alert.get('level')}"
+    log("  ✓ level is warning")
+    
+    assert found_alert.get("type") == "network_latency", f"type mismatch: {found_alert.get('type')}"
+    log("  ✓ type is network_latency")
+    
+    assert found_alert.get("value") == 150.5, f"value mismatch: {found_alert.get('value')}"
+    log("  ✓ value is 150.5")
+    
+    assert found_alert.get("threshold") == 100.0, f"threshold mismatch: {found_alert.get('threshold')}"
+    log("  ✓ threshold is 100.0")
 
 
 def test_device_metrics_retrieval():
     """Test metrics retrieval from database (if any exist)."""
     log("Testing metrics retrieval...")
     
-    try:
-        # We'll use the test device ID, though it may not have metrics yet
-        response = requests.get(
-            f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/metrics",
-            timeout=5
-        )
-        
-        # Accept both 200 (with data) and 404 (no data) as valid
-        if response.status_code in [200, 404]:
-            if response.status_code == 200:
-                metrics = response.json()
-                count = len(metrics) if isinstance(metrics, list) else 'N/A'
-                log(f"✓ Metrics retrieval successful: found {count} metric(s)", "SUCCESS")
-            else:
-                log("✓ Metrics endpoint accessible (no data yet, expected)", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Metrics retrieval returned unexpected status: {response.status_code}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Metrics retrieval failed: {e}", "ERROR")
-        return False
+    # We'll use the test device ID, though it may not have metrics yet
+    response = requests.get(
+        f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/metrics",
+        timeout=5
+    )
+    
+    # Accept both 200 (with data) and 404 (no data) as valid
+    assert response.status_code in [200, 404], f"Unexpected status code: {response.status_code}"
+    
+    if response.status_code == 200:
+        metrics = response.json()
+        count = len(metrics) if isinstance(metrics, list) else 'N/A'
+        log(f"✓ Metrics retrieval successful: found {count} metric(s)", "SUCCESS")
+    else:
+        log("✓ Metrics endpoint accessible (no data yet, expected)", "SUCCESS")
 
 
 def test_screenshots_retrieval():
     """Test screenshots retrieval (presigned URLs from S3)."""
     log("Testing screenshots retrieval...")
     
-    try:
-        response = requests.get(
-            f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/screenshots",
-            timeout=5
-        )
-        
-        # Accept both 200 (with data) and 404 (no data) as valid
-        if response.status_code in [200, 404]:
-            if response.status_code == 200:
-                screenshots = response.json()
-                count = len(screenshots) if isinstance(screenshots, list) else 'N/A'
-                log(f"✓ Screenshots retrieval successful: found {count} screenshot(s)", "SUCCESS")
-            else:
-                log("✓ Screenshots endpoint accessible (no data yet, expected)", "SUCCESS")
-            return True
-        else:
-            log(f"✗ Screenshots retrieval returned unexpected status: {response.status_code}", "ERROR")
-            return False
-            
-    except requests.exceptions.RequestException as e:
-        log(f"✗ Screenshots retrieval failed: {e}", "ERROR")
-        return False
+    response = requests.get(
+        f"{MENTOR_BACKEND_URL}/devices/{TEST_DEVICE_ID}/screenshots",
+        timeout=5
+    )
+    
+    # Accept both 200 (with data) and 404 (no data) as valid
+    assert response.status_code in [200, 404], f"Unexpected status code: {response.status_code}"
+    
+    if response.status_code == 200:
+        screenshots = response.json()
+        count = len(screenshots) if isinstance(screenshots, list) else 'N/A'
+        log(f"✓ Screenshots retrieval successful: found {count} screenshot(s)", "SUCCESS")
+    else:
+        log("✓ Screenshots endpoint accessible (no data yet, expected)", "SUCCESS")
 
 
 def run_integration_test():
