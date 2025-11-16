@@ -8,6 +8,7 @@ This module initializes the FastAPI application with:
 """
 
 import json
+import logging
 from contextlib import asynccontextmanager
 
 try:
@@ -201,9 +202,9 @@ app.include_router(health.router, tags=["Health Check"])
 async def health_check_legacy():
     """
     Health check endpoint for monitoring and load balancer probes.
-
+    
     **Deprecated**: Use `/health/live` for liveness checks or `/health/ready` for readiness checks instead.
-
+    
     Returns service status and name for verification.
     """
     logger.warning("Legacy /health endpoint accessed - consider using /health/live or /health/ready")

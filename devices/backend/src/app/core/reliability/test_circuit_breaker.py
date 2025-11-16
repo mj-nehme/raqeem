@@ -1,7 +1,6 @@
 """Tests for circuit breaker implementation."""
 
 import asyncio
-import contextlib
 
 import pytest
 from app.core.reliability.circuit_breaker import (
@@ -27,8 +26,10 @@ async def test_circuit_breaker_opens_after_failures():
 
     # Cause failures
     for _ in range(3):
-        with contextlib.suppress(ValueError):
+        try:
             await cb.call(async_error_operation)
+        except ValueError:
+            pass
 
     assert cb.get_state() == CircuitState.OPEN
 
@@ -45,8 +46,10 @@ async def test_circuit_breaker_half_open_transition():
 
     # Open the circuit
     for _ in range(2):
-        with contextlib.suppress(ValueError):
+        try:
             await cb.call(async_error_operation)
+        except ValueError:
+            pass
 
     assert cb.get_state() == CircuitState.OPEN
 
@@ -68,8 +71,10 @@ async def test_circuit_breaker_closes_after_successes():
 
     # Open the circuit
     for _ in range(2):
-        with contextlib.suppress(ValueError):
+        try:
             await cb.call(async_error_operation)
+        except ValueError:
+            pass
 
     # Wait for timeout
     await asyncio.sleep(0.15)
@@ -89,15 +94,19 @@ async def test_circuit_breaker_reopens_on_half_open_failure():
 
     # Open the circuit
     for _ in range(2):
-        with contextlib.suppress(ValueError):
+        try:
             await cb.call(async_error_operation)
+        except ValueError:
+            pass
 
     # Wait for timeout
     await asyncio.sleep(0.15)
 
     # Fail in Half-Open state
-    with contextlib.suppress(ValueError):
+    try:
         await cb.call(async_error_operation)
+    except ValueError:
+        pass
 
     assert cb.get_state() == CircuitState.OPEN
 
@@ -110,8 +119,10 @@ async def test_circuit_breaker_reset():
 
     # Open the circuit
     for _ in range(2):
-        with contextlib.suppress(ValueError):
+        try:
             await cb.call(async_error_operation)
+        except ValueError:
+            pass
 
     assert cb.get_state() == CircuitState.OPEN
 
@@ -132,8 +143,10 @@ async def test_circuit_breaker_success_resets_count():
 
     # Some failures
     for _ in range(2):
-        with contextlib.suppress(ValueError):
+        try:
             await cb.call(async_error_operation)
+        except ValueError:
+            pass
 
     # Success should reset count
     await cb.call(async_success_operation)
@@ -143,8 +156,10 @@ async def test_circuit_breaker_success_resets_count():
 
     # Two more failures shouldn't open it
     for _ in range(2):
-        with contextlib.suppress(ValueError):
+        try:
             await cb.call(async_error_operation)
+        except ValueError:
+            pass
 
     assert cb.get_state() == CircuitState.CLOSED
 
@@ -159,5 +174,4 @@ async def async_success_operation():
 
 async def async_error_operation():
     """Async operation that raises an error."""
-    msg = "Test error"
-    raise ValueError(msg)
+    raise ValueError("Test error")

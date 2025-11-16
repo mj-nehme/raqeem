@@ -3,10 +3,9 @@
 import asyncio
 import logging
 import time
-from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any
+from typing import Any, Callable, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +21,7 @@ class CircuitState(Enum):
 class CircuitBreakerError(Exception):
     """Raised when circuit breaker is open."""
 
+    pass
 
 
 @dataclass
@@ -45,7 +45,7 @@ class CircuitBreaker:
     def __init__(
         self,
         name: str,
-        config: CircuitBreakerConfig | None = None,
+        config: Optional[CircuitBreakerConfig] = None,
     ):
         """
         Initialize circuit breaker.
@@ -78,14 +78,13 @@ class CircuitBreaker:
             Exception: Any exception from the operation
         """
         if not await self._allow_request():
-            msg = f"Circuit breaker '{self.name}' is open"
-            raise CircuitBreakerError(msg)
+            raise CircuitBreakerError(f"Circuit breaker '{self.name}' is open")
 
         try:
             result = await operation()
             await self._on_success()
             return result
-        except Exception:
+        except Exception as e:
             await self._on_failure()
             raise
 

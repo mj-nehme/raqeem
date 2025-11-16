@@ -19,8 +19,7 @@ def test_retry_with_backoff_success():
     def operation():
         attempts.append(1)
         if len(attempts) < 2:
-            msg = "Temporary error"
-            raise ValueError(msg)
+            raise ValueError("Temporary error")
         return "success"
 
     config = RetryConfig(max_attempts=3, initial_delay=0.01, max_delay=0.1)
@@ -36,8 +35,7 @@ def test_retry_with_backoff_max_attempts():
 
     def operation():
         attempts.append(1)
-        msg = "Persistent error"
-        raise ValueError(msg)
+        raise ValueError("Persistent error")
 
     config = RetryConfig(max_attempts=3, initial_delay=0.01, max_delay=0.1)
 
@@ -63,8 +61,7 @@ async def test_retry_async_success():
     async def operation():
         attempts.append(1)
         if len(attempts) < 2:
-            msg = "Temporary error"
-            raise ValueError(msg)
+            raise ValueError("Temporary error")
         return "success"
 
     config = RetryConfig(max_attempts=3, initial_delay=0.01, max_delay=0.1)
@@ -105,8 +102,7 @@ async def test_retry_async_exponential_backoff():
             # Record time since last attempt
             delays.append(time.time() - attempts[-1])
         attempts.append(time.time())
-        msg = "Error"
-        raise ValueError(msg)
+        raise ValueError("Error")
 
     config = RetryConfig(
         max_attempts=3, initial_delay=0.05, max_delay=1.0, backoff_factor=2.0
