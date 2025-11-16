@@ -16,6 +16,27 @@ router = APIRouter()
 
 @router.post("/register", status_code=200)
 async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
+    """Register a new device or update an existing device's information.
+
+    This endpoint performs an upsert operation - if the device exists, it updates
+    the fields; if it doesn't exist, it creates a new device record.
+
+    Args:
+        payload: Dictionary containing device information with required 'deviceid' field
+        db: Database session (injected dependency)
+
+    Returns:
+        Dictionary with 'deviceid' and either 'created' or 'updated' flag
+
+    Raises:
+        HTTPException: 400 if validation fails (legacy fields, missing deviceid, invalid UUID)
+        HTTPException: 500 if database operation fails
+
+    Note:
+        - Automatically forwards registration to mentor backend if configured
+        - Updates last_seen timestamp and sets device as online
+        - Validates against legacy field names for backwards compatibility
+    """
     # Validate legacy fields and reject with clear error messages
     if "id" in payload:
         raise HTTPException(status_code=400, detail="unsupported legacy field: id; use deviceid")
@@ -70,6 +91,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         await db.commit()
         result = {"deviceid": final_id, "created": True}
 
+    # Forward registration to mentor backend if configured (best-effort, non-blocking)
     if settings.mentor_api_url:
         fwd = dict(payload)
         fwd["deviceid"] = final_id
@@ -77,6 +99,8 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
             async with httpx.AsyncClient(timeout=5.0) as client:
                 await client.post(f"{settings.mentor_api_url}/devices/register", json=fwd)
         except Exception:
+            # Silently ignore forwarding failures to prevent blocking device registration
+            # Mentor backend will sync via periodic refresh or next metrics update
             pass
 
     return result
@@ -84,6 +108,23 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
 
 @router.post("/{device_id}/metrics")
 async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends(get_db)):
+    """Store device performance metrics.
+
+    Ingests and stores metrics such as CPU usage, memory, disk, and network statistics.
+
+    Args:
+        device_id: The unique identifier of the device
+        payload: Dictionary containing metric fields (cpu_usage, memory_used, etc.)
+        db: Database session (injected dependency)
+
+    Returns:
+        Dictionary with status "ok"
+
+    Note:
+        - Automatically forwards metrics to mentor backend if configured
+        - All metric fields are optional and will be stored as-is
+        - Metrics are timestamped server-side upon ingestion
+    """
     obj = dev_models.DeviceMetric(
         deviceid=device_id,
         cpu_usage=payload.get("cpu_usage"),
@@ -116,7 +157,8 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
                 }
                 await client.post(f"{settings.mentor_api_url}/devices/metrics", json=forward)
         except Exception:
-            # Do not fail ingestion if forwarding fails
+            # Silently ignore forwarding failures to prevent blocking metrics ingestion
+            # Metrics forwarding is best-effort; mentor backend will pull data if needed
             pass
     return {"status": "ok"}
 
@@ -168,6 +210,8 @@ async def post_processes(device_id: str, processes: list[dict], db: AsyncSession
                     ]
                     await client.post(f"{settings.mentor_api_url}/devices/processes", json=forward)
             except Exception:
+                # Silently ignore forwarding failures to prevent blocking process updates
+                # Process list forwarding is best-effort and non-critical
                 pass
     return {"inserted": len(to_add)}
 
@@ -214,6 +258,8 @@ async def post_activity(device_id: str, activities: list[dict], db: AsyncSession
                         }
                         await client.post(f"{settings.mentor_api_url}/devices/activity", json=forward)
             except Exception:
+                # Silently ignore forwarding failures to prevent blocking activity logging
+                # Activity forwarding is best-effort and non-critical
                 pass
     return {"inserted": len(to_add)}
 
@@ -259,7 +305,9 @@ async def post_alerts(device_id: str, alerts: list[dict], db: AsyncSession = Dep
                         # Mentor API path accepts /devices/:id/alerts but uses JSON body for device_id
                         await client.post(f"{settings.mentor_api_url}/devices/{device_id}/alerts", json=payload)
             except Exception:
-                # Swallow forwarding errors to avoid impacting device ingestion
+                # Silently ignore forwarding failures to prevent blocking alert ingestion
+                # Alert forwarding is critical but failures shouldn't block device operations
+                # Alerts can be manually synced or retrieved from devices backend if needed
                 pass
     return {"inserted": len(to_add)}
 
@@ -449,7 +497,8 @@ async def submit_command_result(command_id: UUID, payload: CommandResultSubmit, 
                 }
                 await client.post(f"{settings.mentor_api_url}/commands/status", json=forward_payload)
         except Exception:
-            # Don't fail if forwarding fails
+            # Silently ignore forwarding failures to prevent blocking command result submission
+            # Command status forwarding is best-effort; mentor can query status separately
             pass
 
     return {"status": "ok", "commandid": str(command_id)}
