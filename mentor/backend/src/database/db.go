@@ -9,11 +9,22 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"mentor-backend/models"
 )
 
 var DB *gorm.DB
+
+// Configuration constants
+const (
+	// MinPasswordLength is the minimum required password length
+	MinPasswordLength = 8
+	// MaxRetries for database operations
+	MaxRetries = 3
+	// EnvSearchDepth is the maximum directory depth to search for .env files
+	EnvSearchDepth = 5
+)
 
 // loadEnv tries multiple locations for a .env file to reduce CWD sensitivity
 func loadEnv() {
@@ -30,7 +41,7 @@ func loadEnv() {
 	// Also walk upwards from current working directory up to root
 	if wd, err := os.Getwd(); err == nil {
 		dir := wd
-		for i := 0; i < 5; i++ { // limit depth to avoid long walks
+		for i := 0; i < EnvSearchDepth; i++ {
 			candidates = append(candidates, filepath.Join(dir, ".env"))
 			parent := filepath.Dir(dir)
 			if parent == dir {
@@ -52,8 +63,32 @@ func loadEnv() {
 
 	// Fallback to default behavior (may be no-op)
 	if err := godotenv.Load(); err != nil {
-		log.Printf("godotenv.Load: %v", err)
+		log.Printf("godotenv.Load: %v (not an error if env vars are set externally)", err)
 	}
+}
+
+// validateEnvVars checks that required environment variables are set
+func validateEnvVars() error {
+	required := []string{
+		"POSTGRES_USER",
+		"POSTGRES_PASSWORD",
+		"POSTGRES_DB",
+		"POSTGRES_HOST",
+		"POSTGRES_PORT",
+	}
+
+	missing := []string{}
+	for _, envVar := range required {
+		if os.Getenv(envVar) == "" {
+			missing = append(missing, envVar)
+		}
+	}
+
+	if len(missing) > 0 {
+		return fmt.Errorf("required environment variables not set: %v", missing)
+	}
+
+	return nil
 }
 
 // connectWithConfig attempts to connect to the database and returns an error if it fails.
@@ -61,6 +96,11 @@ func loadEnv() {
 func connectWithConfig() error {
 	// Load environment variables from .env file(s)
 	loadEnv()
+
+	// Validate required environment variables
+	if err := validateEnvVars(); err != nil {
+		return err
+	}
 
 	user := os.Getenv("POSTGRES_USER")
 	password := os.Getenv("POSTGRES_PASSWORD")
@@ -74,9 +114,10 @@ func connectWithConfig() error {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
+		Logger:                                   logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %v", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	log.Println("Database connection successful")
@@ -107,10 +148,12 @@ func migrate(db *gorm.DB) error {
 		&models.DeviceAlert{},
 		&models.User{},
 	}
+	log.Println("Running database migrations...")
 	for _, m := range steps {
 		if err := db.AutoMigrate(m); err != nil {
-			return err
+			return fmt.Errorf("migration failed for %T: %w", m, err)
 		}
 	}
+	log.Println("Database migrations completed successfully")
 	return nil
 }
