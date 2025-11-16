@@ -163,6 +163,10 @@ TEST4_EXIT=$?
 run_test "tests/integration/test_e2e_system_flow.py" "End-to-End System Flow"
 TEST5_EXIT=$?
 
+# Test 6: Observability Features (PR#208)
+run_test "tests/integration/test_observability_features.py" "Observability Features (PR#208)"
+TEST6_EXIT=$?
+
 # Summary
 echo ""
 echo "=============================================================================="
