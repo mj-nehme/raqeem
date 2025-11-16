@@ -1,6 +1,6 @@
 """Device service for validating and managing device data."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 # Device will be considered offline if not seen for this duration
@@ -34,11 +34,7 @@ class DeviceService:
             return False
 
         # Validate device_type if provided
-        if "device_type" in data and data["device_type"] is not None:
-            if not self.validate_device_type(data["device_type"]):
-                return False
-
-        return True
+        return not ("device_type" in data and data["device_type"] is not None and not self.validate_device_type(data["device_type"]))
 
     def is_device_online(self, last_seen: datetime) -> bool:
         """Check if a device is currently online based on last seen timestamp.
@@ -52,10 +48,10 @@ class DeviceService:
         Note:
             Considers device offline if not seen within DEVICE_ONLINE_THRESHOLD_MINUTES
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         # Ensure last_seen is timezone-aware for comparison
         if last_seen.tzinfo is None:
-            last_seen = last_seen.replace(tzinfo=timezone.utc)
+            last_seen = last_seen.replace(tzinfo=UTC)
         threshold = now - timedelta(minutes=DEVICE_ONLINE_THRESHOLD_MINUTES)
         return last_seen >= threshold
 

@@ -15,25 +15,21 @@ DEFAULT_URL_EXPIRATION = 3600
 class MinioServiceError(Exception):
     """Base exception for MinIO service errors."""
 
-    pass
 
 
 class MinioUploadError(MinioServiceError):
     """Exception raised when file upload fails."""
 
-    pass
 
 
 class MinioDeleteError(MinioServiceError):
     """Exception raised when file deletion fails."""
 
-    pass
 
 
 class MinioURLError(MinioServiceError):
     """Exception raised when presigned URL generation fails."""
 
-    pass
 
 
 class MinioService:
@@ -54,7 +50,8 @@ class MinioService:
             logger.info("MinIO client initialized successfully")
         except Exception as e:
             logger.exception("Failed to initialize MinIO client")
-            raise MinioServiceError(f"MinIO client initialization failed: {e}") from e
+            msg = f"MinIO client initialization failed: {e}"
+            raise MinioServiceError(msg) from e
 
         self.bucket_name = "raqeem-screenshots"
         self._ensure_bucket()
@@ -73,7 +70,8 @@ class MinioService:
                 logger.debug("Bucket %s already exists", self.bucket_name)
         except S3Error as e:
             logger.exception("MinIO bucket check/create failed for bucket: %s", self.bucket_name)
-            raise MinioServiceError(f"Failed to ensure bucket {self.bucket_name}: {e}") from e
+            msg = f"Failed to ensure bucket {self.bucket_name}: {e}"
+            raise MinioServiceError(msg) from e
 
     def upload_file(self, file_path: str, object_name: str) -> str:
         """Upload a file from local path to MinIO.
@@ -95,10 +93,12 @@ class MinioService:
                 file_path=file_path,
             )
             logger.info("Successfully uploaded file to MinIO: %s", object_name)
-            return object_name
         except S3Error as e:
             logger.exception("Failed to upload %s to MinIO", object_name)
-            raise MinioUploadError(f"Failed to upload {object_name}: {e}") from e
+            msg = f"Failed to upload {object_name}: {e}"
+            raise MinioUploadError(msg) from e
+        else:
+            return object_name
 
     def remove_file(self, object_name: str):
         """Remove a file from MinIO storage.
@@ -114,7 +114,8 @@ class MinioService:
             logger.info("Removed object from MinIO: %s", object_name)
         except S3Error as e:
             logger.exception("Failed to remove %s from MinIO", object_name)
-            raise MinioDeleteError(f"Failed to remove {object_name}: {e}") from e
+            msg = f"Failed to remove {object_name}: {e}"
+            raise MinioDeleteError(msg) from e
 
     def get_presigned_url(self, object_name: str, expires: int = DEFAULT_URL_EXPIRATION) -> str:
         """Generate a presigned URL for downloading an object.
@@ -138,4 +139,5 @@ class MinioService:
             return cast("str", url)
         except S3Error as e:
             logger.exception("Failed to get presigned URL for %s", object_name)
-            raise MinioURLError(f"Failed to generate presigned URL for {object_name}: {e}") from e
+            msg = f"Failed to generate presigned URL for {object_name}: {e}"
+            raise MinioURLError(msg) from e

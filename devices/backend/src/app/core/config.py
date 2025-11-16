@@ -1,7 +1,15 @@
 """Application configuration management using Pydantic Settings."""
 
+import logging
+
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Configuration constants
+MIN_SECRET_KEY_LENGTH = 32
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -84,10 +92,11 @@ class Settings(BaseSettings):
         # Strip whitespace for better error messages
         v = v.strip()
         if not v.startswith("postgresql+asyncpg://"):
-            raise ValueError(
+            msg = (
                 "DATABASE_URL must use asyncpg driver. "
                 "Expected format: postgresql+asyncpg://user:pass@host:port/dbname"
             )
+            raise ValueError(msg)
         return v
 
     @field_validator("secret_key")
@@ -106,13 +115,13 @@ class Settings(BaseSettings):
         """
         # Strip whitespace
         v = v.strip()
-        if len(v) < 32:
+        if len(v) < MIN_SECRET_KEY_LENGTH:
             # Allow short keys for testing but log warning
-            import logging
-
-            logging.warning(
-                "SECRET_KEY is shorter than recommended 32 characters. "
-                "This is acceptable for testing but should be at least 32 characters in production."
+            logger.warning(
+                "SECRET_KEY is shorter than recommended %d characters. "
+                "This is acceptable for testing but should be at least %d characters in production.",
+                MIN_SECRET_KEY_LENGTH,
+                MIN_SECRET_KEY_LENGTH,
             )
         return v
 
