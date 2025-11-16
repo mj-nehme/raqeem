@@ -2,6 +2,7 @@ package s3
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/url"
 	"os"
@@ -9,6 +10,8 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
+	
+	"mentor-backend/reliability"
 )
 
 var client *minio.Client
@@ -47,13 +50,35 @@ func InitClient() {
 	accessKey := GetAccessKey()
 	secretKey := GetSecretKey()
 
-	var err error
-	client, err = minio.New(endpoint, &minio.Options{
-		Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
-		Secure: false,
+	// Use retry logic for MinIO connection
+	retryConfig := reliability.ExternalServiceRetryConfig()
+	ctx := context.Background()
+
+	err := reliability.RetryWithBackoff(ctx, retryConfig, func() error {
+		var initErr error
+		client, initErr = minio.New(endpoint, &minio.Options{
+			Creds:  credentials.NewStaticV4(accessKey, secretKey, ""),
+			Secure: false,
+		})
+		if initErr != nil {
+			return fmt.Errorf("failed to initialize MinIO client: %v", initErr)
+		}
+
+		// Test the connection by checking if we can list buckets
+		_, testErr := client.ListBuckets(context.Background())
+		if testErr != nil {
+			return fmt.Errorf("failed to connect to MinIO: %v", testErr)
+		}
+
+		return nil
 	})
+
 	if err != nil {
-		log.Fatalln(err)
+		log.Printf("Warning: MinIO initialization failed after retries: %v", err)
+		// Don't fatal here to allow the service to start even if MinIO is temporarily unavailable
+		// The health check will report the issue
+	} else {
+		log.Println("MinIO client initialized successfully")
 	}
 }
 
@@ -102,4 +127,22 @@ func GeneratePresignedURL(filename string) string {
 	}
 
 	return presignedURL.String()
+}
+
+// HealthCheck checks if the S3/MinIO connection is healthy
+func HealthCheck() error {
+	if client == nil {
+		return fmt.Errorf("MinIO client is not initialized")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Try to list buckets as a health check
+	_, err := client.ListBuckets(ctx)
+	if err != nil {
+		return fmt.Errorf("MinIO health check failed: %v", err)
+	}
+
+	return nil
 }
