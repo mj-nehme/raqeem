@@ -1,0 +1,82 @@
+name: Cleanup Merged Branches
+
+on:
+  workflow_dispatch:  # Allow manual trigger
+  schedule:
+    # Run weekly on Sunday at 00:00 UTC
+    - cron: '0 0 * * 0'
+
+jobs:
+  cleanup:
+    name: Delete Merged Branches
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history for all branches
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch all branches
+        run: |
+          git fetch --all --prune
+          echo "📋 Fetched all branches"
+
+      - name: List merged branches
+        id: list_merged
+        run: |
+          echo "🔍 Finding branches merged into master..."
+          # Get all remote branches that have been merged into master
+          merged_branches=$(git branch -r --merged origin/master | \
+            grep -v "origin/master" | \
+            grep -v "origin/HEAD" | \
+            grep "origin/" | \
+            sed 's/origin\///' | \
+            tr -d ' ')
+
+          echo "merged_branches<<EOF" >> $GITHUB_OUTPUT
+          echo "$merged_branches" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+          # Count and display
+          branch_count=$(echo "$merged_branches" | grep -c ^ || echo "0")
+          echo "📊 Found $branch_count merged branches"
+
+          if [ -n "$merged_branches" ]; then
+            echo "Branches to delete:"
+            echo "$merged_branches"
+          else
+            echo "No merged branches to delete"
+          fi
+
+      - name: Delete merged branches
+        if: steps.list_merged.outputs.merged_branches != ''
+        run: |
+          echo "🗑️  Deleting merged branches..."
+          deleted_count=0
+          failed_count=0
+
+          while IFS= read -r branch; do
+            if [ -n "$branch" ]; then
+              echo "Attempting to delete: $branch"
+              if git push origin --delete "$branch" 2>/dev/null; then
+                echo "✅ Deleted: $branch"
+                deleted_count=$((deleted_count + 1))
+              else
+                echo "⚠️  Failed to delete or already deleted: $branch"
+                failed_count=$((failed_count + 1))
+              fi
+            fi
+          done <<< "${{ steps.list_merged.outputs.merged_branches }}"
+
+          echo ""
+          echo "📊 Summary:"
+          echo "   Deleted: $deleted_count branches"
+          echo "   Failed: $failed_count branches"
+
+          if [ $deleted_count -gt 0 ]; then
+            echo "✅ Successfully cleaned up $deleted_count merged branches"
+          fi

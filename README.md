@@ -60,6 +60,7 @@ After `./start.sh`, services auto-discover ports:
 - [GHCR Migration Guide](docs/GHCR_MIGRATION.md) — Migrating from DockerHub to GHCR
 - [Version Management](docs/VERSION_MANAGEMENT.md) — Release workflow
 - [Local CI](docs/LOCAL_CI.md) — Run GitHub Actions locally
+- [Branch Cleanup](docs/BRANCH_CLEANUP.md) — Managing and cleaning up branches
 
 ## Glossary
 
