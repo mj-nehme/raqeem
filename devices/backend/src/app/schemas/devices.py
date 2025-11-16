@@ -103,14 +103,50 @@ class ProcessSubmit(BaseModel):
     """Process submission schema."""
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"pid": 1234, "process_name": "chrome", "cpu": 25.5, "memory": 512000000, "command_text": "/usr/bin/chrome --flag"}}
+        json_schema_extra={
+            "examples": [
+                {
+                    "summary": "Web browser process",
+                    "description": "Chrome browser with high CPU usage",
+                    "value": {
+                        "pid": 1234,
+                        "process_name": "chrome",
+                        "cpu": 25.5,
+                        "memory": 512000000,
+                        "command_text": "/usr/bin/chrome --flag=value --enable-features=Feature1",
+                    },
+                },
+                {
+                    "summary": "System service",
+                    "description": "Background system service",
+                    "value": {
+                        "pid": 567,
+                        "process_name": "systemd",
+                        "cpu": 0.1,
+                        "memory": 10485760,
+                        "command_text": "/lib/systemd/systemd --system --deserialize 32",
+                    },
+                },
+                {
+                    "summary": "Development tool",
+                    "description": "IDE process with significant memory usage",
+                    "value": {
+                        "pid": 8901,
+                        "process_name": "code",
+                        "cpu": 15.2,
+                        "memory": 1073741824,
+                        "command_text": "/usr/share/code/code --unity-launch",
+                    },
+                },
+            ]
+        }
     )
 
-    pid: int | None = Field(None, description="Process ID", ge=0)
-    process_name: str | None = Field(None, description="Process name")
-    cpu: float | None = Field(None, description="CPU usage percentage", ge=0, le=100)
+    pid: int | None = Field(None, description="Process ID (0-2147483647)", ge=0)
+    process_name: str | None = Field(None, description="Process name (executable name)", max_length=255)
+    cpu: float | None = Field(None, description="CPU usage percentage (0-100)", ge=0, le=100)
     memory: int | None = Field(None, description="Memory usage in bytes", ge=0)
-    command_text: str | None = Field(None, description="Full command line")
+    command_text: str | None = Field(None, description="Full command line with arguments", max_length=4096)
 
 
 class DeviceProcess(BaseModel):
@@ -134,13 +170,55 @@ class ActivitySubmit(BaseModel):
     """Activity submission schema."""
 
     model_config = ConfigDict(
-        json_schema_extra={"example": {"activity_type": "file_access", "description": "Opened document.pdf", "app": "Adobe Reader", "duration": 300}}
+        json_schema_extra={
+            "examples": [
+                {
+                    "summary": "File access activity",
+                    "description": "User opened a document",
+                    "value": {
+                        "activity_type": "file_access",
+                        "description": "Opened document.pdf",
+                        "app": "Adobe Reader",
+                        "duration": 300,
+                    },
+                },
+                {
+                    "summary": "Application launch",
+                    "description": "User started an application",
+                    "value": {
+                        "activity_type": "app_launch",
+                        "description": "Launched Slack application",
+                        "app": "Slack",
+                        "duration": 7200,
+                    },
+                },
+                {
+                    "summary": "Web browsing",
+                    "description": "User browsed a website",
+                    "value": {
+                        "activity_type": "web_navigation",
+                        "description": "Visited https://github.com/mj-nehme/raqeem",
+                        "app": "Chrome",
+                        "duration": 450,
+                    },
+                },
+                {
+                    "summary": "Idle time",
+                    "description": "User away from keyboard",
+                    "value": {"activity_type": "idle", "description": "User inactive", "app": None, "duration": 1800},
+                },
+            ]
+        }
     )
 
-    activity_type: str | None = Field(None, description="Type of activity (file_access, app_launch, etc.)")
-    description: str | None = Field(None, description="Activity description")
-    app: str | None = Field(None, description="Application name")
-    duration: int | None = Field(None, description="Activity duration in seconds", ge=0)
+    activity_type: str | None = Field(
+        None,
+        description="Type of activity (file_access, app_launch, web_navigation, idle, etc.)",
+        max_length=100,
+    )
+    description: str | None = Field(None, description="Activity description", max_length=1000)
+    app: str | None = Field(None, description="Application name", max_length=255)
+    duration: int | None = Field(None, description="Activity duration in seconds", ge=0, le=86400)
 
 
 class DeviceActivity(BaseModel):
@@ -163,21 +241,76 @@ class AlertSubmit(BaseModel):
 
     model_config = ConfigDict(
         json_schema_extra={
-            "example": {
-                "level": "warning",
-                "alert_type": "high_cpu",
-                "message": "CPU usage exceeded threshold",
-                "value": 95.5,
-                "threshold": 90.0,
-            }
+            "examples": [
+                {
+                    "summary": "High CPU alert",
+                    "description": "CPU usage exceeded warning threshold",
+                    "value": {
+                        "level": "warning",
+                        "alert_type": "high_cpu",
+                        "message": "CPU usage exceeded threshold",
+                        "value": 95.5,
+                        "threshold": 90.0,
+                    },
+                },
+                {
+                    "summary": "Critical memory alert",
+                    "description": "Memory usage in critical zone",
+                    "value": {
+                        "level": "critical",
+                        "alert_type": "low_memory",
+                        "message": "Available memory critically low",
+                        "value": 512.0,
+                        "threshold": 1024.0,
+                    },
+                },
+                {
+                    "summary": "Disk space alert",
+                    "description": "Disk space running low",
+                    "value": {
+                        "level": "warning",
+                        "alert_type": "low_disk_space",
+                        "message": "Disk usage at 85%",
+                        "value": 85.0,
+                        "threshold": 80.0,
+                    },
+                },
+                {
+                    "summary": "Temperature warning",
+                    "description": "CPU temperature elevated",
+                    "value": {
+                        "level": "warning",
+                        "alert_type": "high_temperature",
+                        "message": "CPU temperature elevated",
+                        "value": 85.5,
+                        "threshold": 80.0,
+                    },
+                },
+                {
+                    "summary": "Informational alert",
+                    "description": "Device rebooted successfully",
+                    "value": {
+                        "level": "info",
+                        "alert_type": "system_event",
+                        "message": "Device rebooted successfully",
+                        "value": None,
+                        "threshold": None,
+                    },
+                },
+            ]
         }
     )
 
-    level: Literal["info", "warning", "critical"] | None = Field(None, description="Alert severity level")
-    alert_type: str | None = Field(None, description="Type of alert (high_cpu, low_memory, etc.)")
-    message: str | None = Field(None, description="Alert message")
+    level: Literal["info", "warning", "critical"] | None = Field(
+        None,
+        description="Alert severity level: info (informational), warning (attention needed), critical (immediate action required)",
+    )
+    alert_type: str | None = Field(
+        None, description="Type of alert (high_cpu, low_memory, low_disk_space, high_temperature, etc.)", max_length=100
+    )
+    message: str | None = Field(None, description="Human-readable alert message", max_length=500)
     value: float | None = Field(None, description="Current value that triggered the alert")
-    threshold: float | None = Field(None, description="Threshold value")
+    threshold: float | None = Field(None, description="Threshold value that was exceeded")
 
 
 class DeviceAlert(BaseModel):

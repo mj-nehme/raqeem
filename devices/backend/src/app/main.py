@@ -113,6 +113,15 @@ API is versioned through URL path: `/api/v1/*`
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    swagger_ui_parameters={
+        "deepLinking": True,
+        "displayRequestDuration": True,
+        "docExpansion": "none",
+        "operationsSorter": "method",
+        "filter": True,
+        "tryItOutEnabled": True,
+        "syntaxHighlight.theme": "monokai",
+    },
     contact={
         "name": "Raqeem Support",
         "url": "https://github.com/mj-nehme/raqeem",
