@@ -1,7 +1,7 @@
 """Service for forwarding data to mentor backend with retry and circuit breaker."""
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 import httpx
 from app.core.config import settings
@@ -24,7 +24,7 @@ _mentor_circuit_breaker = CircuitBreaker(
 
 async def forward_alerts_to_mentor(
     device_id: str,
-    alerts: List[Dict[str, Any]],
+    alerts: list[dict[str, Any]],
 ) -> bool:
     """
     Forward alerts to mentor backend with retry logic and circuit breaker.
@@ -82,14 +82,14 @@ async def forward_alerts_to_mentor(
             f"Circuit breaker open for mentor backend, skipping alert forwarding for device {device_id}"
         )
         return False
-    except Exception as e:
-        logger.error(
-            f"Failed to forward alerts to mentor backend for device {device_id}: {e}"
+    except Exception:
+        logger.exception(
+            f"Failed to forward alerts to mentor backend for device {device_id}"
         )
         return False
 
 
-async def forward_registration_to_mentor(device_data: Dict[str, Any]) -> bool:
+async def forward_registration_to_mentor(device_data: dict[str, Any]) -> bool:
     """
     Forward device registration to mentor backend with retry logic.
 
@@ -133,6 +133,6 @@ async def forward_registration_to_mentor(device_data: Dict[str, Any]) -> bool:
     except CircuitBreakerError:
         logger.warning("Circuit breaker open for mentor backend, skipping registration forwarding")
         return False
-    except Exception as e:
-        logger.error(f"Failed to forward registration to mentor backend: {e}")
+    except Exception:
+        logger.exception("Failed to forward registration to mentor backend")
         return False

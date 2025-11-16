@@ -3,8 +3,9 @@
 import asyncio
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable, Optional, TypeVar
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ class RetryConfig:
     initial_delay: float = 0.1
     max_delay: float = 5.0
     backoff_factor: float = 2.0
-    timeout: Optional[float] = None
+    timeout: float | None = None
 
 
 def default_retry_config() -> RetryConfig:
@@ -121,7 +122,7 @@ async def retry_async(
         Exception: The last exception if all retries failed
     """
     delay = config.initial_delay
-    last_exception = None
+    last_exception: Exception | None = None
 
     for attempt in range(1, config.max_attempts + 1):
         try:
@@ -133,7 +134,7 @@ async def retry_async(
             if attempt > 1:
                 logger.info(f"{operation_name} succeeded after {attempt} attempts")
             return result
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             last_exception = e
             if attempt == config.max_attempts:
                 break

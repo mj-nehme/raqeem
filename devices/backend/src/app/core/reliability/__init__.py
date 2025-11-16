@@ -1,12 +1,13 @@
 """Reliability module for retry logic and circuit breaker patterns."""
 
-from .circuit_breaker import CircuitBreaker, CircuitBreakerError
-from .retry import RetryConfig, retry_with_backoff, retry_async
+from .circuit_breaker import CircuitBreaker, CircuitBreakerConfig, CircuitBreakerError
+from .retry import RetryConfig, retry_async, retry_with_backoff
 
 __all__ = [
     "CircuitBreaker",
-    "CircuitBreakerError", 
+    "CircuitBreakerConfig",
+    "CircuitBreakerError",
     "RetryConfig",
-    "retry_with_backoff",
     "retry_async",
+    "retry_with_backoff",
 ]
