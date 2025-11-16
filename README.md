@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/mj-nehme/raqeem/actions/workflows/ci.yml/badge.svg)](https://github.com/mj-nehme/raqeem/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/mj-nehme/raqeem/branch/master/graph/badge.svg)](https://codecov.io/gh/mj-nehme/raqeem)
-[![Release](https://img.shields.io/github/v/release/mj-nehme/raqeem)](https://github.com/mj-nehme/raqeem/releases)
+[![Release](https://img.shields.io/github/v/release/mj-nehme/raqeem?sort=semver&display_name=tag)](https://github.com/mj-nehme/raqeem/releases)
 [![Go Version](https://img.shields.io/badge/go-1.25%2B-blue)](https://golang.org)
 [![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)](https://python.org)
 
