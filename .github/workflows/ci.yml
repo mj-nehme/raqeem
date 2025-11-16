@@ -368,4 +368,3 @@ jobs:
           name: devices-frontend
           token: ${{ secrets.CODECOV_TOKEN }}
 
-
