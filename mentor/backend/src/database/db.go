@@ -1,16 +1,22 @@
 package database
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"mentor-backend/models"
+	"mentor-backend/reliability"
 )
 
 var DB *gorm.DB
@@ -57,7 +63,7 @@ func loadEnv() {
 }
 
 // connectWithConfig attempts to connect to the database and returns an error if it fails.
-// This function is separated for testing purposes.
+// This function is separated for testing purposes and includes retry logic for resilience.
 func connectWithConfig() error {
 	// Load environment variables from .env file(s)
 	loadEnv()
@@ -68,19 +74,76 @@ func connectWithConfig() error {
 	host := os.Getenv("POSTGRES_HOST")
 	port := os.Getenv("POSTGRES_PORT")
 
+	// Get connection pool configuration from environment variables
+	maxOpenConns := getEnvAsInt("DB_MAX_OPEN_CONNS", 25)
+	maxIdleConns := getEnvAsInt("DB_MAX_IDLE_CONNS", 5)
+	connMaxLifetime := getEnvAsDuration("DB_CONN_MAX_LIFETIME", 5*time.Minute)
+	connMaxIdleTime := getEnvAsDuration("DB_CONN_MAX_IDLE_TIME", 10*time.Minute)
+
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		host, user, password, dbname, port)
 
+	// Use retry logic for database connection
+	retryConfig := reliability.DatabaseRetryConfig()
+	ctx := context.Background()
+
 	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-		DisableForeignKeyConstraintWhenMigrating: true,
+	err = reliability.RetryWithBackoff(ctx, retryConfig, func() error {
+		DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+			DisableForeignKeyConstraintWhenMigrating: true,
+			Logger:                                   logger.Default.LogMode(logger.Info),
+		})
+		if err != nil {
+			return fmt.Errorf("failed to connect to database: %v", err)
+		}
+
+		// Get underlying SQL database for connection pool configuration
+		sqlDB, err := DB.DB()
+		if err != nil {
+			return fmt.Errorf("failed to get underlying SQL database: %v", err)
+		}
+
+		// Configure connection pool
+		sqlDB.SetMaxOpenConns(maxOpenConns)
+		sqlDB.SetMaxIdleConns(maxIdleConns)
+		sqlDB.SetConnMaxLifetime(connMaxLifetime)
+		sqlDB.SetConnMaxIdleTime(connMaxIdleTime)
+
+		// Test the connection
+		if err := sqlDB.Ping(); err != nil {
+			return fmt.Errorf("failed to ping database: %v", err)
+		}
+
+		return nil
 	})
+
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %v", err)
+		return err
 	}
 
-	log.Println("Database connection successful")
+	log.Printf("Database connection successful (pool: max_open=%d, max_idle=%d, max_lifetime=%v)", 
+		maxOpenConns, maxIdleConns, connMaxLifetime)
 	return nil
+}
+
+// getEnvAsInt retrieves an environment variable as an integer, or returns the default value
+func getEnvAsInt(key string, defaultValue int) int {
+	if value := os.Getenv(key); value != "" {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
+	}
+	return defaultValue
+}
+
+// getEnvAsDuration retrieves an environment variable as a duration, or returns the default value
+func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
+	if value := os.Getenv(key); value != "" {
+		if duration, err := time.ParseDuration(value); err == nil {
+			return duration
+		}
+	}
+	return defaultValue
 }
 
 func Connect() {
@@ -113,4 +176,59 @@ func migrate(db *gorm.DB) error {
 		}
 	}
 	return nil
+}
+
+// HealthCheck checks the database connection health
+func HealthCheck() error {
+	if DB == nil {
+		return fmt.Errorf("database connection is nil")
+	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying SQL database: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return fmt.Errorf("database ping failed: %v", err)
+	}
+
+	return nil
+}
+
+// Close gracefully closes the database connection
+func Close() error {
+	if DB == nil {
+		return nil
+	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get underlying SQL database: %v", err)
+	}
+
+	log.Println("Closing database connection...")
+	if err := sqlDB.Close(); err != nil {
+		return fmt.Errorf("failed to close database: %v", err)
+	}
+
+	log.Println("Database connection closed successfully")
+	return nil
+}
+
+// GetStats returns database connection pool statistics
+func GetStats() sql.DBStats {
+	if DB == nil {
+		return sql.DBStats{}
+	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return sql.DBStats{}
+	}
+
+	return sqlDB.Stats()
 }
