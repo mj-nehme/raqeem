@@ -2,6 +2,7 @@ package router
 
 import (
 	"mentor-backend/controllers"
+	"mentor-backend/logging"
 	"os"
 	"strings"
 	"time"
@@ -26,6 +27,11 @@ func New() *Router {
 
 // SetupAllRoutes configures all routes, middleware, and Swagger documentation
 func (r *Router) SetupAllRoutes() {
+	// Add request ID middleware first
+	r.engine.Use(logging.RequestIDMiddleware())
+	// Add request logging middleware
+	r.engine.Use(logging.RequestLoggingMiddleware())
+
 	r.setupCORS()
 	r.setupSwagger()
 	r.setupHealthCheck()
