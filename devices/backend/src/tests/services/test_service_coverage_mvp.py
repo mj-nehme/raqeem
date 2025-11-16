@@ -1,6 +1,5 @@
 """Additional service layer tests to improve coverage for MVP."""
 
-import pytest
 from app.services.alert_service import AlertService
 from app.services.device_service import DeviceService
 from app.services.file_service import FileService
@@ -36,21 +35,18 @@ class TestAlertServiceCoverage:
     def test_determine_alert_level_warning(self):
         """Test alert level determination for warning level."""
         service = AlertService()
-        # Delta < WARNING_DELTA (10)
         assert service.determine_alert_level(85.0, 80.0) == "warning"
         assert service.determine_alert_level(88.0, 80.0) == "warning"
 
     def test_determine_alert_level_error(self):
         """Test alert level determination for error level."""
         service = AlertService()
-        # WARNING_DELTA <= Delta < ERROR_DELTA (10 <= delta < 20)
         assert service.determine_alert_level(95.0, 80.0) == "error"
         assert service.determine_alert_level(98.0, 80.0) == "error"
 
     def test_determine_alert_level_critical(self):
         """Test alert level determination for critical level."""
         service = AlertService()
-        # Delta >= ERROR_DELTA (20)
         assert service.determine_alert_level(100.0, 80.0) == "critical"
         assert service.determine_alert_level(150.0, 80.0) == "critical"
 
