@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
-from sqlalchemy.pool import AsyncAdaptedQueuePool
+from sqlalchemy.pool import AsyncAdaptedQueuePool, NullPool
 
 # Load environment variables from .env file
 load_dotenv()
@@ -33,18 +33,29 @@ pool_timeout = int(os.getenv("DB_POOL_TIMEOUT", "30"))
 pool_recycle = int(os.getenv("DB_POOL_RECYCLE", "3600"))  # 1 hour default
 pool_pre_ping = os.getenv("DB_POOL_PRE_PING", "true").lower() == "true"
 
+# Use NullPool in test mode to avoid sharing connections across event loops
+# Otherwise use QueuePool for production with better performance
+is_test_mode = os.getenv("PYTEST_CURRENT_TEST") is not None
+poolclass = NullPool if is_test_mode else AsyncAdaptedQueuePool
+
+# Build engine kwargs based on pool type
+engine_kwargs = {
+    "echo": os.getenv("DB_ECHO", "false").lower() == "true",
+    "poolclass": poolclass,
+}
+
+# Only add pool parameters for non-NullPool configurations
+if not is_test_mode:
+    engine_kwargs.update({
+        "pool_size": pool_size,
+        "max_overflow": max_overflow,
+        "pool_timeout": pool_timeout,
+        "pool_recycle": pool_recycle,
+        "pool_pre_ping": pool_pre_ping,
+    })
+
 # Create async engine with connection pooling for production
-# Use QueuePool for production, which provides better performance and reliability
-engine = create_async_engine(
-    DATABASE_URL,
-    echo=os.getenv("DB_ECHO", "false").lower() == "true",
-    poolclass=AsyncAdaptedQueuePool,
-    pool_size=pool_size,
-    max_overflow=max_overflow,
-    pool_timeout=pool_timeout,
-    pool_recycle=pool_recycle,
-    pool_pre_ping=pool_pre_ping,  # Test connections before using them
-)
+engine = create_async_engine(DATABASE_URL, **engine_kwargs)
 
 async_session = async_sessionmaker(
     bind=engine,
