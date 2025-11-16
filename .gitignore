@@ -43,6 +43,9 @@ lcov.info
 test-results.json
 **/test-results.json
 
+# Battle test results
+tests/battle/results/
+
 # Deployment state
 .deploy/
 
