@@ -74,8 +74,8 @@ class ChaosTestRunner:
         return False
 
     def docker_compose_cmd(self, action: str, service: Optional[str] = None) -> tuple[bool, str]:
-        """Execute docker-compose command."""
-        cmd = ["docker-compose", "-f", self.compose_file, action]
+        """Execute docker compose command."""
+        cmd = ["docker", "compose", "-f", self.compose_file, action]
         if service:
             cmd.append(service)
 

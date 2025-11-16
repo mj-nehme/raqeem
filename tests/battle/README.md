@@ -70,7 +70,7 @@ Backup, restore, and migration scenarios:
 ### Required Services
 All battle tests require a running Docker environment with:
 ```bash
-docker-compose -f .github/docker-compose.test.yml up -d
+docker compose -f .github/docker-compose.test.yml up -d
 ```
 
 Or use the full Kubernetes stack:

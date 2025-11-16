@@ -40,7 +40,7 @@ echo -e "${YELLOW}Checking service health...${NC}"
 if ! curl -sf http://localhost:8081/health > /dev/null 2>&1; then
     echo -e "${RED}✗ Devices backend is not running at localhost:8081${NC}"
     echo "Please start services first:"
-    echo "  docker-compose -f .github/docker-compose.test.yml up -d"
+    echo "  docker compose -f .github/docker-compose.test.yml up -d"
     echo "  OR"
     echo "  ./start.sh"
     exit 1
@@ -49,7 +49,7 @@ fi
 if ! curl -sf http://localhost:8080/health > /dev/null 2>&1; then
     echo -e "${RED}✗ Mentor backend is not running at localhost:8080${NC}"
     echo "Please start services first:"
-    echo "  docker-compose -f .github/docker-compose.test.yml up -d"
+    echo "  docker compose -f .github/docker-compose.test.yml up -d"
     echo "  OR"
     echo "  ./start.sh"
     exit 1
