@@ -1,0 +1,108 @@
+name: Battle Tests
+
+# Battle tests run comprehensive stress, load, and chaos testing
+# These are resource-intensive and time-consuming, so they run:
+# - On manual trigger (workflow_dispatch)
+# - On schedule (nightly)
+# - On release branches
+
+on:
+  workflow_dispatch:
+    inputs:
+      stress_devices:
+        description: 'Number of devices for stress test'
+        required: false
+        default: '100'
+      duration:
+        description: 'Test duration in seconds'
+        required: false
+        default: '60'
+      run_chaos:
+        description: 'Run chaos tests (disruptive)'
+        required: false
+        default: 'false'
+  schedule:
+    - cron: '0 2 * * *'  # 2 AM UTC daily
+  push:
+    branches:
+      - 'release/**'
+
+jobs:
+  battle-test:
+    name: Battle Testing Suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install test dependencies
+        run: |
+          pip install -r tests/battle/requirements.txt
+
+      - name: Start services with docker-compose
+        run: |
+          docker-compose -f .github/docker-compose.test.yml up -d
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+      - name: Wait for services
+        run: |
+          for i in {1..30}; do
+            if curl -sf http://localhost:8081/health && curl -sf http://localhost:8080/health; then
+              echo "✅ Services are healthy"
+              break
+            fi
+            echo "Waiting for services... ($i/30)"
+            sleep 5
+          done
+
+      - name: Run benchmark tests
+        run: |
+          python3 tests/battle/benchmark_test.py \
+            --samples ${{ github.event.inputs.duration || '100' }} \
+            --verbose
+
+      - name: Run stress tests
+        run: |
+          python3 tests/battle/stress_test.py \
+            --devices ${{ github.event.inputs.stress_devices || '100' }} \
+            --duration ${{ github.event.inputs.duration || '60' }} \
+            --verbose
+
+      - name: Run load tests
+        run: |
+          python3 tests/battle/load_test.py \
+            --concurrent-users 50 \
+            --duration ${{ github.event.inputs.duration || '60' }} \
+            --verbose
+
+      - name: Run chaos tests
+        if: github.event.inputs.run_chaos == 'true'
+        run: |
+          python3 tests/battle/chaos_test.py \
+            --scenarios all \
+            --verbose
+
+      - name: Collect logs on failure
+        if: failure()
+        run: |
+          docker-compose -f .github/docker-compose.test.yml logs > battle-test-logs.txt
+
+      - name: Upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: battle-test-logs
+          path: battle-test-logs.txt
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker-compose -f .github/docker-compose.test.yml down -v
