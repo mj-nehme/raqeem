@@ -7,6 +7,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
 from app.schemas.commands import CommandCreate, CommandOut, CommandResultSubmit
+from app.services.forwarding_service import forward_alerts_to_mentor, forward_registration_to_mentor
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -94,14 +95,9 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     # Forward registration to mentor backend if configured (best-effort, non-blocking)
     if settings.mentor_api_url:
         fwd = dict(payload)
-        fwd["deviceid"] = final_id
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                await client.post(f"{settings.mentor_api_url}/devices/register", json=fwd)
-        except Exception:
-            # Silently ignore forwarding failures to prevent blocking device registration
-            # Mentor backend will sync via periodic refresh or next metrics update
-            pass
+        fwd["deviceid"] = str(final_id)
+        # Use the new forwarding service with retry and circuit breaker
+        await forward_registration_to_mentor(fwd)
 
     return result
 
@@ -289,26 +285,11 @@ async def post_alerts(device_id: str, alerts: list[dict], db: AsyncSession = Dep
         _alert_table = cast("Any", dev_models.DeviceAlert.__table__)
         await db.execute(_alert_table.insert(), to_add)
         await db.commit()
-        # Optionally forward alerts to mentor backend if configured
+        
+        # Forward alerts to mentor backend with retry and circuit breaker
         if settings.mentor_api_url:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    for a in alerts:
-                        payload = {
-                            "deviceid": device_id,
-                            "level": a.get("level"),
-                            "alert_type": a.get("alert_type"),
-                            "message": a.get("message"),
-                            "value": a.get("value"),
-                            "threshold": a.get("threshold"),
-                        }
-                        # Mentor API path accepts /devices/:id/alerts but uses JSON body for device_id
-                        await client.post(f"{settings.mentor_api_url}/devices/{device_id}/alerts", json=payload)
-            except Exception:
-                # Silently ignore forwarding failures to prevent blocking alert ingestion
-                # Alert forwarding is critical but failures shouldn't block device operations
-                # Alerts can be manually synced or retrieved from devices backend if needed
-                pass
+            await forward_alerts_to_mentor(device_id, alerts)
+    
     return {"inserted": len(to_add)}
 
 
