@@ -4,6 +4,7 @@ import uuid
 from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
+from app.schemas.devices import ErrorResponse
 from app.util import post_with_retry
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
