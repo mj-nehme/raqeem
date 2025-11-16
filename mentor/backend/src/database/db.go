@@ -2,10 +2,6 @@ package database
 
 import (
 "context"
-<<<<<<< HEAD
-"database/sql"
-=======
->>>>>>> origin/master
 "fmt"
 "log"
 "os"
@@ -19,10 +15,6 @@ import (
 "gorm.io/gorm/logger"
 
 "mentor-backend/models"
-<<<<<<< HEAD
-"mentor-backend/reliability"
-=======
->>>>>>> origin/master
 )
 
 var DB *gorm.DB
@@ -110,23 +102,10 @@ return intVal
 }
 }
 return defaultValue
-<<<<<<< HEAD
-}
-
-// getEnvDuration retrieves a duration environment variable with a default value
-func getEnvDuration(key string, defaultValue time.Duration) time.Duration {
-if val := os.Getenv(key); val != "" {
-if duration, err := time.ParseDuration(val); err == nil {
-return duration
-}
-}
-return defaultValue
-=======
->>>>>>> origin/master
 }
 
 // connectWithConfig attempts to connect to the database and returns an error if it fails.
-// This function is separated for testing purposes and includes retry logic for resilience.
+// This function is separated for testing purposes.
 func connectWithConfig() error {
 // Load environment variables from .env file(s)
 loadEnv()
@@ -142,85 +121,6 @@ dbname := os.Getenv("POSTGRES_DB")
 host := os.Getenv("POSTGRES_HOST")
 port := os.Getenv("POSTGRES_PORT")
 
-<<<<<<< HEAD
-// Get connection pool configuration from environment variables
-maxOpenConns := getEnvInt("DB_MAX_OPEN_CONNS", 25)
-maxIdleConns := getEnvInt("DB_MAX_IDLE_CONNS", 5)
-connMaxLifetime := getEnvDuration("DB_CONN_MAX_LIFETIME", 5*time.Minute)
-connMaxIdleTime := getEnvDuration("DB_CONN_MAX_IDLE_TIME", 10*time.Minute)
-
-dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-host, user, password, dbname, port)
-
-// Use retry logic for database connection
-retryConfig := reliability.DatabaseRetryConfig()
-ctx := context.Background()
-
-var err error
-err = reliability.RetryWithBackoff(ctx, retryConfig, func() error {
-DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
-DisableForeignKeyConstraintWhenMigrating: true,
-Logger:                                   logger.Default.LogMode(logger.Info),
-})
-if err != nil {
-return fmt.Errorf("failed to connect to database: %v", err)
-}
-
-// Get underlying SQL database for connection pool configuration
-sqlDB, err := DB.DB()
-if err != nil {
-return fmt.Errorf("failed to get underlying SQL database: %v", err)
-}
-
-// Configure connection pool
-sqlDB.SetMaxOpenConns(maxOpenConns)
-sqlDB.SetMaxIdleConns(maxIdleConns)
-sqlDB.SetConnMaxLifetime(connMaxLifetime)
-sqlDB.SetConnMaxIdleTime(connMaxIdleTime)
-
-// Test the connection
-if err := sqlDB.Ping(); err != nil {
-return fmt.Errorf("failed to ping database: %v", err)
-}
-
-return nil
-})
-
-if err != nil {
-return err
-}
-
-log.Printf("Database connection successful (pool: max_open=%d, max_idle=%d, max_lifetime=%v)",
-maxOpenConns, maxIdleConns, connMaxLifetime)
-return nil
-}
-
-// getEnvAsInt retrieves an environment variable as an integer, or returns the default value
-func getEnvAsInt(key string, defaultValue int) int {
-if value := os.Getenv(key); value != "" {
-if intValue, err := strconv.Atoi(value); err == nil {
-return intValue
-}
-}
-return defaultValue
-}
-
-// getEnvAsDuration retrieves an environment variable as a duration, or returns the default value
-func getEnvAsDuration(key string, defaultValue time.Duration) time.Duration {
-if value := os.Getenv(key); value != "" {
-if duration, err := time.ParseDuration(value); err == nil {
-return duration
-}
-}
-return defaultValue
-}
-
-func Connect() {
-if err := connectWithConfig(); err != nil {
-log.Fatalf("Failed to connect to database: %v", err)
-}
-
-=======
 dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 host, user, password, dbname, port)
 
@@ -292,13 +192,10 @@ if err := connectWithRetry(maxRetries, initialDelay); err != nil {
 log.Fatalf("Failed to connect to database: %v", err)
 }
 
->>>>>>> origin/master
 // Perform automatic migrations on connect to avoid stale schema
 if err := migrate(DB); err != nil {
 log.Fatalf("Database migration failed: %v", err)
 }
-<<<<<<< HEAD
-=======
 }
 
 // HealthCheck verifies the database connection is alive
@@ -341,7 +238,6 @@ return fmt.Errorf("failed to close database: %v", err)
 
 log.Println("Database connection closed successfully")
 return nil
->>>>>>> origin/master
 }
 
 // migrate runs the schema migrations sequentially
@@ -357,69 +253,6 @@ steps := []interface{}{
 &models.DeviceAlert{},
 &models.User{},
 }
-<<<<<<< HEAD
-for _, m := range steps {
-if err := db.AutoMigrate(m); err != nil {
-return err
-}
-}
-return nil
-}
-
-// HealthCheck checks the database connection health
-func HealthCheck() error {
-if DB == nil {
-return fmt.Errorf("database connection is nil")
-}
-
-sqlDB, err := DB.DB()
-if err != nil {
-return fmt.Errorf("failed to get underlying SQL database: %v", err)
-}
-
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-defer cancel()
-
-if err := sqlDB.PingContext(ctx); err != nil {
-return fmt.Errorf("database ping failed: %v", err)
-}
-
-return nil
-}
-
-// Close gracefully closes the database connection
-func Close() error {
-if DB == nil {
-return nil
-}
-
-sqlDB, err := DB.DB()
-if err != nil {
-return fmt.Errorf("failed to get underlying SQL database: %v", err)
-}
-
-log.Println("Closing database connection...")
-if err := sqlDB.Close(); err != nil {
-return fmt.Errorf("failed to close database: %v", err)
-}
-
-log.Println("Database connection closed successfully")
-return nil
-}
-
-// GetStats returns database connection pool statistics
-func GetStats() sql.DBStats {
-if DB == nil {
-return sql.DBStats{}
-}
-
-sqlDB, err := DB.DB()
-if err != nil {
-return sql.DBStats{}
-}
-
-return sqlDB.Stats()
-=======
 log.Println("Running database migrations...")
 for _, m := range steps {
 if err := db.AutoMigrate(m); err != nil {
@@ -428,5 +261,4 @@ return fmt.Errorf("migration failed for %T: %w", m, err)
 }
 log.Println("Database migrations completed successfully")
 return nil
->>>>>>> origin/master
 }

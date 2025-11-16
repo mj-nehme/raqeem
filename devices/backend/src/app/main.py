@@ -9,11 +9,6 @@ This module initializes the FastAPI application with:
 
 import json
 import logging
-<<<<<<< HEAD
-import signal
-import sys
-=======
->>>>>>> origin/master
 from contextlib import asynccontextmanager
 
 try:
@@ -44,13 +39,8 @@ from app.api.routes import api_router
 from app.api.v1.endpoints import health
 from app.core.cors import setup_cors
 from app.core.logging_config import configure_logging, get_logger
-<<<<<<< HEAD
-from app.core.middleware import CorrelationIDMiddleware, RequestIDMiddleware
-from app.db.session import engine
-=======
 from app.core.middleware import RequestIDMiddleware
 from app.db import session
->>>>>>> origin/master
 
 # Configure structured logging
 configure_logging()
@@ -59,26 +49,6 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-<<<<<<< HEAD
-    """Manage application lifecycle with graceful startup and shutdown."""
-    # Startup
-    logger.info("Starting up Devices Backend...")
-
-    # Setup signal handlers for graceful shutdown
-    def handle_shutdown(signum, frame):
-        logger.info(f"Received signal {signum}, initiating graceful shutdown...")
-        sys.exit(0)
-
-    signal.signal(signal.SIGTERM, handle_shutdown)
-    signal.signal(signal.SIGINT, handle_shutdown)
-
-    yield
-
-    # Shutdown
-    logger.info("Shutting down Devices Backend...")
-    await engine.dispose()
-    logger.info("Database connections closed")
-=======
     """Application lifespan manager for startup and shutdown events."""
     # Startup
     logger.info("Starting Raqeem Devices Backend API")
@@ -87,37 +57,10 @@ async def lifespan(_app: FastAPI):
     # Shutdown: Close database connections gracefully
     logger.info("Shutting down Raqeem Devices Backend API")
     await session.shutdown()
->>>>>>> origin/master
 
 
 app = FastAPI(
     title="Raqeem Devices Backend API",
-<<<<<<< HEAD
-    description="""High-throughput telemetry ingestion API for IoT device monitoring.
-
-## Overview
-The Devices Backend is the primary data ingestion point for IoT device telemetry.
-It handles high-volume data streams and forwards critical alerts to the Mentor Backend.
-
-## Key Features
-- **Device Registration**: Register and manage device information
-- **Metrics Ingestion**: High-throughput telemetry data collection
-- **Activity Logging**: Track user activities and system events
-- **Alert Processing**: Process and forward critical alerts
-- **Process Monitoring**: Track running processes on devices
-- **Screenshot Storage**: Upload and manage device screenshots (MinIO/S3)
-- **Remote Commands**: Execute commands on devices remotely
-
-## Data Flow
-Devices POST data directly to this backend, which:
-1. Stores metrics in PostgreSQL
-2. Uploads screenshots to MinIO (S3-compatible)
-3. Forwards alerts to Mentor Backend (optional)
-
-## Authentication
-Currently, the API does not require authentication.
-Authentication and authorization will be added in future releases.""",
-=======
     description="""
 # Raqeem Devices Backend API
 
@@ -165,7 +108,6 @@ Current API version: **v1**
 
 API is versioned through URL path: `/api/v1/*`
     """,
->>>>>>> origin/master
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -224,10 +166,6 @@ API is versioned through URL path: `/api/v1/*`
     ],
 )
 
-# Add correlation ID and request ID middleware
-app.add_middleware(CorrelationIDMiddleware)
-app.add_middleware(RequestIDMiddleware)
-
 # Setup CORS
 setup_cors(app)
 
@@ -237,14 +175,6 @@ app.add_middleware(RequestIDMiddleware)
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
-<<<<<<< HEAD
-# Include health check router
-app.include_router(health.router)
-
-# Keep legacy health endpoint for backwards compatibility
-@app.get("/health")
-async def legacy_health_check():
-=======
 # Include health check routes at root level
 app.include_router(health.router, tags=["Health Check"])
 
@@ -260,5 +190,4 @@ async def health_check_legacy():
     Returns service status and name for verification.
     """
     logger.warning("Legacy /health endpoint accessed - consider using /health/live or /health/ready")
->>>>>>> origin/master
     return {"status": "ok", "service": "devices-backend"}

@@ -20,16 +20,8 @@ type Router struct {
 
 // New creates a new Router with default gin engine
 func New() *Router {
-	engine := gin.Default()
-	
-	// Add custom middleware for reliability
-	engine.Use(CorrelationIDMiddleware())
-	engine.Use(RequestLoggerMiddleware())
-	engine.Use(ErrorHandlerMiddleware())
-	engine.Use(RecoveryMiddleware())
-	
 	return &Router{
-		engine: engine,
+		engine: gin.Default(),
 	}
 }
 
@@ -136,16 +128,12 @@ func (r *Router) setupSwagger() {
 
 // setupHealthCheck configures the health check endpoint
 func (r *Router) setupHealthCheck() {
-<<<<<<< HEAD
-	r.engine.GET("/health", controllers.HealthCheck)
-=======
 	r.engine.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok", "service": "mentor-backend"})
 	})
 
 	// Add a more detailed health check that validates dependencies
 	r.engine.GET("/health/ready", controllers.HealthCheckReady)
->>>>>>> origin/master
 }
 
 // setupActivityRoutes configures activity-related routes

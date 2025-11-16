@@ -77,42 +77,19 @@ return &App{}
 
 // setupDatabase initializes the database connection and runs migrations
 func (a *App) setupDatabase() error {
-<<<<<<< HEAD
-database.Connect()
-=======
 logging.Info("Initializing database connection")
 database.Connect()
 logging.Info("Database setup completed successfully")
->>>>>>> origin/master
 return nil
 }
 
 // setupRouter initializes the Gin router with all routes and middleware
 func (a *App) setupRouter() *gin.Engine {
-<<<<<<< HEAD
-=======
 logging.Info("Setting up application routes")
->>>>>>> origin/master
 r := router.New()
 r.SetupAllRoutes()
 
 a.Router = r.Engine()
-<<<<<<< HEAD
-return r.Engine()
-}
-
-// Start initializes and starts the application server with graceful shutdown support
-func (a *App) Start() error {
-// Initialize logging
-if err := logging.InitLogger(); err != nil {
-log.Printf("Warning: Failed to initialize structured logging: %v. Using default logging.", err)
-} else {
-log.Println("Structured logging initialized successfully")
-}
-
-// Setup database
-if err := a.setupDatabase(); err != nil {
-=======
 logging.Info("Router setup complete")
 return r.Engine()
 }
@@ -126,7 +103,6 @@ if err := a.setupDatabase(); err != nil {
 logging.Error("Failed to setup database", map[string]interface{}{
 "error": err.Error(),
 })
->>>>>>> origin/master
 return err
 }
 
@@ -136,63 +112,6 @@ a.setupRouter()
 // Get port from environment
 a.Port = os.Getenv("PORT")
 if a.Port == "" {
-<<<<<<< HEAD
-log.Fatal("PORT environment variable is required (set by Helm chart or .env)")
-}
-
-// Create HTTP server
-srv := &http.Server{
-Addr:         ":" + a.Port,
-Handler:      a.Router,
-ReadTimeout:  15 * time.Second,
-WriteTimeout: 15 * time.Second,
-IdleTimeout:  60 * time.Second,
-}
-
-// Channel to listen for errors coming from the listener
-serverErrors := make(chan error, 1)
-
-// Start the server in a goroutine
-go func() {
-log.Printf("Starting server on port %s", a.Port)
-serverErrors <- srv.ListenAndServe()
-}()
-
-// Channel to listen for interrupt signal to terminate gracefully
-shutdown := make(chan os.Signal, 1)
-signal.Notify(shutdown, os.Interrupt, syscall.SIGTERM)
-
-// Block until we receive a signal or an error
-select {
-case err := <-serverErrors:
-return err
-
-case sig := <-shutdown:
-log.Printf("Received shutdown signal: %v. Starting graceful shutdown...", sig)
-
-// Give outstanding requests a deadline for completion
-ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-defer cancel()
-
-// Attempt graceful shutdown
-if err := srv.Shutdown(ctx); err != nil {
-log.Printf("Could not gracefully shutdown the server: %v", err)
-// Force close
-if closeErr := srv.Close(); closeErr != nil {
-return closeErr
-}
-}
-
-// Close database connection
-if err := database.Close(); err != nil {
-log.Printf("Error closing database connection: %v", err)
-}
-
-log.Println("Server shutdown completed")
-}
-
-return nil
-=======
 return ErrPortNotSet
 }
 
@@ -272,18 +191,14 @@ Code    string
 
 func (e *AppError) Error() string {
 return e.Message
->>>>>>> origin/master
 }
 
 func main() {
 app := NewApp()
 if err := app.Start(); err != nil {
-<<<<<<< HEAD
-=======
 logging.Error("Failed to start application", map[string]interface{}{
 "error": err.Error(),
 })
->>>>>>> origin/master
 log.Fatalf("Failed to start application: %v", err)
 }
 }
