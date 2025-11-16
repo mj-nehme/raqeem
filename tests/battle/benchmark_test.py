@@ -15,13 +15,11 @@ Usage:
 """
 
 import argparse
-import concurrent.futures
 import io
 import json
 import random
 import sys
 import time
-from collections import defaultdict
 from datetime import datetime
 
 import requests
@@ -68,13 +66,14 @@ class BenchmarkRunner:
 
         for i in range(samples):
             device_id = f"bench-reg-{int(time.time())}-{i}"
+            device_name = f"Benchmark {i}"
 
-            def register():
+            def register(device_id=device_id, device_name=device_name):
                 response = requests.post(
                     f"{self.devices_url}/api/v1/devices/register",
                     json={
                         "deviceid": device_id,
-                        "device_name": f"Benchmark {i}",
+                        "device_name": device_name,
                         "device_type": "laptop",
                         "os": "Test OS",
                     },
@@ -256,9 +255,10 @@ class BenchmarkRunner:
 
         for i in range(samples):
             fake_image = b"PNG" + b"\x00" * (size_kb * 1024 - 3)
+            filename = f"bench-{i}.png"
 
-            def upload():
-                files = {"file": (f"bench-{i}.png", io.BytesIO(fake_image), "image/png")}
+            def upload(filename=filename, fake_image=fake_image):
+                files = {"file": (filename, io.BytesIO(fake_image), "image/png")}
                 response = requests.post(f"{self.devices_url}/api/v1/devices/{device_id}/screenshot", files=files, timeout=30)
                 response.raise_for_status()
 

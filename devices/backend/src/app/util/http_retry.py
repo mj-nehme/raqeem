@@ -8,6 +8,10 @@ import httpx
 
 logger = logging.getLogger(__name__)
 
+# HTTP status code constants
+HTTP_STATUS_SERVER_ERROR = 500
+HTTP_STATUS_TOO_MANY_REQUESTS = 429
+
 
 async def post_with_retry(
     url: str,
@@ -36,7 +40,7 @@ async def post_with_retry(
             async with httpx.AsyncClient(timeout=timeout) as client:
                 response = await client.post(url, json=json)
                 # Retry on 5xx errors and 429 rate limit
-                if response.status_code < 500 and response.status_code != 429:
+                if response.status_code < HTTP_STATUS_SERVER_ERROR and response.status_code != HTTP_STATUS_TOO_MANY_REQUESTS:
                     return response
 
                 logger.warning(
@@ -48,9 +52,9 @@ async def post_with_retry(
                 f"Request to {url} failed with {type(e).__name__}: {e} (attempt {attempt + 1}/{max_retries + 1})"
             )
             last_exception = e
-        except Exception as e:
+        except Exception:
             # For unexpected errors, don't retry
-            logger.error(f"Unexpected error posting to {url}: {e}")
+            logger.exception(f"Unexpected error posting to {url}")
             return None
 
         # Don't sleep after the last attempt

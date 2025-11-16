@@ -7,20 +7,15 @@ from app.db.session import get_db
 from app.models import devices as dev_models
 from app.schemas.commands import CommandCreate, CommandOut, CommandResultSubmit
 from app.schemas.devices import (
-    ActivitySubmit,
-    AlertSubmit,
     DeviceActivity,
     DeviceAlert,
     DeviceInfo,
     DeviceMetrics,
-    DeviceMetricsSubmit,
     DeviceProcess,
-    DeviceRegister,
     DeviceRegisterResponse,
     DeviceScreenshot,
     ErrorResponse,
     InsertedResponse,
-    ProcessSubmit,
     StatusResponse,
 )
 from app.util import post_with_retry
@@ -52,19 +47,19 @@ router = APIRouter()
     summary="Register or update a device",
     description="""
     Register a new device or update an existing device's information.
-    
+
     This endpoint performs an upsert operation:
     - If the device exists (by deviceid), it updates the provided fields
     - If it doesn't exist, it creates a new device record
-    
+
     **Features:**
     - Automatically forwards registration to mentor backend if configured
     - Updates last_seen timestamp and sets device as online
     - Validates against legacy field names for backwards compatibility
-    
+
     **Legacy Field Handling:**
     - `id` → use `deviceid` instead
-    - `name` → use `device_name` instead  
+    - `name` → use `device_name` instead
     - `location` → use `device_location` instead
     """,
     tags=["Device Registration"],
@@ -159,13 +154,13 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     summary="Submit device performance metrics",
     description="""
     Store device performance metrics for monitoring and analysis.
-    
+
     Ingests and stores metrics such as:
     - CPU usage and temperature
     - Memory and swap usage
     - Disk space usage
     - Network traffic (bytes in/out)
-    
+
     **Features:**
     - Automatically forwards metrics to mentor backend if configured
     - All metric fields are optional
@@ -230,12 +225,12 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
     summary="Update device process list",
     description="""
     Update the current process list for a device.
-    
+
     This endpoint:
     - Replaces the existing process list with the new snapshot
     - Stores process information including PID, name, CPU, memory, and command
     - Forwards the process list to mentor backend if configured
-    
+
     **Legacy Field Handling:**
     - `name` → use `process_name` instead
     - `command` → use `command_text` instead
@@ -316,17 +311,17 @@ async def post_processes(device_id: str, processes: list[dict], db: AsyncSession
     summary="Log device activities",
     description="""
     Log user activities on the device.
-    
+
     Records activities such as:
     - File access and modifications
     - Application launches and usage
     - User sessions and interactions
-    
+
     **Features:**
     - Timestamps are set server-side
     - Forwards activities to mentor backend if configured
     - Supports duration tracking for time-based activities
-    
+
     **Legacy Field Handling:**
     - `type` → use `activity_type` instead
     """,
@@ -397,23 +392,23 @@ async def post_activity(device_id: str, activities: list[dict], db: AsyncSession
     summary="Submit device alerts",
     description="""
     Submit alerts triggered by device monitoring thresholds.
-    
+
     Supports alert types:
     - Performance alerts (high CPU, low memory, disk space)
     - Temperature warnings
     - Network connectivity issues
     - Custom application alerts
-    
+
     **Alert Levels:**
     - `info`: Informational messages
     - `warning`: Warning conditions
     - `critical`: Critical issues requiring immediate attention
-    
+
     **Features:**
     - Timestamps are set server-side
     - Forwards alerts to mentor backend if configured
     - Includes current value and threshold for context
-    
+
     **Legacy Field Handling:**
     - `type` → use `alert_type` instead
     """,
@@ -479,13 +474,13 @@ async def post_alerts(device_id: str, alerts: list[dict], db: AsyncSession = Dep
     summary="List all devices",
     description="""
     Get a list of all registered devices with their current status.
-    
+
     Returns device information including:
     - Device identifiers and names
     - Online status and last seen timestamp
     - Location and network information
     - Current logged-in user
-    
+
     **Note:** Both new (`deviceid`) and legacy (`id`) identifiers are included for backwards compatibility.
     """,
     tags=["Device Information"],
@@ -530,14 +525,14 @@ async def list_devices(db: AsyncSession = Depends(get_db)):
     summary="List all processes across devices",
     description="""
     Get all processes across all devices.
-    
+
     Returns up to 1000 most recent processes ordered by timestamp descending.
-    
+
     Useful for:
     - System-wide process monitoring
     - Security auditing
     - Resource usage analysis
-    
+
     **Note:** For device-specific processes, use GET /devices/{device_id}/processes
     """,
     tags=["Device Processes"],
@@ -583,14 +578,14 @@ async def list_all_processes(db: AsyncSession = Depends(get_db)):
     summary="List all activities across devices",
     description="""
     Get all activities across all devices.
-    
+
     Returns up to 1000 most recent activities ordered by timestamp descending.
-    
+
     Useful for:
     - User behavior analysis
     - Security monitoring
     - Compliance auditing
-    
+
     **Note:** For device-specific activities, use GET /devices/{device_id}/activities
     """,
     tags=["Device Activities"],
@@ -634,14 +629,14 @@ async def list_all_activities(db: AsyncSession = Depends(get_db)):
     summary="List all alerts across devices",
     description="""
     Get all alerts across all devices.
-    
+
     Returns up to 1000 most recent alerts ordered by timestamp descending.
-    
+
     Useful for:
     - System-wide monitoring dashboard
     - Alert aggregation and analysis
     - Incident response
-    
+
     **Note:** For device-specific alerts, use GET /devices/{device_id}/alerts
     """,
     tags=["Device Alerts"],
@@ -690,13 +685,13 @@ async def list_all_alerts(db: AsyncSession = Depends(get_db)):
     summary="Get device by ID",
     description="""
     Get detailed information about a specific device.
-    
+
     Returns:
     - Device identifiers and configuration
     - Online status and last seen timestamp
     - Location and network information
     - Current logged-in user
-    
+
     **Note:** Device ID must be a valid UUID format.
     """,
     tags=["Device Information"],
@@ -746,11 +741,11 @@ async def get_device_by_id(device_id: str, db: AsyncSession = Depends(get_db)):
     summary="Get pending commands for a device",
     description="""
     Retrieve all pending remote commands for a specific device.
-    
+
     Commands are ordered by creation time (oldest first) to ensure
     proper execution order. Devices should poll this endpoint
     periodically to check for new commands.
-    
+
     **Workflow:**
     1. Device polls this endpoint
     2. Device executes commands in order
@@ -788,15 +783,15 @@ async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db
     summary="Submit command execution result",
     description="""
     Submit the result of a remote command execution.
-    
+
     Devices should call this endpoint after executing a command
     retrieved from GET /devices/{device_id}/commands/pending.
-    
+
     **Status Values:**
     - `completed`: Command executed successfully
     - `failed`: Command execution failed
     - `running`: Command is still executing (not typically used)
-    
+
     **Features:**
     - Records execution result and exit code
     - Updates command completion timestamp
@@ -857,11 +852,11 @@ async def submit_command_result(command_id: UUID, payload: CommandResultSubmit, 
     summary="Create a remote command for a device",
     description="""
     Create a new remote command for a device to execute.
-    
+
     This endpoint is typically called by the mentor backend to
     send commands to devices. The command will appear in the
     device's pending commands list.
-    
+
     **Allowed Commands:**
     - `get_info`: Get device information
     - `status`: Get device status
@@ -870,7 +865,7 @@ async def submit_command_result(command_id: UUID, payload: CommandResultSubmit, 
     - `get_logs`: Retrieve logs
     - `restart_service`: Restart a specific service
     - `screenshot`: Take a screenshot
-    
+
     **Security:** Only whitelisted commands are accepted to prevent
     arbitrary command execution.
     """,
@@ -914,11 +909,11 @@ async def create_command(device_id: str, payload: CommandCreate, db: AsyncSessio
     summary="Get device metrics",
     description="""
     Get recent performance metrics for a specific device.
-    
+
     Returns up to `limit` most recent metrics ordered by timestamp descending.
-    
+
     **Default limit:** 60 (approximately 1 hour of data if metrics are sent every minute)
-    
+
     Metrics include:
     - CPU usage and temperature
     - Memory and swap usage
@@ -972,11 +967,11 @@ async def get_device_metrics(device_id: str, limit: int = 60, db: AsyncSession =
     summary="Get device processes",
     description="""
     Get the latest known process list for a specific device.
-    
+
     Returns up to `limit` most recent process records ordered by timestamp descending.
-    
+
     **Default limit:** 100 processes
-    
+
     Process information includes:
     - Process ID (PID)
     - Process name and full command
@@ -1026,11 +1021,11 @@ async def get_device_processes(device_id: str, limit: int = 100, db: AsyncSessio
     summary="Get device activities",
     description="""
     Get recent activity logs for a specific device.
-    
+
     Returns up to `limit` most recent activities ordered by timestamp descending.
-    
+
     **Default limit:** 100 activities
-    
+
     Activity information includes:
     - Activity type (file_access, app_launch, etc.)
     - Description of the activity
@@ -1079,11 +1074,11 @@ async def get_device_activities(device_id: str, limit: int = 100, db: AsyncSessi
     summary="Get device alerts",
     description="""
     Get recent alerts for a specific device.
-    
+
     Returns up to `limit` most recent alerts ordered by timestamp descending.
-    
+
     **Default limit:** 100 alerts
-    
+
     Alert information includes:
     - Alert level (info, warning, critical)
     - Alert type (high_cpu, low_memory, etc.)
@@ -1133,18 +1128,18 @@ async def get_device_alerts(device_id: str, limit: int = 100, db: AsyncSession =
     summary="Get device screenshots metadata",
     description="""
     Get recent screenshot metadata for a specific device.
-    
+
     Returns up to `limit` most recent screenshot records ordered by timestamp descending.
-    
+
     **Default limit:** 50 screenshots
-    
+
     Screenshot metadata includes:
     - Screenshot identifier
     - File path or URL
     - Resolution
     - File size in bytes
     - Timestamp when screenshot was taken
-    
+
     **Note:** This endpoint returns metadata only. To upload screenshots,
     use POST /api/v1/screenshots/
     """,
@@ -1189,18 +1184,18 @@ async def get_device_screenshots(device_id: str, limit: int = 50, db: AsyncSessi
     summary="Get device command history",
     description="""
     Get command execution history for a specific device.
-    
+
     Returns up to `limit` most recent commands ordered by creation time descending.
-    
+
     **Default limit:** 100 commands
-    
+
     Command information includes:
     - Command identifier
     - Command text
     - Status (pending, completed, failed)
     - Creation and completion timestamps
     - Execution result and exit code (if completed)
-    
+
     **Status Values:**
     - `pending`: Command waiting to be executed
     - `completed`: Command executed successfully

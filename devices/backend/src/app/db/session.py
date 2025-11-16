@@ -79,9 +79,10 @@ async def health_check():
     try:
         async with engine.connect() as conn:
             await conn.execute("SELECT 1")
-        return True
     except Exception:
         return False
+    else:
+        return True
 
 
 # Shutdown function

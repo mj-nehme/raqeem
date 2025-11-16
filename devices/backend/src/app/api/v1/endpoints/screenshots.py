@@ -4,6 +4,7 @@ import uuid
 from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
+from app.schemas.devices import ErrorResponse
 from app.util import post_with_retry
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,19 +44,19 @@ DEFAULT_SCREENSHOT_RESOLUTION = "800x600"
     summary="Upload a device screenshot",
     description="""
     Upload a screenshot image file for a device.
-    
+
     This endpoint:
     - Accepts PNG or JPG image files
     - Generates a unique identifier for each screenshot
     - Stores screenshot metadata in the database
     - Forwards metadata to mentor backend if configured
-    
+
     **Form Fields:**
     - `device_id` or `deviceid`: Device identifier (required)
     - `file`: Image file to upload (required)
-    
+
     **Supported formats:** PNG, JPG/JPEG
-    
+
     **Returns:** Screenshot identifier and image URL/path
     """,
     tags=["Screenshots"],

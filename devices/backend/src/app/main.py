@@ -150,7 +150,7 @@ app.include_router(api_router, prefix="/api/v1")
 async def health_check():
     """
     Health check endpoint for monitoring and load balancer probes.
-    
+
     Returns service status and name for verification.
     """
     return {"status": "ok", "service": "devices-backend"}
