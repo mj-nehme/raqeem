@@ -1,4 +1,6 @@
-# Release Checklist for v0.1.0
+# Release Checklist for v0.2.0
+
+> **Note**: As of v0.2.0, container images are hosted on GitHub Container Registry (GHCR) instead of DockerHub. See [GHCR Migration Guide](docs/GHCR_MIGRATION.md) for details.
 
 ## Pre-Release Verification
 
@@ -77,11 +79,19 @@ git push origin v0.1.0
 
 ### 4. Docker Images
 ```bash
-# Build and push Docker images
-docker build -t jaafarn/raqeem-devices-backend:0.1.0 ./devices/backend
-docker build -t jaafarn/raqeem-mentor-backend:0.1.0 ./mentor/backend
-docker push jaafarn/raqeem-devices-backend:0.1.0
-docker push jaafarn/raqeem-mentor-backend:0.1.0
+# Build and push Docker images to GHCR
+docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:0.2.0 ./devices/backend
+docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:0.2.0 ./mentor/backend
+
+# Login to GHCR
+echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
+
+# Push images
+docker push ghcr.io/mj-nehme/raqeem/devices-backend:0.2.0
+docker push ghcr.io/mj-nehme/raqeem/mentor-backend:0.2.0
+
+# Or use the automated script:
+./scripts/tag-release.sh v0.2.0
 ```
 
 ### 5. Python Package (Optional)
@@ -96,7 +106,7 @@ twine upload dist/*
 
 ### Verification
 - [ ] Release appears on GitHub
-- [ ] Docker images available on Docker Hub
+- [ ] Docker images available on GitHub Container Registry
 - [ ] Package available on PyPI (if published)
 - [ ] Documentation links work
 - [ ] Download and test release artifacts
@@ -115,8 +125,8 @@ twine upload dist/*
 
 If issues are discovered:
 1. Remove GitHub release
-2. Delete git tag: `git tag -d v0.1.0 && git push origin :refs/tags/v0.1.0`
-3. Remove Docker images from registry
+2. Delete git tag: `git tag -d v0.2.0 && git push origin :refs/tags/v0.2.0`
+3. Remove Docker images from GHCR registry
 4. Fix issues and restart release process
 
 ---

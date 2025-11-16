@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: jaafarn/raqeem-mentor-backend
-  tag: v0.1.1
+  repository: ghcr.io/mj-nehme/raqeem/mentor-backend
+  tag: v0.2.0
   pullPolicy: IfNotPresent
 
 service:
