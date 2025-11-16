@@ -154,14 +154,6 @@ func (metric *DeviceMetric) ValidateDeviceMetric() []string {
 		errors = append(errors, "disk used cannot exceed disk total")
 	}
 
-	if metric.MemoryUsed < 0 {
-		errors = append(errors, "memory used cannot be negative")
-	}
-
-	if metric.DiskUsed < 0 {
-		errors = append(errors, "disk used cannot be negative")
-	}
-
 	return errors
 }
 

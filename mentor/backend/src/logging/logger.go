@@ -185,7 +185,9 @@ log.Printf("Failed to marshal log entry: %v", err)
 return
 }
 
-fmt.Fprintln(l.output, string(data))
+if _, err := fmt.Fprintln(l.output, string(data)); err != nil {
+log.Printf("Failed to write log entry: %v", err)
+}
 }
 
 // logText writes a log message in human-readable text format
@@ -211,7 +213,9 @@ sb.WriteString(fmt.Sprintf(" | caller=%s:%d", file, line))
 }
 }
 
-fmt.Fprintln(l.output, sb.String())
+if _, err := fmt.Fprintln(l.output, sb.String()); err != nil {
+log.Printf("Failed to write log entry: %v", err)
+}
 }
 
 // Debug logs a debug message
