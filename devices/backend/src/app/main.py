@@ -1,4 +1,7 @@
+"""Main application entry point for Raqeem Devices Backend API."""
+
 import json
+import logging
 from contextlib import asynccontextmanager
 
 try:
@@ -22,17 +25,32 @@ try:
 except Exception:
     # If httpx is not available or patching fails, continue without raising
     pass
+
 from fastapi import FastAPI
 
 from app.api.routes import api_router
 from app.core.cors import setup_cors
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
+    """Application lifespan context manager.
+
+    Handles startup and shutdown events for the FastAPI application.
+    """
     # Startup
+    logger.info("Starting Raqeem Devices Backend API")
+    logger.info("API documentation available at /docs")
     yield
-    # Shutdown: nothing to clean up currently
+    # Shutdown
+    logger.info("Shutting down Raqeem Devices Backend API")
 
 
 app = FastAPI(
@@ -53,4 +71,9 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/health")
 async def health_check():
+    """Health check endpoint.
+
+    Returns:
+        Dictionary with status and service identifier
+    """
     return {"status": "ok", "service": "devices-backend"}
