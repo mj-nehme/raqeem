@@ -109,7 +109,15 @@ ignore = ["E501", "TRY003", "PLR0913"]
 "devices/backend/src/app/api/routes.py" = ["B008"]
 "devices/backend/src/app/models/devices.py" = ["RUF012"]
 "devices/backend/src/app/core/middleware.py" = ["TRY300"]
+"devices/backend/src/app/core/reliability/*.py" = ["TRY300", "TRY002", "EM102"]
 "devices/backend/src/app/services/minio_service.py" = ["TRY300"]
+"devices/backend/src/app/services/forwarding_service.py" = ["TRY300"]
+"devices/backend/src/app/**/test_*.py" = [
+    "PLR2004",
+    "SIM105",
+    "EM101",
+    "B017",
+]
 "devices/backend/src/tests/**/*.py" = [
     "PLR2004",
     "PLC0415",
