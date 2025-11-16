@@ -93,7 +93,7 @@ Act's service containers may behave differently than GitHub Actions. If you enco
      -e POSTGRES_PASSWORD=password \
      -e POSTGRES_DB=monitoring_db \
      -p 5432:5432 \
-     postgres:16
+     docker.io/library/postgres:16
    ```
 
 2. Run act without services:

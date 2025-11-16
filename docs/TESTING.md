@@ -37,7 +37,7 @@ docker run --name raqeem-test-postgres \
   -e POSTGRES_PASSWORD=password \
   -e POSTGRES_DB=monitoring_db \
   -p 5432:5432 \
-  -d postgres:16
+  -d docker.io/library/postgres:16
 ```
 
 **Local PostgreSQL:**
@@ -298,7 +298,7 @@ docker run -d --name test-postgres \
   -e POSTGRES_PASSWORD=password \
   -e POSTGRES_DB=monitoring_db \
   -p 5432:5432 \
-  postgres:16
+  docker.io/library/postgres:16
 ```
 
 **Connection refused (Go tests):**

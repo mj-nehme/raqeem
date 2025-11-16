@@ -458,9 +458,14 @@ func TestListActivitiesEdgeCases(t *testing.T) {
 
 // Helper functions
 func setupTestDB(t *testing.T) {
-	database.Connect()
+	db, err := database.SetupTestDB(t)
+	if err != nil {
+		t.Skipf("Skipping test - database not available: %v", err)
+		return
+	}
+	database.DB = db
 	
-	// Clean up tables
+	// Clean up tables (no-op since SetupTestDB uses transactions that auto-rollback)
 	database.DB.Exec("DELETE FROM remote_commands")
 	database.DB.Exec("DELETE FROM device_screenshots")
 	database.DB.Exec("DELETE FROM device_alerts")

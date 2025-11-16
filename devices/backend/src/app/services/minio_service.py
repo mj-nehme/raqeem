@@ -1,12 +1,20 @@
-import logging
+"""MinIO service for S3-compatible object storage.
+
+Provides file storage operations for screenshots and other binary data with:
+- Automatic bucket creation
+- Presigned URL generation for secure downloads
+- Error handling with custom exceptions
+- Structured logging
+"""
+
 from typing import cast
 
 from app.core.config import settings
+from app.core.logging_config import get_logger
 from minio import Minio
 from minio.error import S3Error
 
-# Configure logger for this module
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 # Default expiration time for presigned URLs (1 hour)
 DEFAULT_URL_EXPIRATION = 3600
@@ -16,31 +24,44 @@ class MinioServiceError(Exception):
     """Base exception for MinIO service errors."""
 
 
-
 class MinioUploadError(MinioServiceError):
     """Exception raised when file upload fails."""
-
 
 
 class MinioDeleteError(MinioServiceError):
     """Exception raised when file deletion fails."""
 
 
-
 class MinioURLError(MinioServiceError):
     """Exception raised when presigned URL generation fails."""
 
 
-
 class MinioService:
-    """Service for managing file storage operations with MinIO/S3.
+    """Service for interacting with MinIO object storage.
 
-    Handles bucket creation, file uploads, deletions, and presigned URL generation.
+    This service handles:
+    - Bucket initialization and verification
+    - File upload and download operations
+    - Presigned URL generation for secure access
+    - Error handling with custom exceptions and logging
+
+    Example:
+        >>> service = MinioService()
+        >>> object_name = service.upload_file("/tmp/screenshot.png", "device123/screenshot.png")
+        >>> url = service.get_presigned_url(object_name)
     """
 
     def __init__(self):
         """Initialize MinIO client and ensure bucket exists."""
         try:
+            logger.info(
+                "Initializing MinIO service",
+                extra={
+                    "endpoint": settings.minio_endpoint,
+                    "secure": settings.minio_secure,
+                },
+            )
+
             self.client = Minio(
                 endpoint=settings.minio_endpoint,
                 access_key=settings.minio_access_key,
@@ -49,7 +70,11 @@ class MinioService:
             )
             logger.info("MinIO client initialized successfully")
         except Exception as e:
-            logger.exception("Failed to initialize MinIO client")
+            logger.error(
+                "Failed to initialize MinIO client",
+                extra={"error": str(e), "error_type": type(e).__name__},
+                exc_info=True,
+            )
             msg = f"MinIO client initialization failed: {e}"
             raise MinioServiceError(msg) from e
 
@@ -57,19 +82,27 @@ class MinioService:
         self._ensure_bucket()
 
     def _ensure_bucket(self):
-        """Ensure the required bucket exists, create if it doesn't.
+        """Ensure the storage bucket exists, create if necessary.
 
         Raises:
-            MinioServiceError: If bucket check or creation fails
+            MinioServiceError: If bucket check or creation fails.
         """
         try:
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
-                logger.info("Created bucket: %s", self.bucket_name)
+                logger.info(f"Created MinIO bucket: {self.bucket_name}")
             else:
-                logger.debug("Bucket %s already exists", self.bucket_name)
+                logger.debug(f"MinIO bucket exists: {self.bucket_name}")
         except S3Error as e:
-            logger.exception("MinIO bucket check/create failed for bucket: %s", self.bucket_name)
+            logger.error(
+                "Failed to check/create MinIO bucket",
+                extra={
+                    "bucket": self.bucket_name,
+                    "error": str(e),
+                    "error_code": e.code if hasattr(e, "code") else "unknown",
+                },
+                exc_info=True,
+            )
             msg = f"Failed to ensure bucket {self.bucket_name}: {e}"
             raise MinioServiceError(msg) from e
 
@@ -77,43 +110,100 @@ class MinioService:
         """Upload a file from local path to MinIO.
 
         Args:
-            file_path: Local filesystem path to the file to upload
-            object_name: Object key/name in the bucket
+            file_path: Local filesystem path to the file to upload.
+            object_name: Destination object name (key) in the bucket.
 
         Returns:
-            The object name (key) of the uploaded file
+            The object name (key) of the uploaded file.
 
         Raises:
-            MinioUploadError: If upload operation fails
+            MinioUploadError: If upload fails.
+
+        Example:
+            >>> service.upload_file("/tmp/image.png", "device123/image.png")
+            "device123/image.png"
         """
         try:
+            logger.info(
+                "Uploading file to MinIO",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                    "file_path": file_path,
+                },
+            )
+
             self.client.fput_object(
                 bucket_name=self.bucket_name,
                 object_name=object_name,
                 file_path=file_path,
             )
-            logger.info("Successfully uploaded file to MinIO: %s", object_name)
-        except S3Error as e:
-            logger.exception("Failed to upload %s to MinIO", object_name)
-            msg = f"Failed to upload {object_name}: {e}"
-            raise MinioUploadError(msg) from e
-        else:
+
+            logger.info(
+                "File uploaded successfully to MinIO",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                },
+            )
             return object_name
 
+        except S3Error as e:
+            logger.error(
+                "Failed to upload file to MinIO",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                    "error": str(e),
+                    "error_code": e.code if hasattr(e, "code") else "unknown",
+                },
+                exc_info=True,
+            )
+            msg = f"Failed to upload {object_name}: {e}"
+            raise MinioUploadError(msg) from e
+
     def remove_file(self, object_name: str):
-        """Remove a file from MinIO storage.
+        """Remove an object from MinIO storage.
 
         Args:
-            object_name: Object key/name in the bucket to remove
+            object_name: Object name (key) to remove.
 
         Raises:
-            MinioDeleteError: If deletion operation fails
+            MinioDeleteError: If removal fails.
+
+        Example:
+            >>> service.remove_file("device123/image.png")
         """
         try:
+            logger.info(
+                "Removing file from MinIO",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                },
+            )
+
             self.client.remove_object(self.bucket_name, object_name)
-            logger.info("Removed object from MinIO: %s", object_name)
+
+            logger.info(
+                "File removed successfully from MinIO",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                },
+            )
+
         except S3Error as e:
-            logger.exception("Failed to remove %s from MinIO", object_name)
+            logger.error(
+                "Failed to remove file from MinIO",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                    "error": str(e),
+                    "error_code": e.code if hasattr(e, "code") else "unknown",
+                },
+                exc_info=True,
+            )
             msg = f"Failed to remove {object_name}: {e}"
             raise MinioDeleteError(msg) from e
 
@@ -121,23 +211,54 @@ class MinioService:
         """Generate a presigned URL for downloading an object.
 
         Args:
-            object_name: Object key/name in the bucket
-            expires: URL expiration time in seconds (default: 3600 / 1 hour)
+            object_name: Object name (key) to generate URL for.
+            expires: URL expiration time in seconds (default: 1 hour).
 
         Returns:
-            Presigned URL string for accessing the object
+            Presigned URL string for secure download.
 
         Raises:
-            MinioURLError: If presigned URL generation fails
+            MinioURLError: If URL generation fails.
 
         Note:
-            The URL will expire after the specified duration
+            The URL will expire after the specified duration.
+
+        Example:
+            >>> url = service.get_presigned_url("device123/image.png", expires=7200)
+            >>> # URL valid for 2 hours
         """
         try:
+            logger.debug(
+                "Generating presigned URL",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                    "expires": expires,
+                },
+            )
+
             url = self.client.presigned_get_object(self.bucket_name, object_name, expires=expires)
-            logger.debug("Generated presigned URL for %s (expires in %ds)", object_name, expires)
+
+            logger.debug(
+                "Presigned URL generated successfully",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                },
+            )
+
             return cast("str", url)
+
         except S3Error as e:
-            logger.exception("Failed to get presigned URL for %s", object_name)
+            logger.error(
+                "Failed to generate presigned URL",
+                extra={
+                    "bucket": self.bucket_name,
+                    "object_name": object_name,
+                    "error": str(e),
+                    "error_code": e.code if hasattr(e, "code") else "unknown",
+                },
+                exc_info=True,
+            )
             msg = f"Failed to generate presigned URL for {object_name}: {e}"
             raise MinioURLError(msg) from e
