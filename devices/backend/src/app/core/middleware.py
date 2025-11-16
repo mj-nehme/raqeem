@@ -1,4 +1,4 @@
-"""Middleware for correlation IDs and request tracking."""
+"""Middleware for correlation IDs and request tracing."""
 
 import logging
 import time
@@ -38,5 +38,22 @@ class CorrelationIDMiddleware(BaseHTTPMiddleware):
             f"Status: {response.status_code} - Time: {process_time:.3f}s - "
             f"IP: {request.client.host if request.client else 'unknown'}"
         )
+
+        return response
+
+
+class RequestIDMiddleware(BaseHTTPMiddleware):
+    """Middleware to add request IDs for tracing (compatible with logging_config)."""
+
+    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+        # Generate request ID
+        request_id = str(uuid.uuid4())
+
+        # Store in request state
+        request.state.request_id = request_id
+
+        # Add to response headers
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
 
         return response

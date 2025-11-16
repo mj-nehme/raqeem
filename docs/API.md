@@ -126,6 +126,211 @@ Content-Type: application/json
 }
 ```
 
+## OpenAPI Specifications and Client Generation
+
+### Accessing OpenAPI Schemas
+
+Both backends provide OpenAPI 3.0 specifications that can be used for documentation, testing, and client generation.
+
+#### Devices Backend (FastAPI)
+
+- **Swagger UI**: http://localhost:30080/docs
+- **ReDoc**: http://localhost:30080/redoc
+- **OpenAPI JSON**: http://localhost:30080/openapi.json
+
+```bash
+# Download OpenAPI spec
+curl http://localhost:30080/openapi.json > devices-openapi.json
+```
+
+#### Mentor Backend (Go)
+
+- **Swagger UI**: http://localhost:30081/swagger/index.html
+- **Docs Redirect**: http://localhost:30081/docs
+- **Swagger JSON**: Available in `mentor/backend/src/docs/swagger.json`
+
+```bash
+# Access Swagger JSON
+cat mentor/backend/src/docs/swagger.json
+```
+
+### Generating API Clients
+
+You can generate client libraries in various languages from the OpenAPI specifications.
+
+#### Python Client (using openapi-generator)
+
+```bash
+# Install openapi-generator
+npm install -g @openapitools/openapi-generator-cli
+
+# Generate Python client for Devices Backend
+openapi-generator-cli generate \
+  -i http://localhost:30080/openapi.json \
+  -g python \
+  -o ./clients/python-devices \
+  --additional-properties=packageName=raqeem_devices
+
+# Use the generated client
+cd ./clients/python-devices
+pip install -e .
+```
+
+**Example usage**:
+```python
+from raqeem_devices import ApiClient, Configuration, DevicesApi
+
+config = Configuration(host="http://localhost:30080/api/v1")
+client = ApiClient(configuration=config)
+api = DevicesApi(client)
+
+# Register a device
+device_data = {
+    "deviceid": "550e8400-e29b-41d4-a716-446655440000",
+    "device_name": "laptop-001",
+    "device_type": "laptop"
+}
+response = api.register_device(device_data)
+print(response)
+```
+
+#### JavaScript/TypeScript Client
+
+```bash
+# Generate TypeScript/Axios client
+openapi-generator-cli generate \
+  -i http://localhost:30080/openapi.json \
+  -g typescript-axios \
+  -o ./clients/typescript-devices
+
+# Or using fetch
+openapi-generator-cli generate \
+  -i http://localhost:30080/openapi.json \
+  -g typescript-fetch \
+  -o ./clients/typescript-devices-fetch
+```
+
+**Example usage**:
+```typescript
+import { Configuration, DevicesApi } from './clients/typescript-devices';
+
+const config = new Configuration({
+  basePath: 'http://localhost:30080/api/v1'
+});
+
+const api = new DevicesApi(config);
+
+// Register device
+const deviceData = {
+  deviceid: '550e8400-e29b-41d4-a716-446655440000',
+  device_name: 'laptop-001',
+  device_type: 'laptop'
+};
+
+const response = await api.registerDevice(deviceData);
+console.log(response.data);
+```
+
+#### Go Client
+
+```bash
+# Generate Go client for Mentor Backend
+openapi-generator-cli generate \
+  -i mentor/backend/src/docs/swagger.json \
+  -g go \
+  -o ./clients/go-mentor \
+  --additional-properties=packageName=raqeem_mentor
+
+cd ./clients/go-mentor
+go mod init github.com/yourorg/raqeem-mentor-client
+go mod tidy
+```
+
+**Example usage**:
+```go
+package main
+
+import (
+    "context"
+    "fmt"
+    raqeem "github.com/yourorg/raqeem-mentor-client"
+)
+
+func main() {
+    cfg := raqeem.NewConfiguration()
+    cfg.Servers = raqeem.ServerConfigurations{
+        {URL: "http://localhost:30081"},
+    }
+    client := raqeem.NewAPIClient(cfg)
+    
+    // List devices
+    devices, _, err := client.DevicesAPI.ListDevices(context.Background()).Execute()
+    if err != nil {
+        panic(err)
+    }
+    fmt.Printf("Found %d devices\n", len(devices))
+}
+```
+
+### Alternative Client Generation Tools
+
+#### Using Swagger Codegen
+
+```bash
+# Install swagger-codegen
+brew install swagger-codegen  # macOS
+# or download from https://swagger.io/tools/swagger-codegen/
+
+# Generate Python client
+swagger-codegen generate \
+  -i http://localhost:30080/openapi.json \
+  -l python \
+  -o ./clients/python-swagger
+```
+
+#### Using oapi-codegen (Go)
+
+For the Mentor Backend, you can also use oapi-codegen:
+
+```bash
+# Install oapi-codegen
+go install github.com/deepmap/oapi-codegen/cmd/oapi-codegen@latest
+
+# Generate Go client types and server stubs
+oapi-codegen -package mentor -generate types,client \
+  mentor/backend/src/docs/swagger.json > mentor_client.go
+```
+
+### Testing with OpenAPI Specifications
+
+#### Using Postman
+
+1. Open Postman
+2. Click "Import" → "Link"
+3. Enter: `http://localhost:30080/openapi.json`
+4. Postman will create a collection with all endpoints
+
+#### Using Insomnia
+
+1. Open Insomnia
+2. Click "Create" → "Import From" → "URL"
+3. Enter: `http://localhost:30080/openapi.json`
+
+#### Using curl with OpenAPI
+
+```bash
+# Install openapi-to-postman
+npm install -g openapi-to-postman
+
+# Convert to Postman collection
+openapi2postmanv2 -s http://localhost:30080/openapi.json \
+  -o devices-collection.json -p
+
+# Use with newman (CLI test runner)
+npm install -g newman
+newman run devices-collection.json
+```
+
 ## Common Patterns
 
 ### Request Headers
