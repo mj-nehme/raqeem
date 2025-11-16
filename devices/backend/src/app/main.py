@@ -8,6 +8,7 @@ This module initializes the FastAPI application with:
 """
 
 import json
+import logging
 from contextlib import asynccontextmanager
 
 try:
@@ -31,6 +32,7 @@ try:
 except Exception:
     # If httpx is not available or patching fails, continue without raising
     pass
+
 from fastapi import FastAPI
 
 from app.api.routes import api_router
@@ -38,6 +40,7 @@ from app.api.v1.endpoints import health
 from app.core.cors import setup_cors
 from app.core.logging_config import configure_logging, get_logger
 from app.core.middleware import RequestIDMiddleware
+from app.db import session
 
 # Configure structured logging
 configure_logging()
@@ -48,10 +51,12 @@ logger = get_logger(__name__)
 async def lifespan(_app: FastAPI):
     """Application lifespan manager for startup and shutdown events."""
     # Startup
-    logger.info("Starting Devices Backend API")
+    logger.info("Starting Raqeem Devices Backend API")
+    logger.info("API documentation available at /docs")
     yield
-    # Shutdown
-    logger.info("Shutting down Devices Backend API")
+    # Shutdown: Close database connections gracefully
+    logger.info("Shutting down Raqeem Devices Backend API")
+    await session.shutdown()
 
 
 app = FastAPI(
@@ -178,7 +183,7 @@ app.include_router(health.router, tags=["Health Check"])
 @app.get("/health", tags=["Health Check"], summary="Health check endpoint")
 async def health_check_legacy():
     """
-    Legacy health check endpoint for backward compatibility.
+    Health check endpoint for monitoring and load balancer probes.
     
     **Deprecated**: Use `/health/live` for liveness checks or `/health/ready` for readiness checks instead.
     

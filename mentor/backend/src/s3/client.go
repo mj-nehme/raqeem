@@ -62,6 +62,24 @@ func SetClient(c *minio.Client) {
 	client = c
 }
 
+// HealthCheck verifies MinIO connectivity
+func HealthCheck() error {
+	if client == nil {
+		return nil // Client not initialized, skip health check (optional dependency)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// List buckets to verify connectivity
+	_, err := client.ListBuckets(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func GeneratePresignedURL(filename string) string {
 	// Return empty string if client is not initialized (e.g., in tests)
 	if client == nil {

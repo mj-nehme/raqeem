@@ -1,11 +1,10 @@
 import logging
 import uuid
 
-import httpx
 from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
-from app.schemas.devices import ErrorResponse
+from app.util import post_with_retry
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -91,23 +90,18 @@ async def create_screenshot(
 
         # Forward to mentor backend if configured
         if settings.mentor_api_url:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    payload = {
-                        "deviceid": device_identifier,
-                        "path": filename,
-                        "resolution": DEFAULT_SCREENSHOT_RESOLUTION,
-                        "size": file_size,
-                    }
-                    # Forward screenshot metadata to mentor backend
-                    await client.post(f"{settings.mentor_api_url}/devices/screenshots", json=payload)
-            except (httpx.RequestError, httpx.TimeoutException) as e:
-                # Log forwarding errors but don't fail the screenshot upload
-                logger.warning("Failed to forward screenshot to mentor backend: %s", e)
-            except Exception:
-                # Catch any other unexpected errors
-                logger.exception("Unexpected error forwarding screenshot")
-                # Don't fail if forwarding fails
+            payload = {
+                "deviceid": device_identifier,
+                "path": filename,
+                "resolution": DEFAULT_SCREENSHOT_RESOLUTION,
+                "size": file_size,
+            }
+            # Forward screenshot metadata to mentor backend with retry
+            await post_with_retry(
+                f"{settings.mentor_api_url}/devices/screenshots",
+                json=payload,
+                max_retries=2,
+            )
 
         return {"id": str(device_screenshot.screenshotid), "image_url": device_screenshot.path, "status": "success"}
     except Exception as e:

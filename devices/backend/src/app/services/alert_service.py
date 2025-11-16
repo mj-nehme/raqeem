@@ -13,7 +13,8 @@ logger = get_logger(__name__)
 # Threshold deltas for alert level classification
 WARNING_DELTA = 10  # Threshold exceeded by 0-10 units
 ERROR_DELTA = 20  # Threshold exceeded by 10-20 units
-# Anything >= 20 units over threshold is CRITICAL
+CRITICAL_DELTA = 30  # Threshold exceeded by 20-30 units
+# Anything >= 30 units over threshold is CRITICAL
 
 
 class AlertService:
@@ -22,6 +23,7 @@ class AlertService:
     This service evaluates metric values against thresholds and determines:
     - Whether an alert should be created
     - The severity level of the alert (info, warning, error, critical)
+    - Threshold percentage calculations
 
     Example:
         >>> service = AlertService()
@@ -113,3 +115,41 @@ class AlertService:
         )
 
         return level
+
+    def calculate_threshold_percentage(self, value: float, threshold: float) -> float:
+        """Calculate how much a value exceeds the threshold as a percentage.
+
+        Args:
+            value: The current metric value.
+            threshold: The configured threshold for this metric.
+
+        Returns:
+            Percentage over threshold (0 if below threshold).
+
+        Note:
+            Returns 0 if threshold is 0 to avoid division by zero.
+
+        Example:
+            >>> service.calculate_threshold_percentage(90.0, 80.0)
+            12.5
+            >>> service.calculate_threshold_percentage(75.0, 80.0)
+            0.0
+        """
+        if threshold == 0:
+            return 0.0
+
+        if value < threshold:
+            return 0.0
+
+        percentage = ((value - threshold) / threshold) * 100
+
+        logger.debug(
+            "Threshold percentage calculated",
+            extra={
+                "value": value,
+                "threshold": threshold,
+                "percentage": percentage,
+            },
+        )
+
+        return percentage

@@ -3,6 +3,7 @@
 from typing import Any
 
 MAX_PERCENT = 100
+MIN_VALUE = 0
 
 
 class MetricsService:
@@ -21,31 +22,52 @@ class MetricsService:
         Returns:
             True if CPU usage is between 0 and 100, False otherwise
         """
-        return 0 <= v <= MAX_PERCENT
+        return MIN_VALUE <= v <= MAX_PERCENT
 
     def validate_memory_usage(self, used: float, total: float | None) -> bool:
         """Validate that memory usage values are valid.
 
         Args:
-            used: Amount of memory used
-            total: Total memory available
+            used: Amount of memory used (in bytes)
+            total: Total memory available (in bytes)
 
         Returns:
             True if memory values are valid (used >= 0, used <= total), False otherwise
+
+        Note:
+            Both values must be non-negative and used cannot exceed total
         """
-        return used >= 0 and total is not None and used <= total
+        if total is None or total < MIN_VALUE or used < MIN_VALUE:
+            return False
+        return used <= total
 
     def validate_disk_usage(self, used: float, total: float) -> bool:
         """Validate that disk usage values are valid.
 
         Args:
-            used: Amount of disk space used
-            total: Total disk space available
+            used: Amount of disk space used (in bytes)
+            total: Total disk space available (in bytes)
 
         Returns:
             True if disk values are valid (used >= 0, used <= total), False otherwise
+
+        Note:
+            Both values must be non-negative and used cannot exceed total
         """
-        return used >= 0 and used <= total
+        if total < MIN_VALUE or used < MIN_VALUE:
+            return False
+        return used <= total
+
+    def validate_network_bytes(self, bytes_value: float) -> bool:
+        """Validate that network bytes value is valid.
+
+        Args:
+            bytes_value: Network bytes value to validate
+
+        Returns:
+            True if value is non-negative, False otherwise
+        """
+        return bytes_value >= MIN_VALUE
 
     def calculate_average_metrics(self, data: list[dict[str, Any]]) -> dict[str, float]:
         """Calculate average CPU and memory metrics from a list of data points.
@@ -60,7 +82,13 @@ class MetricsService:
             Returns zero values if input data is empty
         """
         if not data:
-            return {"avg_cpu": 0, "avg_memory": 0}
-        avg_cpu = sum(d.get("cpu_usage", 0) for d in data) / len(data)
-        avg_mem = sum(d.get("memory_used", 0) for d in data) / len(data)
-        return {"avg_cpu": avg_cpu, "avg_memory": avg_mem}
+            return {"avg_cpu": 0.0, "avg_memory": 0.0}
+
+        total_cpu = sum(d.get("cpu_usage", 0) for d in data)
+        total_mem = sum(d.get("memory_used", 0) for d in data)
+        count = len(data)
+
+        return {
+            "avg_cpu": total_cpu / count,
+            "avg_memory": total_mem / count,
+        }

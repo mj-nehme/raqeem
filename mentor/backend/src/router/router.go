@@ -131,6 +131,9 @@ func (r *Router) setupHealthCheck() {
 	r.engine.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"status": "ok", "service": "mentor-backend"})
 	})
+
+	// Add a more detailed health check that validates dependencies
+	r.engine.GET("/health/ready", controllers.HealthCheckReady)
 }
 
 // setupActivityRoutes configures activity-related routes
