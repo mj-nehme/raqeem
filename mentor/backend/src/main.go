@@ -76,36 +76,53 @@ func NewApp() *App {
 
 // setupDatabase initializes the database connection and runs migrations
 func (a *App) setupDatabase() error {
+	log.Println("Initializing database connection...")
 	database.Connect()
+	log.Println("Database setup completed successfully")
 	return nil
 }
 
 // setupRouter initializes the Gin router with all routes and middleware
 func (a *App) setupRouter() *gin.Engine {
+	log.Println("Setting up application routes...")
 	r := router.New()
 	r.SetupAllRoutes()
 
 	a.Router = r.Engine()
+	log.Println("Router setup completed successfully")
 	return r.Engine()
+}
+
+// validatePort ensures the PORT environment variable is set
+func (a *App) validatePort() error {
+	a.Port = os.Getenv("PORT")
+	if a.Port == "" {
+		return ErrPortNotSet
+	}
+	log.Printf("Server will listen on port: %s", a.Port)
+	return nil
 }
 
 // Start initializes and starts the application server
 func (a *App) Start() error {
+	log.Println("Starting Raqeem Mentor Backend API...")
+
 	// Setup database
 	if err := a.setupDatabase(); err != nil {
+		log.Printf("Database setup failed: %v", err)
 		return err
 	}
 
 	// Setup router
 	a.setupRouter()
 
-	// Get port from environment
-	a.Port = os.Getenv("PORT")
-	if a.Port == "" {
-		log.Fatal("PORT environment variable is required (set by Helm chart or .env)")
+	// Validate and get port from environment
+	if err := a.validatePort(); err != nil {
+		log.Printf("Port validation failed: %v", err)
+		return err
 	}
 
-	// Create HTTP server
+	// Create HTTP server with graceful shutdown support
 	srv := &http.Server{
 		Addr:    ":" + a.Port,
 		Handler: a.Router,
@@ -113,7 +130,8 @@ func (a *App) Start() error {
 
 	// Start server in a goroutine
 	go func() {
-		log.Printf("Starting server on port %s", a.Port)
+		log.Printf("Starting HTTP server on port %s", a.Port)
+		log.Println("API documentation available at /swagger/index.html")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server error: %v", err)
 		}
@@ -142,6 +160,24 @@ func (a *App) Start() error {
 
 	log.Println("Server exited")
 	return nil
+}
+
+// Custom error types for better error handling
+var (
+	ErrPortNotSet = &AppError{
+		Message: "PORT environment variable is required (set by Helm chart or .env)",
+		Code:    "ERR_PORT_NOT_SET",
+	}
+)
+
+// AppError represents application-level errors
+type AppError struct {
+	Message string
+	Code    string
+}
+
+func (e *AppError) Error() string {
+	return e.Message
 }
 
 func main() {
