@@ -21,7 +21,26 @@ import (
 // @title Raqeem Mentor Backend API
 // @version 1.0
 // @description Device management and monitoring dashboard API for Raqeem IoT platform
-// @description Provides endpoints for device listing, metrics retrieval, alert management, and remote command execution
+// @description
+// @description ## Overview
+// @description The Mentor Backend provides a centralized dashboard for monitoring and managing IoT devices.
+// @description It aggregates telemetry data, provides device management capabilities, and enables remote command execution.
+// @description
+// @description ## Key Features
+// @description - **Device Management**: View and manage all registered devices
+// @description - **Metrics Monitoring**: Real-time performance metrics visualization
+// @description - **Activity Tracking**: User activity logs and audit trails
+// @description - **Alert Management**: Centralized alert aggregation and monitoring
+// @description - **Remote Commands**: Execute commands on devices remotely
+// @description - **Screenshot Viewing**: Access device screenshots with presigned URLs
+// @description
+// @description ## Data Flow
+// @description The Mentor Backend typically receives data forwarded from the Devices Backend.
+// @description It provides query endpoints for frontends and management dashboards.
+// @description
+// @description ## Authentication
+// @description Currently, the API does not require authentication.
+// @description Authentication and authorization will be added in future releases.
 
 // @contact.name API Support
 // @contact.url https://github.com/mj-nehme/raqeem
@@ -34,6 +53,15 @@ import (
 // @BasePath /
 
 // @schemes http https
+
+// @tag.name devices
+// @tag.description Device registration, status, and telemetry endpoints
+
+// @tag.name commands
+// @tag.description Remote command execution and status tracking
+
+// @tag.name activities
+// @tag.description Activity logging and retrieval across all devices
 
 // App encapsulates the application configuration and dependencies
 type App struct {
