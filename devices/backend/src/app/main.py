@@ -1,4 +1,11 @@
-"""Main application entry point for Raqeem Devices Backend API."""
+"""Devices Backend API - Main application entry point.
+
+This module initializes the FastAPI application with:
+- API routing and endpoints
+- CORS configuration
+- Request logging and tracing
+- Health check endpoints
+"""
 
 import json
 import logging
@@ -29,23 +36,20 @@ except Exception:
 from fastapi import FastAPI
 
 from app.api.routes import api_router
+from app.api.v1.endpoints import health
 from app.core.cors import setup_cors
+from app.core.logging_config import configure_logging, get_logger
+from app.core.middleware import RequestIDMiddleware
 from app.db import session
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-)
-logger = logging.getLogger(__name__)
+# Configure structured logging
+configure_logging()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    """Application lifespan context manager.
-
-    Handles startup and shutdown events for the FastAPI application.
-    """
+    """Application lifespan manager for startup and shutdown events."""
     # Startup
     logger.info("Starting Raqeem Devices Backend API")
     logger.info("API documentation available at /docs")
@@ -155,40 +159,35 @@ API is versioned through URL path: `/api/v1/*`
             "name": "Screenshots",
             "description": "Screenshot upload and storage",
         },
+        {
+            "name": "Health Check",
+            "description": "Service health and readiness endpoints",
+        },
     ],
 )
 
 # Setup CORS
 setup_cors(app)
 
+# Add request ID middleware for distributed tracing
+app.add_middleware(RequestIDMiddleware)
+
+# Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
+# Include health check routes at root level
+app.include_router(health.router, tags=["Health Check"])
 
+
+# Keep backward compatibility with old health check endpoint
 @app.get("/health", tags=["Health Check"], summary="Health check endpoint")
-async def health_check():
-    """Health check endpoint for monitoring and load balancer probes.
-
+async def health_check_legacy():
+    """
+    Health check endpoint for monitoring and load balancer probes.
+    
+    **Deprecated**: Use `/health/live` for liveness checks or `/health/ready` for readiness checks instead.
+    
     Returns service status and name for verification.
     """
+    logger.warning("Legacy /health endpoint accessed - consider using /health/live or /health/ready")
     return {"status": "ok", "service": "devices-backend"}
-
-
-@app.get("/health/ready")
-async def health_check_ready():
-    """Readiness check that validates database connectivity"""
-    health = {
-        "status": "ok",
-        "service": "devices-backend",
-        "checks": {},
-    }
-
-    # Check database
-    db_healthy = await session.health_check()
-    if db_healthy:
-        health["checks"]["database"] = {"status": "healthy"}
-    else:
-        health["checks"]["database"] = {"status": "unhealthy"}
-        health["status"] = "degraded"
-        return health, 503
-
-    return health
