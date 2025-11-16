@@ -95,7 +95,7 @@ func connectWithConfig() error {
 	var err error
 	DB, err = gorm.Open(postgres.Open(dsn), gormConfig)
 	if err != nil {
-		return fmt.Errorf("failed to connect to database: %v", err)
+		return fmt.Errorf("failed to connect to database: %w", err)
 	}
 
 	// Configure connection pool for better performance and reliability
@@ -107,7 +107,7 @@ func connectWithConfig() error {
 	// - ConnMaxIdleTime: Max idle time before closing. Frees resources for idle connections.
 	sqlDB, err := DB.DB()
 	if err != nil {
-		return fmt.Errorf("failed to get database instance: %v", err)
+		return fmt.Errorf("failed to get database instance: %w", err)
 	}
 
 	// Set connection pool parameters from environment or use sensible defaults
@@ -152,7 +152,7 @@ func connectWithRetry(maxRetries int, initialDelay time.Duration) error {
 		}
 	}
 
-	return fmt.Errorf("failed to connect after %d attempts: %v", maxRetries, err)
+	return fmt.Errorf("failed to connect after %d attempts: %w", maxRetries, err)
 }
 
 func Connect() {
@@ -181,7 +181,7 @@ func HealthCheck() error {
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		return fmt.Errorf("failed to get database instance: %v", err)
+		return fmt.Errorf("failed to get database instance: %w", err)
 	}
 
 	// Ping with timeout to avoid blocking indefinitely
@@ -190,7 +190,7 @@ func HealthCheck() error {
 	defer cancel()
 
 	if err := sqlDB.PingContext(ctx); err != nil {
-		return fmt.Errorf("database ping failed: %v", err)
+		return fmt.Errorf("database ping failed: %w", err)
 	}
 
 	return nil
@@ -207,12 +207,12 @@ func Shutdown() error {
 
 	sqlDB, err := DB.DB()
 	if err != nil {
-		return fmt.Errorf("failed to get database instance: %v", err)
+		return fmt.Errorf("failed to get database instance: %w", err)
 	}
 
 	log.Println("Closing database connection...")
 	if err := sqlDB.Close(); err != nil {
-		return fmt.Errorf("failed to close database: %v", err)
+		return fmt.Errorf("failed to close database: %w", err)
 	}
 
 	log.Println("Database connection closed successfully")

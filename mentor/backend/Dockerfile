@@ -1,5 +1,6 @@
 # Dockerfile
-FROM golang:1.25-alpine
+# Using explicit registry reference for official Go image
+FROM docker.io/library/golang:1.25-alpine
 
 # Version and metadata
 LABEL version="0.1.0"

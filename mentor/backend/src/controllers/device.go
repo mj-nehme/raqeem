@@ -17,6 +17,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// Constants for device and metrics handling
+const (
+	// DeviceOfflineThreshold is the time in minutes after which a device is considered offline
+	DeviceOfflineThreshold = 5 * time.Minute
+	// DefaultMetricsLimit is the default number of metrics to return
+	DefaultMetricsLimit = 60
+	// DefaultProcessesLimit is the default number of processes to return
+	DefaultProcessesLimit = 100
+	// MaxScreenshotsLimit is the maximum number of screenshots to return
+	MaxScreenshotsLimit = 1000
+)
+
 // RegisterDevice registers a new device or updates existing device info
 // @Summary Register a device
 // @Description Register a new device or update existing device information
@@ -31,7 +43,7 @@ import (
 func RegisterDevice(c *gin.Context) {
 	var device models.Device
 	if err := c.BindJSON(&device); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body: " + err.Error()})
 		return
 	}
 
@@ -49,7 +61,7 @@ func RegisterDevice(c *gin.Context) {
 		FirstOrCreate(&device)
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "database operation failed: " + result.Error.Error()})
 		return
 	}
 
@@ -208,11 +220,11 @@ func ListDevices(c *gin.Context) {
 
 	// Mark devices as offline if not seen in last 5 minutes
 	database.DB.Model(&models.Device{}).
-		Where("last_seen < ?", time.Now().Add(-5*time.Minute)).
+		Where("last_seen < ?", time.Now().Add(-DeviceOfflineThreshold)).
 		Update("is_online", false)
 
 	if err := database.DB.Find(&devices).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve devices: " + err.Error()})
 		return
 	}
 
@@ -232,10 +244,14 @@ func ListDevices(c *gin.Context) {
 // @Router /devices/{id}/metrics [get]
 func GetDeviceMetric(c *gin.Context) {
 	// Parse limit first for proper 400 behavior
-	limit := 60 // Last hour by default, one point per minute
+	limit := DefaultMetricsLimit
 	if l := c.Query("limit"); l != "" {
 		if _, err := fmt.Sscanf(l, "%d", &limit); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit parameter"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit parameter: must be a positive integer"})
+			return
+		}
+		if limit <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "limit must be greater than 0"})
 			return
 		}
 	}
@@ -251,7 +267,7 @@ func GetDeviceMetric(c *gin.Context) {
 		Order("timestamp desc").
 		Limit(limit).
 		Find(&metrics).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve metrics: " + err.Error()})
 		return
 	}
 
@@ -270,10 +286,14 @@ func GetDeviceMetric(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /devices/{id}/processes [get]
 func GetDeviceProcesses(c *gin.Context) {
-	limit := 100
+	limit := DefaultProcessesLimit
 	if l := c.Query("limit"); l != "" {
 		if _, err := fmt.Sscanf(l, "%d", &limit); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit parameter"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid limit parameter: must be a positive integer"})
+			return
+		}
+		if limit <= 0 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "limit must be greater than 0"})
 			return
 		}
 	}

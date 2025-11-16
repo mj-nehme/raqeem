@@ -1,3 +1,12 @@
+"""Devices Backend API - Main application entry point.
+
+This module initializes the FastAPI application with:
+- API routing and endpoints
+- CORS configuration
+- Request logging and tracing
+- Health check endpoints
+"""
+
 import json
 from contextlib import asynccontextmanager
 
@@ -22,11 +31,19 @@ try:
 except Exception:
     # If httpx is not available or patching fails, continue without raising
     pass
+
 from fastapi import FastAPI
 
 from app.api.routes import api_router
+from app.api.v1.endpoints import health
 from app.core.cors import setup_cors
+from app.core.logging_config import configure_logging, get_logger
+from app.core.middleware import RequestIDMiddleware
 from app.db import session
+
+# Configure structured logging
+configure_logging()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
@@ -41,9 +58,12 @@ async def lifespan(_app: FastAPI):
     The lifespan pattern is preferred over startup/shutdown events as it
     guarantees cleanup occurs even if the application crashes.
     """
-    # Startup: Nothing to initialize currently
+    # Startup
+    logger.info("Starting Raqeem Devices Backend API")
+    logger.info("API documentation available at /docs")
     yield
     # Shutdown: Close database connections gracefully
+    logger.info("Shutting down Raqeem Devices Backend API")
     await session.shutdown()
 
 
@@ -101,6 +121,15 @@ API is versioned through URL path: `/api/v1/*`
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
+    swagger_ui_parameters={
+        "deepLinking": True,
+        "displayRequestDuration": True,
+        "docExpansion": "none",
+        "operationsSorter": "method",
+        "filter": True,
+        "tryItOutEnabled": True,
+        "syntaxHighlight.theme": "monokai",
+    },
     contact={
         "name": "Raqeem Support",
         "url": "https://github.com/mj-nehme/raqeem",
@@ -147,58 +176,35 @@ API is versioned through URL path: `/api/v1/*`
             "name": "Screenshots",
             "description": "Screenshot upload and storage",
         },
+        {
+            "name": "Health Check",
+            "description": "Service health and readiness endpoints",
+        },
     ],
 )
 
 # Setup CORS
 setup_cors(app)
 
+# Add request ID middleware for distributed tracing
+app.add_middleware(RequestIDMiddleware)
+
+# Include API routes
 app.include_router(api_router, prefix="/api/v1")
 
+# Include health check routes at root level
+app.include_router(health.router, tags=["Health Check"])
 
+
+# Keep backward compatibility with old health check endpoint
 @app.get("/health", tags=["Health Check"], summary="Health check endpoint")
-async def health_check():
+async def health_check_legacy():
     """
-    Basic health check endpoint for monitoring and load balancer probes.
+    Health check endpoint for monitoring and load balancer probes.
 
-    This is a lightweight liveness check that only verifies the application
-    is running and can respond to requests. It doesn't check dependencies.
-    Use /health/ready for readiness checks that validate database connectivity.
+    **Deprecated**: Use `/health/live` for liveness checks or `/health/ready` for readiness checks instead.
 
     Returns service status and name for verification.
     """
+    logger.warning("Legacy /health endpoint accessed - consider using /health/live or /health/ready")
     return {"status": "ok", "service": "devices-backend"}
-
-
-@app.get("/health/ready")
-async def health_check_ready():
-    """
-    Readiness check that validates all critical dependencies.
-
-    This endpoint performs comprehensive health checks on all required services:
-    - Database connectivity: Verifies PostgreSQL is accessible
-
-    Returns 200 OK if all dependencies are healthy, or 503 Service Unavailable
-    if any critical dependency is down. Load balancers should use this endpoint
-    to determine if the service is ready to accept traffic.
-
-    The response includes detailed status for each dependency to aid debugging.
-    """
-    health = {
-        "status": "ok",
-        "service": "devices-backend",
-        "checks": {},
-    }
-
-    # Check database connectivity
-    # This verifies the connection pool is healthy and PostgreSQL is responding
-    db_healthy = await session.health_check()
-    if db_healthy:
-        health["checks"]["database"] = {"status": "healthy"}
-    else:
-        health["checks"]["database"] = {"status": "unhealthy"}
-        health["status"] = "degraded"
-        return health, 503
-
-    return health
-

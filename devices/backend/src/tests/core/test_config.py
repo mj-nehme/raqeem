@@ -327,15 +327,14 @@ class TestEnvironmentHandling:
         clear=True,
     )
     def test_whitespace_trimming(self):
-        """Test that whitespace is properly handled in environment variables."""
+        """Test that whitespace is properly trimmed in validated environment variables."""
         from app.core.config import Settings
 
         settings = Settings()
 
-        # Pydantic v2 BaseSettings does NOT automatically trim whitespace
-        # Values should be taken as-is from environment variables
-        assert settings.database_url == "  postgresql+asyncpg://test:test@localhost/test  "
-        assert settings.minio_endpoint == "  http://localhost:9000  "
-        assert settings.minio_access_key == "  test  "
-        assert settings.minio_secret_key == "  test  "
-        assert settings.secret_key == "  test-secret-key  "
+        # Validators trim whitespace for better data quality
+        assert settings.database_url == "postgresql+asyncpg://test:test@localhost/test"
+        assert settings.minio_endpoint == "  http://localhost:9000  "  # Not validated yet
+        assert settings.minio_access_key == "  test  "  # Not validated
+        assert settings.minio_secret_key == "  test  "  # Not validated
+        assert settings.secret_key == "test-secret-key"  # Trimmed by validator

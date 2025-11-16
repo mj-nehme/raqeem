@@ -90,6 +90,25 @@ The integration tests validate real-world scenarios where different components o
 
 **Duration**: ~15-20 seconds
 
+### 6. test_observability_features.py
+
+**Purpose**: Validates observability features introduced in PR#208
+
+**What it tests**:
+- Health check endpoints (`/health/live`, `/health/ready`) in Devices Backend
+- Health check endpoint (`/health`) in Mentor Backend
+- Request tracing middleware (X-Request-ID header generation and propagation)
+- Cross-service request ID tracking
+
+**Duration**: ~10-15 seconds
+
+**Key validations**:
+- Health endpoints return correct status and structure
+- Database and config checks work properly
+- Request IDs are generated when not provided
+- Request IDs are preserved when provided in headers
+- Request IDs propagate across service boundaries
+
 ## Test Infrastructure
 
 ### Docker Compose Setup
@@ -165,7 +184,10 @@ Running: Alert Flow (Original)
 Running: End-to-End System Flow
 ✓ All End-to-End System tests passed!
 
-Total: 5 | Passed: 5 | Failed: 0
+Running: Observability Features (PR#208)
+✓ All observability feature tests passed!
+
+Total: 6 | Passed: 6 | Failed: 0
 ```
 
 ### Run Individual Tests
@@ -182,6 +204,7 @@ python3 tests/integration/test_devices_backend_db_s3.py
 python3 tests/integration/test_mentor_backend_db_s3.py
 python3 tests/integration/test_backend_communication.py
 python3 tests/integration/test_e2e_system_flow.py
+python3 tests/integration/test_observability_features.py
 ```
 
 Stop services:
@@ -338,6 +361,7 @@ jobs:
 | test_backend_communication | 20-25s | Both Backends, PostgreSQL |
 | test_e2e_system_flow | 30-40s | All services |
 | test_alert_flow | 15-20s | Both Backends, PostgreSQL |
+| test_observability_features | 10-15s | Both Backends |
 | **Total Suite** | **3-5 minutes** | All services |
 
 ## Extending the Tests

@@ -1,20 +1,21 @@
 package main
 
 import (
-	"context"
-	"log"
-	"mentor-backend/database"
-	"mentor-backend/router"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
-	"time"
+"context"
+"log"
+"mentor-backend/database"
+"mentor-backend/logging"
+"mentor-backend/router"
+"net/http"
+"os"
+"os/signal"
+"syscall"
+"time"
 
-	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
+"github.com/gin-gonic/gin"
+"gorm.io/gorm"
 
-	_ "mentor-backend/docs" // swagger docs
+_ "mentor-backend/docs" // swagger docs
 )
 
 // @title Raqeem Mentor Backend API
@@ -64,89 +65,140 @@ import (
 
 // App encapsulates the application configuration and dependencies
 type App struct {
-	DB     *gorm.DB
-	Router *gin.Engine
-	Port   string
+DB     *gorm.DB
+Router *gin.Engine
+Port   string
 }
 
 // NewApp creates and initializes a new application instance
 func NewApp() *App {
-	return &App{}
+return &App{}
 }
 
 // setupDatabase initializes the database connection and runs migrations
 func (a *App) setupDatabase() error {
-	database.Connect()
-	return nil
+logging.Info("Initializing database connection")
+database.Connect()
+logging.Info("Database setup completed successfully")
+return nil
 }
 
 // setupRouter initializes the Gin router with all routes and middleware
 func (a *App) setupRouter() *gin.Engine {
-	r := router.New()
-	r.SetupAllRoutes()
+logging.Info("Setting up application routes")
+r := router.New()
+r.SetupAllRoutes()
 
-	a.Router = r.Engine()
-	return r.Engine()
+a.Router = r.Engine()
+logging.Info("Router setup complete")
+return r.Engine()
 }
 
-// Start initializes and starts the application server
+// Start initializes and starts the application server with graceful shutdown
 func (a *App) Start() error {
-	// Setup database
-	if err := a.setupDatabase(); err != nil {
-		return err
-	}
+logging.Info("Starting Mentor Backend application")
 
-	// Setup router
-	a.setupRouter()
+// Setup database
+if err := a.setupDatabase(); err != nil {
+logging.Error("Failed to setup database", map[string]interface{}{
+"error": err.Error(),
+})
+return err
+}
 
-	// Get port from environment
-	a.Port = os.Getenv("PORT")
-	if a.Port == "" {
-		log.Fatal("PORT environment variable is required (set by Helm chart or .env)")
-	}
+// Setup router
+a.setupRouter()
 
-	// Create HTTP server
-	srv := &http.Server{
-		Addr:    ":" + a.Port,
-		Handler: a.Router,
-	}
+// Get port from environment
+a.Port = os.Getenv("PORT")
+if a.Port == "" {
+return ErrPortNotSet
+}
 
-	// Start server in a goroutine
-	go func() {
-		log.Printf("Starting server on port %s", a.Port)
-		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server error: %v", err)
-		}
-	}()
+// Create HTTP server with timeouts
+srv := &http.Server{
+Addr:           ":" + a.Port,
+Handler:        a.Router,
+ReadTimeout:    15 * time.Second,
+WriteTimeout:   15 * time.Second,
+IdleTimeout:    60 * time.Second,
+MaxHeaderBytes: 1 << 20, // 1 MB
+}
 
-	// Wait for interrupt signal to gracefully shutdown the server
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+// Start server in a goroutine
+go func() {
+logging.Info("Starting HTTP server", map[string]interface{}{
+"port": a.Port,
+})
+log.Println("API documentation available at /swagger/index.html")
+if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+logging.Error("Server error", map[string]interface{}{
+"error": err.Error(),
+})
+log.Fatalf("Server error: %v", err)
+}
+}()
 
-	log.Println("Shutting down server...")
+logging.Info("Server started successfully", map[string]interface{}{
+"port": a.Port,
+})
 
-	// Create context with timeout for shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
+// Wait for interrupt signal to gracefully shutdown the server
+quit := make(chan os.Signal, 1)
+// Accept SIGINT (Ctrl+C) and SIGTERM (docker stop)
+signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+<-quit
 
-	// Shutdown HTTP server
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("Server forced to shutdown: %v", err)
-	}
+logging.Info("Shutting down server...")
 
-	// Close database connection
-	if err := database.Shutdown(); err != nil {
-		log.Printf("Error closing database: %v", err)
-	}
+// Create context with timeout for shutdown (10s for compatibility with master)
+ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+defer cancel()
 
-	log.Println("Server exited")
-	return nil
+// Shutdown HTTP server
+if err := srv.Shutdown(ctx); err != nil {
+logging.Error("Server forced to shutdown", map[string]interface{}{
+"error": err.Error(),
+})
+log.Printf("Server forced to shutdown: %v", err)
+}
+
+// Close database connection
+if err := database.Shutdown(); err != nil {
+logging.Error("Error closing database", map[string]interface{}{
+"error": err.Error(),
+})
+log.Printf("Error closing database: %v", err)
+}
+
+logging.Info("Server exited gracefully")
+return nil
+}
+
+// Custom error types for better error handling
+var (
+ErrPortNotSet = &AppError{
+Message: "PORT environment variable is required (set by Helm chart or .env)",
+Code:    "ERR_PORT_NOT_SET",
+}
+)
+
+// AppError represents application-level errors
+type AppError struct {
+Message string
+Code    string
+}
+
+func (e *AppError) Error() string {
+return e.Message
 }
 
 func main() {
-	app := NewApp()
-	if err := app.Start(); err != nil {
-		log.Fatalf("Failed to start application: %v", err)
-	}
+app := NewApp()
+if err := app.Start(); err != nil {
+logging.Error("Failed to start application", map[string]interface{}{
+"error": err.Error(),
+})
+log.Fatalf("Failed to start application: %v", err)
+}
 }

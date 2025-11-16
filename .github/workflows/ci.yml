@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     services:
       postgres:
-        image: postgres:16
+        # Using explicit registry reference for official PostgreSQL image
+        image: docker.io/library/postgres:16
         env:
           POSTGRES_USER: monitor
           POSTGRES_PASSWORD: password
@@ -241,7 +242,8 @@ jobs:
       - build-artifacts
     services:
       postgres:
-        image: postgres:16
+        # Using explicit registry reference for official PostgreSQL image
+        image: docker.io/library/postgres:16
         env:
           POSTGRES_USER: monitor
           POSTGRES_PASSWORD: password
@@ -302,7 +304,8 @@ jobs:
       - build-artifacts
     services:
       postgres:
-        image: postgres:16
+        # Using explicit registry reference for official PostgreSQL image
+        image: docker.io/library/postgres:16
         env:
           POSTGRES_USER: monitor
           POSTGRES_PASSWORD: password
