@@ -2,6 +2,7 @@ package router
 
 import (
 	"mentor-backend/controllers"
+	"mentor-backend/logging"
 	"os"
 	"strings"
 	"time"
@@ -34,6 +35,11 @@ func New() *Router {
 
 // SetupAllRoutes configures all routes, middleware, and Swagger documentation
 func (r *Router) SetupAllRoutes() {
+	// Add request ID middleware first
+	r.engine.Use(logging.RequestIDMiddleware())
+	// Add request logging middleware
+	r.engine.Use(logging.RequestLoggingMiddleware())
+
 	r.setupCORS()
 	r.setupSwagger()
 	r.setupHealthCheck()
@@ -130,7 +136,16 @@ func (r *Router) setupSwagger() {
 
 // setupHealthCheck configures the health check endpoint
 func (r *Router) setupHealthCheck() {
+<<<<<<< HEAD
 	r.engine.GET("/health", controllers.HealthCheck)
+=======
+	r.engine.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"status": "ok", "service": "mentor-backend"})
+	})
+
+	// Add a more detailed health check that validates dependencies
+	r.engine.GET("/health/ready", controllers.HealthCheckReady)
+>>>>>>> origin/master
 }
 
 // setupActivityRoutes configures activity-related routes
