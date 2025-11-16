@@ -26,13 +26,15 @@ from fastapi import FastAPI
 
 from app.api.routes import api_router
 from app.core.cors import setup_cors
+from app.db import session
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
-    # Startup
+    # Startup: Nothing to initialize currently
     yield
-    # Shutdown: nothing to clean up currently
+    # Shutdown: Close database connections gracefully
+    await session.shutdown()
 
 
 app = FastAPI(
@@ -152,3 +154,25 @@ async def health_check():
     Returns service status and name for verification.
     """
     return {"status": "ok", "service": "devices-backend"}
+
+
+@app.get("/health/ready")
+async def health_check_ready():
+    """Readiness check that validates database connectivity"""
+    health = {
+        "status": "ok",
+        "service": "devices-backend",
+        "checks": {},
+    }
+
+    # Check database
+    db_healthy = await session.health_check()
+    if db_healthy:
+        health["checks"]["database"] = {"status": "healthy"}
+    else:
+        health["checks"]["database"] = {"status": "unhealthy"}
+        health["status"] = "degraded"
+        return health, 503
+
+    return health
+

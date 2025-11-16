@@ -2,7 +2,6 @@ import datetime
 from typing import Any, cast
 from uuid import UUID
 
-import httpx
 from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
@@ -24,6 +23,7 @@ from app.schemas.devices import (
     ProcessSubmit,
     StatusResponse,
 )
+from app.util import post_with_retry
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -128,13 +128,13 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     if settings.mentor_api_url:
         fwd = dict(payload)
         fwd["deviceid"] = final_id
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                await client.post(f"{settings.mentor_api_url}/devices/register", json=fwd)
-        except Exception:
-            # Silently ignore forwarding failures to prevent blocking device registration
-            # Mentor backend will sync via periodic refresh or next metrics update
-            pass
+        # Use retry logic for forwarding to mentor backend
+        await post_with_retry(
+            f"{settings.mentor_api_url}/devices/register",
+            json=fwd,
+            max_retries=3,
+            timeout=5.0,
+        )
 
     return result
 
@@ -190,25 +190,23 @@ async def post_metrics(device_id: str, payload: dict, db: AsyncSession = Depends
     await db.commit()
     # Optionally forward metrics to mentor backend if configured
     if settings.mentor_api_url:
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                forward = {
-                    "deviceid": device_id,
-                    "cpu_usage": payload.get("cpu_usage"),
-                    "cpu_temp": payload.get("cpu_temp"),
-                    "memory_total": payload.get("memory_total"),
-                    "memory_used": payload.get("memory_used"),
-                    "swap_used": payload.get("swap_used"),
-                    "disk_total": payload.get("disk_total"),
-                    "disk_used": payload.get("disk_used"),
-                    "net_bytes_in": payload.get("net_bytes_in"),
-                    "net_bytes_out": payload.get("net_bytes_out"),
-                }
-                await client.post(f"{settings.mentor_api_url}/devices/metrics", json=forward)
-        except Exception:
-            # Silently ignore forwarding failures to prevent blocking metrics ingestion
-            # Metrics forwarding is best-effort; mentor backend will pull data if needed
-            pass
+        forward = {
+            "deviceid": device_id,
+            "cpu_usage": payload.get("cpu_usage"),
+            "cpu_temp": payload.get("cpu_temp"),
+            "memory_total": payload.get("memory_total"),
+            "memory_used": payload.get("memory_used"),
+            "swap_used": payload.get("swap_used"),
+            "disk_total": payload.get("disk_total"),
+            "disk_used": payload.get("disk_used"),
+            "net_bytes_in": payload.get("net_bytes_in"),
+            "net_bytes_out": payload.get("net_bytes_out"),
+        }
+        await post_with_retry(
+            f"{settings.mentor_api_url}/devices/metrics",
+            json=forward,
+            max_retries=2,
+        )
     return {"status": "ok"}
 
 
@@ -275,24 +273,22 @@ async def post_processes(device_id: str, processes: list[dict], db: AsyncSession
         await db.commit()
         # Optionally forward processes to mentor backend if configured
         if settings.mentor_api_url:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    forward = [
-                        {
-                            "deviceid": device_id,
-                            "pid": p.get("pid"),
-                            "process_name": p.get("process_name"),
-                            "cpu": p.get("cpu"),
-                            "memory": p.get("memory"),
-                            "command_text": p.get("command_text"),
-                        }
-                        for p in processes
-                    ]
-                    await client.post(f"{settings.mentor_api_url}/devices/processes", json=forward)
-            except Exception:
-                # Silently ignore forwarding failures to prevent blocking process updates
-                # Process list forwarding is best-effort and non-critical
-                pass
+            forward = [
+                {
+                    "deviceid": device_id,
+                    "pid": p.get("pid"),
+                    "process_name": p.get("process_name"),
+                    "cpu": p.get("cpu"),
+                    "memory": p.get("memory"),
+                    "command_text": p.get("command_text"),
+                }
+                for p in processes
+            ]
+            await post_with_retry(
+                f"{settings.mentor_api_url}/devices/processes",
+                json=forward,
+                max_retries=2,
+            )
     return {"inserted": len(to_add)}
 
 
@@ -365,21 +361,19 @@ async def post_activity(device_id: str, activities: list[dict], db: AsyncSession
         await db.commit()
         # Optionally forward activities to mentor backend if configured
         if settings.mentor_api_url:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    for a in activities:
-                        forward = {
-                            "deviceid": device_id,
-                            "activity_type": a.get("activity_type"),
-                            "description": a.get("description"),
-                            "app": a.get("app"),
-                            "duration": a.get("duration"),
-                        }
-                        await client.post(f"{settings.mentor_api_url}/devices/activity", json=forward)
-            except Exception:
-                # Silently ignore forwarding failures to prevent blocking activity logging
-                # Activity forwarding is best-effort and non-critical
-                pass
+            for a in activities:
+                forward = {
+                    "deviceid": device_id,
+                    "activity_type": a.get("activity_type"),
+                    "description": a.get("description"),
+                    "app": a.get("app"),
+                    "duration": a.get("duration"),
+                }
+                await post_with_retry(
+                    f"{settings.mentor_api_url}/devices/activity",
+                    json=forward,
+                    max_retries=2,
+                )
     return {"inserted": len(to_add)}
 
 
@@ -451,24 +445,21 @@ async def post_alerts(device_id: str, alerts: list[dict], db: AsyncSession = Dep
         await db.commit()
         # Optionally forward alerts to mentor backend if configured
         if settings.mentor_api_url:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    for a in alerts:
-                        payload = {
-                            "deviceid": device_id,
-                            "level": a.get("level"),
-                            "alert_type": a.get("alert_type"),
-                            "message": a.get("message"),
-                            "value": a.get("value"),
-                            "threshold": a.get("threshold"),
-                        }
-                        # Mentor API path accepts /devices/:id/alerts but uses JSON body for device_id
-                        await client.post(f"{settings.mentor_api_url}/devices/{device_id}/alerts", json=payload)
-            except Exception:
-                # Silently ignore forwarding failures to prevent blocking alert ingestion
-                # Alert forwarding is critical but failures shouldn't block device operations
-                # Alerts can be manually synced or retrieved from devices backend if needed
-                pass
+            for a in alerts:
+                payload = {
+                    "deviceid": device_id,
+                    "level": a.get("level"),
+                    "alert_type": a.get("alert_type"),
+                    "message": a.get("message"),
+                    "value": a.get("value"),
+                    "threshold": a.get("threshold"),
+                }
+                # Mentor API path accepts /devices/:id/alerts but uses JSON body for device_id
+                await post_with_retry(
+                    f"{settings.mentor_api_url}/devices/{device_id}/alerts",
+                    json=payload,
+                    max_retries=2,
+                )
     return {"inserted": len(to_add)}
 
 
@@ -831,19 +822,17 @@ async def submit_command_result(command_id: UUID, payload: CommandResultSubmit, 
 
     # Forward result to mentor backend if configured
     if settings.mentor_api_url:
-        try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                forward_payload = {
-                    "id": str(command.commandid),
-                    "status": command.status,
-                    "result": command.result,
-                    "exit_code": command.exit_code,
-                }
-                await client.post(f"{settings.mentor_api_url}/commands/status", json=forward_payload)
-        except Exception:
-            # Silently ignore forwarding failures to prevent blocking command result submission
-            # Command status forwarding is best-effort; mentor can query status separately
-            pass
+        forward_payload = {
+            "id": str(command.commandid),
+            "status": command.status,
+            "result": command.result,
+            "exit_code": command.exit_code,
+        }
+        await post_with_retry(
+            f"{settings.mentor_api_url}/commands/status",
+            json=forward_payload,
+            max_retries=2,
+        )
 
     return {"status": "ok", "commandid": str(command_id)}
 

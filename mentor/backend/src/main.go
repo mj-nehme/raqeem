@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	"log"
 	"mentor-backend/database"
 	"mentor-backend/router"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -100,8 +105,43 @@ func (a *App) Start() error {
 		log.Fatal("PORT environment variable is required (set by Helm chart or .env)")
 	}
 
-	// Start server
-	return a.Router.Run(":" + a.Port)
+	// Create HTTP server
+	srv := &http.Server{
+		Addr:    ":" + a.Port,
+		Handler: a.Router,
+	}
+
+	// Start server in a goroutine
+	go func() {
+		log.Printf("Starting server on port %s", a.Port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Server error: %v", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+
+	log.Println("Shutting down server...")
+
+	// Create context with timeout for shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	// Shutdown HTTP server
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	}
+
+	// Close database connection
+	if err := database.Shutdown(); err != nil {
+		log.Printf("Error closing database: %v", err)
+	}
+
+	log.Println("Server exited")
+	return nil
 }
 
 func main() {

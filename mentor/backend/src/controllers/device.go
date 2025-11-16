@@ -7,6 +7,7 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/models"
 	"mentor-backend/s3"
+	"mentor-backend/util"
 	"net/http"
 	"os"
 	"time"
@@ -466,14 +467,16 @@ func CreateRemoteCommand(c *gin.Context) {
 				fmt.Printf("Error marshaling command payload: %v\n", err)
 				return
 			}
-			client := &http.Client{Timeout: 5 * time.Second}
-			resp, err := client.Post(
+
+			// Use retry client for forwarding to devices backend
+			retryClient := util.NewHTTPClientWithRetry(5*time.Second, 3)
+			resp, err := retryClient.Post(
 				fmt.Sprintf("%s/devices/%s/commands", devicesAPIURL, cmd.DeviceID),
 				"application/json",
 				bytes.NewBuffer(jsonData),
 			)
 			if err != nil {
-				fmt.Printf("Error forwarding command to devices backend: %v\n", err)
+				fmt.Printf("Error forwarding command to devices backend after retries: %v\n", err)
 				return
 			}
 			defer func() {
