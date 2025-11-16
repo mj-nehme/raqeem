@@ -1,14 +1,18 @@
 package database
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
+	"time"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 
 	"mentor-backend/models"
 )
@@ -56,6 +60,16 @@ func loadEnv() {
 	}
 }
 
+// getEnvInt retrieves an integer environment variable with a default value
+func getEnvInt(key string, defaultValue int) int {
+	if val := os.Getenv(key); val != "" {
+		if intVal, err := strconv.Atoi(val); err == nil {
+			return intVal
+		}
+	}
+	return defaultValue
+}
+
 // connectWithConfig attempts to connect to the database and returns an error if it fails.
 // This function is separated for testing purposes.
 func connectWithConfig() error {
@@ -71,20 +85,71 @@ func connectWithConfig() error {
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
 		host, user, password, dbname, port)
 
-	var err error
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+	// Configure GORM with better defaults for production
+	gormConfig := &gorm.Config{
 		DisableForeignKeyConstraintWhenMigrating: true,
-	})
+		// Use Info level logging in production, Warn for errors
+		Logger: logger.Default.LogMode(logger.Info),
+	}
+
+	var err error
+	DB, err = gorm.Open(postgres.Open(dsn), gormConfig)
 	if err != nil {
 		return fmt.Errorf("failed to connect to database: %v", err)
 	}
 
-	log.Println("Database connection successful")
+	// Configure connection pool for better performance and reliability
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get database instance: %v", err)
+	}
+
+	// Set connection pool parameters from environment or use sensible defaults
+	maxOpenConns := getEnvInt("DB_MAX_OPEN_CONNS", 25)
+	maxIdleConns := getEnvInt("DB_MAX_IDLE_CONNS", 5)
+	connMaxLifetime := getEnvInt("DB_CONN_MAX_LIFETIME_MINUTES", 5)
+	connMaxIdleTime := getEnvInt("DB_CONN_MAX_IDLE_MINUTES", 5)
+
+	sqlDB.SetMaxOpenConns(maxOpenConns)
+	sqlDB.SetMaxIdleConns(maxIdleConns)
+	sqlDB.SetConnMaxLifetime(time.Duration(connMaxLifetime) * time.Minute)
+	sqlDB.SetConnMaxIdleTime(time.Duration(connMaxIdleTime) * time.Minute)
+
+	log.Printf("Database connection successful (pool: max_open=%d, max_idle=%d)", maxOpenConns, maxIdleConns)
 	return nil
 }
 
+// connectWithRetry attempts to connect with exponential backoff retry logic
+func connectWithRetry(maxRetries int, initialDelay time.Duration) error {
+	var err error
+	delay := initialDelay
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		err = connectWithConfig()
+		if err == nil {
+			return nil
+		}
+
+		if attempt < maxRetries {
+			log.Printf("Database connection attempt %d/%d failed: %v. Retrying in %v...", attempt, maxRetries, err, delay)
+			time.Sleep(delay)
+			// Exponential backoff with cap at 30 seconds
+			delay *= 2
+			if delay > 30*time.Second {
+				delay = 30 * time.Second
+			}
+		}
+	}
+
+	return fmt.Errorf("failed to connect after %d attempts: %v", maxRetries, err)
+}
+
 func Connect() {
-	if err := connectWithConfig(); err != nil {
+	// Try connecting with retry logic
+	maxRetries := getEnvInt("DB_CONNECT_MAX_RETRIES", 5)
+	initialDelay := time.Duration(getEnvInt("DB_CONNECT_INITIAL_DELAY_SECONDS", 2)) * time.Second
+
+	if err := connectWithRetry(maxRetries, initialDelay); err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 
@@ -93,6 +158,49 @@ func Connect() {
 		log.Fatalf("Database migration failed: %v", err)
 	}
 }
+
+// HealthCheck verifies the database connection is alive
+func HealthCheck() error {
+	if DB == nil {
+		return fmt.Errorf("database connection not initialized")
+	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get database instance: %v", err)
+	}
+
+	// Ping with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	if err := sqlDB.PingContext(ctx); err != nil {
+		return fmt.Errorf("database ping failed: %v", err)
+	}
+
+	return nil
+}
+
+// Shutdown gracefully closes the database connection
+func Shutdown() error {
+	if DB == nil {
+		return nil
+	}
+
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return fmt.Errorf("failed to get database instance: %v", err)
+	}
+
+	log.Println("Closing database connection...")
+	if err := sqlDB.Close(); err != nil {
+		return fmt.Errorf("failed to close database: %v", err)
+	}
+
+	log.Println("Database connection closed successfully")
+	return nil
+}
+
 
 // migrate runs the schema migrations sequentially
 func migrate(db *gorm.DB) error {
