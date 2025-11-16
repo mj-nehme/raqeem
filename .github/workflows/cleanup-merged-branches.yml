@@ -45,7 +45,7 @@ jobs:
           branch_count=$(echo "$merged_branches" | grep -c ^ || echo "0")
           echo "📊 Found $branch_count merged branches"
 
-          if [ ! -z "$merged_branches" ]; then
+          if [ -n "$merged_branches" ]; then
             echo "Branches to delete:"
             echo "$merged_branches"
           else
@@ -60,7 +60,7 @@ jobs:
           failed_count=0
 
           while IFS= read -r branch; do
-            if [ ! -z "$branch" ]; then
+            if [ -n "$branch" ]; then
               echo "Attempting to delete: $branch"
               if git push origin --delete "$branch" 2>/dev/null; then
                 echo "✅ Deleted: $branch"
