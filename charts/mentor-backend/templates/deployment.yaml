@@ -59,5 +59,9 @@ spec:
               value: {{ .Values.minio.bucket | quote }}
             - name: FRONTEND_ORIGIN
               value: {{ .Values.frontendOrigin | default "http://localhost:15000" | quote }}
+            {{- if .Values.frontendOriginRegex }}
+            - name: FRONTEND_ORIGIN_REGEX
+              value: {{ .Values.frontendOriginRegex | quote }}
+            {{- end }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}

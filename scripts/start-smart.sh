@@ -53,22 +53,40 @@ echo ""
 echo "🌐 Detecting available frontend ports..."
 
 # Find available ports for frontends (avoiding NodePorts)
-DEVICES_FRONTEND_PORT=$(find_available_port $DEVICES_FRONTEND_START_PORT)
-MENTOR_FRONTEND_PORT=$(find_available_port $MENTOR_FRONTEND_START_PORT)
+# Search within 5-port range for each application
+DEVICES_FRONTEND_PORT=$(find_available_port $DEVICES_FRONTEND_START_PORT 5)
+if [[ $? -ne 0 ]]; then
+  echo "❌ ERROR: Could not find available port for Devices Frontend in range $DEVICES_FRONTEND_START_PORT-$((DEVICES_FRONTEND_START_PORT + 4))"
+  exit 1
+fi
+
+MENTOR_FRONTEND_PORT=$(find_available_port $MENTOR_FRONTEND_START_PORT 5)
+if [[ $? -ne 0 ]]; then
+  echo "❌ ERROR: Could not find available port for Mentor Frontend in range $MENTOR_FRONTEND_START_PORT-$((MENTOR_FRONTEND_START_PORT + 4))"
+  exit 1
+fi
 
 echo "  - Detected available ports: Devices=$DEVICES_FRONTEND_PORT, Mentor=$MENTOR_FRONTEND_PORT"
 
-# Build CORS origins lists for backends
-DEVICES_FRONTEND_URL="http://localhost:$DEVICES_FRONTEND_PORT"
-MENTOR_FRONTEND_URL="http://localhost:$MENTOR_FRONTEND_PORT"
+# Build CORS regex patterns to allow any port in the 5-port range for each frontend
+# This solves the CORS problem by allowing dynamic ports within a limited range
+DEVICES_FRONTEND_CORS_REGEX="^http://localhost:([4-9][0-9]{3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
+MENTOR_FRONTEND_CORS_REGEX="^http://localhost:([4-9][0-9]{3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$"
 
-# For devices backend: allow both frontend origins (escape commas for helm)
-DEVICES_CORS_ORIGINS="${DEVICES_FRONTEND_URL}\\,${MENTOR_FRONTEND_URL}"
+# For more specific CORS (only the 5-port ranges we're using):
+# Devices frontend: ports 4000-4004
+# Mentor frontend: ports 5000-5004
+DEVICES_RANGE_START=$DEVICES_FRONTEND_START_PORT
+DEVICES_RANGE_END=$((DEVICES_FRONTEND_START_PORT + 4))
+MENTOR_RANGE_START=$MENTOR_FRONTEND_START_PORT
+MENTOR_RANGE_END=$((MENTOR_FRONTEND_START_PORT + 4))
 
-# For mentor backend: allow both frontend origins (escape commas for helm)
-MENTOR_CORS_ORIGINS="${DEVICES_FRONTEND_URL}\\,${MENTOR_FRONTEND_URL}"
+# Build regex to match both frontend port ranges
+# Regex: ^http://localhost:(4000|4001|4002|4003|4004|5000|5001|5002|5003|5004)$
+CORS_REGEX="^http://localhost:($(seq -s'|' $DEVICES_RANGE_START $DEVICES_RANGE_END)|$(seq -s'|' $MENTOR_RANGE_START $MENTOR_RANGE_END))\$"
 
-echo "  - CORS Origins: Devices=[$DEVICES_CORS_ORIGINS], Mentor=[$MENTOR_CORS_ORIGINS]"
+echo "  - CORS Regex Pattern: $CORS_REGEX"
+echo "  - This allows ports: $DEVICES_RANGE_START-$DEVICES_RANGE_END (Devices) and $MENTOR_RANGE_START-$MENTOR_RANGE_END (Mentor)"
 
 # Get actual NodePort assignments (Kubernetes auto-assigns if not specified)
 DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
@@ -78,7 +96,7 @@ MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
 if [[ -z "$MENTOR_NODEPORT" ]]; then
   helm upgrade --install mentor-backend ./charts/mentor-backend \
     --namespace "$NAMESPACE" \
-    --set-string frontendOrigin="$MENTOR_CORS_ORIGINS"
+    --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
   MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
 fi
@@ -86,12 +104,12 @@ fi
 # Set mentor API URL for devices backend
 MENTOR_API_URL="http://localhost:$MENTOR_NODEPORT"
 
-# Deploy devices backend with MENTOR_API_URL and CORS origins
+# Deploy devices backend with MENTOR_API_URL and CORS regex
 if [[ -z "$DEVICES_NODEPORT" ]]; then
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
     --set-string mentorApiUrl="$MENTOR_API_URL" \
-    --set-string frontendOrigins="$DEVICES_CORS_ORIGINS"
+    --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
   DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
 else
@@ -99,15 +117,15 @@ else
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
     --set-string mentorApiUrl="$MENTOR_API_URL" \
-    --set-string frontendOrigins="$DEVICES_CORS_ORIGINS"
+    --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
 fi
 
-# Update mentor backend with CORS origins if it was already deployed
+# Update mentor backend with CORS regex if it was already deployed
 if [[ -n "$MENTOR_NODEPORT" ]]; then
   helm upgrade --install mentor-backend ./charts/mentor-backend \
     --namespace "$NAMESPACE" \
-    --set-string frontendOrigin="$MENTOR_CORS_ORIGINS"
+    --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
 fi
 
@@ -175,9 +193,9 @@ echo "  - Mentor Backend:    http://localhost:$MENTOR_NODEPORT/health"
 echo "  - Mentor Dashboard:  http://localhost:$MENTOR_FRONTEND_PORT"
 echo "  - Device Simulator:  http://localhost:$DEVICES_FRONTEND_PORT"
 echo ""
-echo "� CORS Configuration:"
-echo "  - Devices Backend allows: $DEVICES_CORS_ORIGINS"
-echo "  - Mentor Backend allows:  $MENTOR_CORS_ORIGINS"
+echo "🔐 CORS Configuration:"
+echo "  - Both backends use CORS regex: $CORS_REGEX"
+echo "  - Allowed port ranges: $DEVICES_RANGE_START-$DEVICES_RANGE_END (Devices) and $MENTOR_RANGE_START-$MENTOR_RANGE_END (Mentor)"
 echo ""
-echo "�🗂️  Service Registry: .deploy/registry/"
+echo "📂 Service Registry: .deploy/registry/"
 echo "💡 To stop: ./scripts/stop-smart.sh"

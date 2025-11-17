@@ -168,6 +168,27 @@ func TestSetupCORS(t *testing.T) {
 		w := httptest.NewRecorder()
 		r.engine.ServeHTTP(w, req)
 	})
+
+	t.Run("WithOriginRegex", func(t *testing.T) {
+		// Test CORS with regex pattern for dynamic port ranges
+		_ = os.Setenv("FRONTEND_ORIGIN_REGEX", "^http://localhost:(4000|4001|4002|4003|4004)$")
+		defer func() { _ = os.Unsetenv("FRONTEND_ORIGIN_REGEX") }()
+
+		r := New()
+		r.setupCORS()
+		r.setupHealthCheck()
+
+		// Test with matching origin
+		req, _ := http.NewRequest("OPTIONS", "/health", nil)
+		req.Header.Set("Origin", "http://localhost:4002")
+		w := httptest.NewRecorder()
+		r.engine.ServeHTTP(w, req)
+
+		// Should allow the matching origin
+		if w.Code != http.StatusNoContent && w.Code != http.StatusOK {
+			t.Errorf("Expected CORS preflight to succeed, got status %d", w.Code)
+		}
+	})
 }
 
 func TestSetupActivityRoutes(t *testing.T) {
