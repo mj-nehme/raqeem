@@ -1,6 +1,6 @@
-# Release Checklist for v2.0.0
+# Release Checklist for v0.2.0
 
-> **Note**: Container images are hosted on GitHub Container Registry (GHCR). See [GHCR Migration Guide](docs/GHCR_MIGRATION.md) for details.
+> **Note**: As of v0.2.0, container images are hosted on GitHub Container Registry (GHCR) instead of DockerHub. See [GHCR Migration Guide](docs/GHCR_MIGRATION.md) for details.
 
 ## Pre-Release Verification
 
@@ -12,20 +12,19 @@
 - [x] Code review completed
 
 ### Documentation
-- [ ] README.md up to date
-- [ ] CHANGELOG.md updated with v2.0.0 changes
-- [ ] API documentation current
-- [ ] All docs reviewed for accuracy
-- [ ] CONTRIBUTING.md reviewed
-- [ ] LICENSE file present (MIT)
-- [ ] Migration guide created (if breaking changes)
+- [x] README.md up to date
+- [x] CHANGELOG.md updated with v0.1.0 changes
+- [x] API documentation current
+- [x] All docs reviewed for accuracy
+- [x] CONTRIBUTING.md created
+- [x] LICENSE file present (MIT)
 
 ### Version Consistency
-- [ ] VERSION file set to 2.0.0
-- [ ] devices/frontend/package.json version 2.0.0
-- [ ] mentor/frontend/package.json version 2.0.0
-- [ ] All Helm charts version 2.0.0
-- [ ] CHANGELOG.md dated correctly
+- [x] VERSION file set to 0.1.0
+- [x] devices/frontend/package.json version 0.1.0
+- [x] mentor/frontend/package.json version 0.1.0
+- [x] All Helm charts version 0.1.0
+- [x] CHANGELOG.md dated correctly
 
 ### Build & Packaging
 - [x] setup.py created
@@ -55,44 +54,44 @@
 ### 1. Final Commit
 ```bash
 git add .
-git commit -m "Release v2.0.0
+git commit -m "Release v0.1.0
 
-- Update version to 2.0.0 across all components
-- Update CHANGELOG.md with v2.0.0 release notes
-- Prepare release documentation
-- Major version bump to reflect platform maturity
+- Clean repository for first stable release
+- Add packaging configuration
+- Update all documentation
+- Ensure test coverage across all components
 "
 ```
 
 ### 2. Create Git Tag
 ```bash
-git tag -a v2.0.0 -m "Release v2.0.0 - Major version release"
+git tag -a v0.1.0 -m "Release v0.1.0 - Initial stable release"
 git push origin master
-git push origin v2.0.0
+git push origin v0.1.0
 ```
 
 ### 3. GitHub Release
 - Go to https://github.com/mj-nehme/raqeem/releases/new
-- Tag: v2.0.0
-- Title: "Raqeem v2.0.0"
+- Tag: v0.1.0
+- Title: "Raqeem v0.1.0 - Initial Release"
 - Description: Copy from CHANGELOG.md
 - Upload any release artifacts
 
 ### 4. Docker Images
 ```bash
 # Build and push Docker images to GHCR
-docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:2.0.0 ./devices/backend
-docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:2.0.0 ./mentor/backend
+docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:0.2.0 ./devices/backend
+docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:0.2.0 ./mentor/backend
 
 # Login to GHCR
 echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
 
 # Push images
-docker push ghcr.io/mj-nehme/raqeem/devices-backend:2.0.0
-docker push ghcr.io/mj-nehme/raqeem/mentor-backend:2.0.0
+docker push ghcr.io/mj-nehme/raqeem/devices-backend:0.2.0
+docker push ghcr.io/mj-nehme/raqeem/mentor-backend:0.2.0
 
 # Or use the automated script:
-./scripts/tag-release.sh v2.0.0
+./scripts/tag-release.sh v0.2.0
 ```
 
 ### 5. Python Package (Optional)
@@ -118,7 +117,7 @@ twine upload dist/*
 - [ ] Close related milestone
 
 ### Next Steps
-- [ ] Create v2.1.0 milestone
+- [ ] Create v0.2.0 milestone
 - [ ] Plan next features
 - [ ] Address any release feedback
 
@@ -126,10 +125,10 @@ twine upload dist/*
 
 If issues are discovered:
 1. Remove GitHub release
-2. Delete git tag: `git tag -d v2.0.0 && git push origin :refs/tags/v2.0.0`
+2. Delete git tag: `git tag -d v0.2.0 && git push origin :refs/tags/v0.2.0`
 3. Remove Docker images from GHCR registry
 4. Fix issues and restart release process
 
 ---
-**Release Date**: TBD
+**Release Date**: 2025-11-15
 **Release Manager**: Raqeem Team

@@ -5,37 +5,6 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0] - TBD
-
-### Overview
-This major release represents a significant milestone in the Raqeem IoT monitoring platform development. Version 2.0.0 brings enhanced stability, improved documentation, and sets the foundation for future enterprise features.
-
-### Breaking Changes
-- **Version Numbering**: Skipped version 1.x.x to indicate major architectural maturity
-- Future releases will follow strict semantic versioning (MAJOR.MINOR.PATCH)
-
-### Changed
-- **Version Scheme**: Updated from 0.2.0 to 2.0.0 to reflect platform maturity
-- **Release Process**: Enhanced release documentation and planning process
-
-### Added
-- Comprehensive v2.0.0 release planning documentation
-- Enhanced version management across all components
-- Detailed migration and rollback procedures
-
-### Technical Details
-- **Version Updates**: All components updated to 2.0.0
-  - Main VERSION file
-  - Frontend package.json files (mentor and devices)
-  - All Helm charts (devices-backend, mentor-backend, postgres, minio)
-  - Python package configuration (via VERSION file)
-- **Release Planning**: Added RELEASE_v2.0.0.md for tracking release progress
-- **Documentation**: Enhanced release process documentation
-
-### Infrastructure
-- Container images tagged as v2.0.0 on GitHub Container Registry
-- All Helm charts version-synchronized to 2.0.0
-
 ## [0.2.0] - 2025-11-16
 
 ### Changed
@@ -89,6 +58,5 @@ This major release represents a significant milestone in the Raqeem IoT monitori
 - Token-based authentication support
 - No exposed secrets or credentials
 
-[2.0.0]: https://github.com/mj-nehme/raqeem/releases/tag/v2.0.0
 [0.2.0]: https://github.com/mj-nehme/raqeem/releases/tag/v0.2.0
 [0.1.0]: https://github.com/mj-nehme/raqeem/releases/tag/v0.1.0
