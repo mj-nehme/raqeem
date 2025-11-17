@@ -42,7 +42,7 @@ func TestHTTPClientWithRetrySuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -69,7 +69,7 @@ func TestHTTPClientWithRetryServerError(t *testing.T) {
 		t.Fatalf("Expected error after all retries, got nil")
 	}
 	if resp != nil && resp.Body != nil {
-		resp.Body.Close()
+		_ = resp.Body.Close()
 	}
 
 	// Should retry twice (maxRetries=2) plus initial attempt = 3 total
@@ -96,7 +96,7 @@ func TestHTTPClientWithRetryPost(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200, got %d", resp.StatusCode)
@@ -125,7 +125,7 @@ func TestHTTPClientWithRetryRateLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		t.Errorf("Expected status 200 after retry, got %d", resp.StatusCode)
@@ -153,7 +153,7 @@ func TestHTTPClientWithRetryClientError(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Should not retry on 4xx errors (except 429)
 	if attempts != 1 {
