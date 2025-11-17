@@ -6,8 +6,12 @@ import (
 )
 
 func TestGetDocTemplate(t *testing.T) {
-	// Test that the template loads successfully
-	template := getDocTemplate()
+	// Test that the SwaggerInfo is initialized with template
+	if SwaggerInfo == nil {
+		t.Fatal("SwaggerInfo is not initialized")
+	}
+
+	template := SwaggerInfo.SwaggerTemplate
 
 	if template == "" {
 		t.Error("Expected non-empty template, got empty string")
@@ -46,7 +50,11 @@ func TestSwaggerInfoInitialization(t *testing.T) {
 }
 
 func TestTemplateContainsExpectedPaths(t *testing.T) {
-	template := getDocTemplate()
+	if SwaggerInfo == nil {
+		t.Fatal("SwaggerInfo is not initialized")
+	}
+
+	template := SwaggerInfo.SwaggerTemplate
 
 	// Check for expected API paths
 	expectedPaths := []string{"/devices", "/activities", "alerts", "metrics"}
@@ -59,7 +67,11 @@ func TestTemplateContainsExpectedPaths(t *testing.T) {
 }
 
 func TestTemplateContainsExpectedModels(t *testing.T) {
-	template := getDocTemplate()
+	if SwaggerInfo == nil {
+		t.Fatal("SwaggerInfo is not initialized")
+	}
+
+	template := SwaggerInfo.SwaggerTemplate
 
 	// Check for expected model definitions
 	expectedModels := []string{"models.Device", "models.DeviceAlert", "models.DeviceMetric"}
