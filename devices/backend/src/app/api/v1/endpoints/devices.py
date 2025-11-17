@@ -5,7 +5,7 @@ from uuid import UUID
 from app.core.config import settings
 from app.db.session import get_db
 from app.models import devices as dev_models
-from app.schemas.commands import CommandCreate, CommandOut, CommandResultSubmit
+from app.schemas.commands import CommandCreate, CommandOut, CommandResultResponse, CommandResultSubmit
 from app.schemas.devices import (
     DeviceActivity,
     DeviceAlert,
@@ -765,11 +765,11 @@ async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db
 
 @router.post(
     "/commands/{command_id}/result",
-    response_model=StatusResponse,
+    response_model=CommandResultResponse,
     responses={
         200: {
             "description": "Command result submitted successfully",
-            "model": StatusResponse,
+            "model": CommandResultResponse,
         },
         404: {
             "description": "Command not found",

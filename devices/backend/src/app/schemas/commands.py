@@ -97,3 +97,17 @@ class CommandOut(BaseModel):
     completed_at: datetime | None = None
     result: str | None = None
     exit_code: int | None = None
+
+
+class CommandResultResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "status": "ok",
+                "commandid": "550e8400-e29b-41d4-a716-446655440000"
+            }
+        }
+    )
+
+    status: str = Field(..., description="Operation status")
+    commandid: str = Field(..., description="Command identifier")
