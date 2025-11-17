@@ -30,7 +30,7 @@ Be respectful, inclusive, and professional in all interactions.
 
 1. **Fork and Clone**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/raqeem.git
+   git clone https://github.com/mj-nehme/raqeem.git
    cd raqeem
    ```
 
