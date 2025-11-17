@@ -88,6 +88,24 @@ CORS_REGEX="^http://localhost:($(seq -s'|' $DEVICES_RANGE_START $DEVICES_RANGE_E
 echo "  - CORS Regex Pattern: $CORS_REGEX"
 echo "  - This allows ports: $DEVICES_RANGE_START-$DEVICES_RANGE_END (Devices) and $MENTOR_RANGE_START-$MENTOR_RANGE_END (Mentor)"
 
+# Check if backend ports are available and find alternatives if needed
+echo ""
+echo "🔍 Checking backend port availability..."
+
+DEVICES_BACKEND_PORT=$(find_available_backend_port 30080 5)
+if [[ $? -ne 0 ]]; then
+  echo "❌ ERROR: Could not find available port for Devices Backend in range 30080-30084"
+  exit 1
+fi
+
+MENTOR_BACKEND_PORT=$(find_available_backend_port 30090 5)
+if [[ $? -ne 0 ]]; then
+  echo "❌ ERROR: Could not find available port for Mentor Backend in range 30090-30094"
+  exit 1
+fi
+
+echo "  - Backend ports: Devices=$DEVICES_BACKEND_PORT, Mentor=$MENTOR_BACKEND_PORT"
+
 # Get actual NodePort assignments (Kubernetes auto-assigns if not specified)
 DEVICES_NODEPORT=$(get_nodeport "devices-backend" "$NAMESPACE")
 MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
@@ -96,6 +114,7 @@ MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
 if [[ -z "$MENTOR_NODEPORT" ]]; then
   helm upgrade --install mentor-backend ./charts/mentor-backend \
     --namespace "$NAMESPACE" \
+    --set service.nodePort="$MENTOR_BACKEND_PORT" \
     --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
   MENTOR_NODEPORT=$(get_nodeport "mentor-backend" "$NAMESPACE")
@@ -108,6 +127,7 @@ MENTOR_API_URL="http://localhost:$MENTOR_NODEPORT"
 if [[ -z "$DEVICES_NODEPORT" ]]; then
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
+    --set service.nodePort="$DEVICES_BACKEND_PORT" \
     --set-string mentorApiUrl="$MENTOR_API_URL" \
     --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
@@ -116,6 +136,7 @@ else
   # If devices-backend already exists, upgrade it with mentor URL and CORS
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
+    --set service.nodePort="$DEVICES_BACKEND_PORT" \
     --set-string mentorApiUrl="$MENTOR_API_URL" \
     --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
@@ -125,6 +146,7 @@ fi
 if [[ -n "$MENTOR_NODEPORT" ]]; then
   helm upgrade --install mentor-backend ./charts/mentor-backend \
     --namespace "$NAMESPACE" \
+    --set service.nodePort="$MENTOR_BACKEND_PORT" \
     --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
 fi

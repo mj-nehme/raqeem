@@ -68,7 +68,7 @@ version = { file = "VERSION" }
 
 [tool.ruff]
 line-length = 120
-target-version = "py311"
+target-version = "py310"
 
 [tool.ruff.lint]
 select = [
@@ -101,7 +101,7 @@ select = [
     "TRY",
     "RUF",
 ]
-ignore = ["E501", "TRY003", "PLR0913"]
+ignore = ["E501", "TRY003", "PLR0913", "UP017"]
 
 [tool.ruff.lint.per-file-ignores]
 "devices/backend/src/app/api/v1/endpoints/*.py" = ["B008"]
@@ -112,12 +112,7 @@ ignore = ["E501", "TRY003", "PLR0913"]
 "devices/backend/src/app/core/reliability/*.py" = ["TRY300", "TRY002", "EM102"]
 "devices/backend/src/app/services/minio_service.py" = ["TRY300"]
 "devices/backend/src/app/services/forwarding_service.py" = ["TRY300"]
-"devices/backend/src/app/**/test_*.py" = [
-    "PLR2004",
-    "SIM105",
-    "EM101",
-    "B017",
-]
+"devices/backend/src/app/**/test_*.py" = ["PLR2004", "SIM105", "EM101", "B017"]
 "devices/backend/src/tests/**/*.py" = [
     "PLR2004",
     "PLC0415",

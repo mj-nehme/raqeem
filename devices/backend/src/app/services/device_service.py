@@ -1,6 +1,6 @@
 """Device service for validating and managing device data."""
 
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 # Device will be considered offline if not seen for this duration
@@ -48,10 +48,10 @@ class DeviceService:
         Note:
             Considers device offline if not seen within DEVICE_ONLINE_THRESHOLD_MINUTES
         """
-        now = datetime.now(UTC)
+        now = datetime.now(timezone.utc)
         # Ensure last_seen is timezone-aware for comparison
         if last_seen.tzinfo is None:
-            last_seen = last_seen.replace(tzinfo=UTC)
+            last_seen = last_seen.replace(tzinfo=timezone.utc)
         threshold = now - timedelta(minutes=DEVICE_ONLINE_THRESHOLD_MINUTES)
         return last_seen >= threshold
 

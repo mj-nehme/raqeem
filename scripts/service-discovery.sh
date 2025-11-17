@@ -68,6 +68,32 @@ get_nodeport() {
   kubectl get svc "$service_name" -n "$namespace" -o jsonpath='{.spec.ports[0].nodePort}' 2>/dev/null || echo ""
 }
 
+find_available_backend_port() {
+  local preferred_port=$1
+  local max_attempts=${2:-5}
+  
+  # Try the preferred port first
+  if ! lsof -i ":$preferred_port" >/dev/null 2>&1; then
+    echo $preferred_port
+    return 0
+  fi
+  
+  echo "⚠️  Port $preferred_port is already in use, searching for alternatives..." >&2
+  
+  # Try incrementing from the preferred port
+  for ((i=1; i<max_attempts; i++)); do
+    local port=$((preferred_port + i))
+    if ! lsof -i ":$port" >/dev/null 2>&1; then
+      echo "✅ Found available backend port: $port" >&2
+      echo $port
+      return 0
+    fi
+  done
+  
+  echo "ERROR: No available backend port found in range $preferred_port-$((preferred_port + max_attempts - 1))" >&2
+  return 1
+}
+
 register_service() {
   local service_name=$1
   local url=$2

@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any, cast
 
 import jwt
@@ -42,7 +42,7 @@ def create_access_token(data: dict[str, Any], expires_delta: timedelta | None = 
         - Consider implementing token refresh for long-lived sessions
     """
     to_encode = data.copy()
-    expire = datetime.now(UTC) + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(minutes=settings.access_token_expire_minutes))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, settings.secret_key, algorithm="HS256")
     return cast("str", encoded_jwt)
