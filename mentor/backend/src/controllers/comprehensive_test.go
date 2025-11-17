@@ -178,7 +178,7 @@ func TestCreateRemoteCommand_ErrorCases(t *testing.T) {
 	w = httptest.NewRecorder()
 
 	router.ServeHTTP(w, req)
-	assert.Equal(t, http.StatusOK, w.Code) // Should still succeed with empty command
+	assert.Equal(t, http.StatusBadRequest, w.Code) // Should reject empty command
 }
 
 func TestUpdateCommandStatus_ErrorCases(t *testing.T) {
@@ -186,7 +186,7 @@ func TestUpdateCommandStatus_ErrorCases(t *testing.T) {
 	defer cleanup()
 
 	// Test invalid JSON
-	req, _ := http.NewRequest("PUT", "/commands/999/status", bytes.NewBufferString(`{"invalid": json}`))
+	req, _ := http.NewRequest("POST", "/commands/status", bytes.NewBufferString(`{"invalid": json}`))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
@@ -194,7 +194,7 @@ func TestUpdateCommandStatus_ErrorCases(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 
 	// Test empty request body
-	req, _ = http.NewRequest("PUT", "/commands/999/status", bytes.NewBuffer(nil))
+	req, _ = http.NewRequest("POST", "/commands/status", bytes.NewBuffer(nil))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 
@@ -207,7 +207,7 @@ func TestUpdateCommandStatus_ErrorCases(t *testing.T) {
 		Status:    "completed",
 	}
 	statusJSON, _ := json.Marshal(statusUpdate)
-	req, _ = http.NewRequest("PUT", fmt.Sprintf("/commands/%s/status", statusUpdate.CommandID), bytes.NewBuffer(statusJSON))
+	req, _ = http.NewRequest("POST", "/commands/status", bytes.NewBuffer(statusJSON))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 
@@ -659,7 +659,7 @@ func TestRemoteCommandStatusTransitions(t *testing.T) {
 	}
 
 	statusJSON, _ := json.Marshal(statusUpdate)
-	req, _ = http.NewRequest("PUT", fmt.Sprintf("/commands/%d/status", commandID), bytes.NewBuffer(statusJSON))
+	req, _ = http.NewRequest("POST", "/commands/status", bytes.NewBuffer(statusJSON))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 
@@ -681,7 +681,7 @@ func TestRemoteCommandStatusTransitions(t *testing.T) {
 	}
 
 	failedJSON, _ := json.Marshal(failedUpdate)
-	req, _ = http.NewRequest("PUT", fmt.Sprintf("/commands/%d/status", commandID), bytes.NewBuffer(failedJSON))
+	req, _ = http.NewRequest("POST", "/commands/status", bytes.NewBuffer(failedJSON))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 

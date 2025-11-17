@@ -47,7 +47,7 @@ func setupTestRouterWithDB(t *testing.T) (*gin.Engine, func()) {
 	router.GET("/devices/:id/screenshots", GetDeviceScreenshot)
 	router.POST("/devices/:id/commands", CreateRemoteCommand)
 	router.GET("/devices/:id/commands/pending", GetPendingCommands)
-	router.PUT("/commands/:id/status", UpdateCommandStatus)
+	router.POST("/commands/status", UpdateCommandStatus)
 	router.POST("/devices/:id/alerts", ReportAlert)
 
 	// Return cleanup function
@@ -284,7 +284,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	}
 
 	statusJSON, _ := json.Marshal(statusUpdate)
-	req, _ = http.NewRequest("PUT", fmt.Sprintf("/commands/%d/status", commandID), bytes.NewBuffer(statusJSON))
+	req, _ = http.NewRequest("POST", "/commands/status", bytes.NewBuffer(statusJSON))
 	req.Header.Set("Content-Type", "application/json")
 	w = httptest.NewRecorder()
 

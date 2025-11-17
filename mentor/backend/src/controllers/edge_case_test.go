@@ -130,15 +130,16 @@ func TestComplexQueryParameters(t *testing.T) {
 
 	// Test various limit values
 	limitTests := []struct {
-		limit    string
-		expected int
+		limit      string
+		expected   int
+		statusCode int
 	}{
-		{"0", 0},
-		{"1", 1},
-		{"5", 5},
-		{"15", 15},
-		{"25", 20},  // Should return all 20 metrics
-		{"100", 20}, // Should return all 20 metrics
+		{"0", 0, http.StatusBadRequest}, // limit must be > 0
+		{"1", 1, http.StatusOK},
+		{"5", 5, http.StatusOK},
+		{"15", 15, http.StatusOK},
+		{"25", 20, http.StatusOK},  // Should return all 20 metrics
+		{"100", 20, http.StatusOK}, // Should return all 20 metrics
 	}
 
 	for _, test := range limitTests {
@@ -147,12 +148,14 @@ func TestComplexQueryParameters(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			router.ServeHTTP(w, req)
-			assert.Equal(t, http.StatusOK, w.Code)
+			assert.Equal(t, test.statusCode, w.Code)
 
-			var metrics []models.DeviceMetric
-			err := json.Unmarshal(w.Body.Bytes(), &metrics)
-			require.NoError(t, err)
-			assert.Equal(t, test.expected, len(metrics))
+			if test.statusCode == http.StatusOK {
+				var metrics []models.DeviceMetric
+				err := json.Unmarshal(w.Body.Bytes(), &metrics)
+				require.NoError(t, err)
+				assert.Equal(t, test.expected, len(metrics))
+			}
 		})
 	}
 

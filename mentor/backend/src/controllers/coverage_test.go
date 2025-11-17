@@ -404,13 +404,14 @@ func TestUpdateCommandStatusSuccess(t *testing.T) {
 	database.DB.Create(&command)
 
 	// Update status
-	update := map[string]interface{}{
-		"status": "completed",
-		"result": "success",
+	update := models.DeviceRemoteCommand{
+		CommandID: command.CommandID,
+		Status:    "completed",
+		Result:    "success",
 	}
 
 	updateJSON, _ := json.Marshal(update)
-	req, _ := http.NewRequest("PUT", fmt.Sprintf("/commands/%d/status", command.CommandID), bytes.NewBuffer(updateJSON))
+	req, _ := http.NewRequest("POST", "/commands/status", bytes.NewBuffer(updateJSON))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
