@@ -10,7 +10,7 @@ import (
 
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
-	
+
 	"mentor-backend/reliability"
 )
 
@@ -62,6 +62,11 @@ func InitClient() {
 		})
 		if initErr != nil {
 			return fmt.Errorf("failed to initialize MinIO client: %v", initErr)
+		}
+
+		// Allow tests to skip the connectivity check to avoid long network timeouts
+		if os.Getenv("MINIO_SKIP_CONNECT") == "1" {
+			return nil
 		}
 
 		// Test the connection by checking if we can list buckets

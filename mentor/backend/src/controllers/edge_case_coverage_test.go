@@ -464,9 +464,9 @@ func setupTestDB(t *testing.T) {
 		return
 	}
 	database.DB = db
-	
+
 	// Clean up tables (no-op since SetupTestDB uses transactions that auto-rollback)
-	database.DB.Exec("DELETE FROM remote_commands")
+	database.DB.Exec("DELETE FROM device_remote_commands")
 	database.DB.Exec("DELETE FROM device_screenshots")
 	database.DB.Exec("DELETE FROM device_alerts")
 	database.DB.Exec("DELETE FROM device_activities")

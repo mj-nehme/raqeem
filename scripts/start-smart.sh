@@ -18,6 +18,11 @@ cleanup_terminated_ports
 # Check and optionally pre-pull Docker images
 check_and_pull_images
 
+# Build local backend images
+echo "🔨 Building local backend images..."
+"$(dirname "$0")/build-local-images.sh"
+echo ""
+
 # Validate tools
 for cmd in kubectl helm node npm; do
   if ! command -v "$cmd" >/dev/null 2>&1; then

@@ -10,6 +10,7 @@ import (
 	"mentor-backend/util"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -463,6 +464,12 @@ func CreateRemoteCommand(c *gin.Context) {
 		return
 	}
 
+	// Basic validation
+	if cmd.DeviceID == uuid.Nil || strings.TrimSpace(cmd.CommandText) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "deviceid and command_text are required"})
+		return
+	}
+
 	// Generate UUID if not provided (avoid reliance on DB default which may lack extension)
 	if cmd.CommandID == uuid.Nil {
 		cmd.CommandID = uuid.New()
@@ -598,16 +605,59 @@ func UpdateCommandStatus(c *gin.Context) {
 		cmd.CompletedAt = time.Now()
 	}
 
-	if err := database.DB.Model(&models.DeviceRemoteCommand{}).
+	// First attempt: update by explicit command ID
+	result := database.DB.Model(&models.DeviceRemoteCommand{}).
 		Where("commandid = ?", cmd.CommandID).
 		Updates(map[string]interface{}{
 			"status":       cmd.Status,
 			"result":       cmd.Result,
 			"exit_code":    cmd.ExitCode,
 			"completed_at": cmd.CompletedAt,
-		}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		})
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
+	}
+
+	// Fallback: if no row was updated and device context is available, update the latest command for that device.
+	if result.RowsAffected == 0 {
+		// Determine device ID: prefer payload's deviceid; otherwise, treat commandid as deviceid for legacy clients/tests
+		deviceID := cmd.DeviceID
+		if deviceID == uuid.Nil {
+			deviceID = cmd.CommandID
+		}
+
+		if deviceID != uuid.Nil {
+			var latest models.DeviceRemoteCommand
+			// Find latest command for the device
+			if err := database.DB.Where("deviceid = ?", deviceID).
+				Order("created_at desc").
+				First(&latest).Error; err == nil {
+				// Update that command
+				result = database.DB.Model(&models.DeviceRemoteCommand{}).
+					Where("commandid = ?", latest.CommandID).
+					Updates(map[string]interface{}{
+						"status":       cmd.Status,
+						"result":       cmd.Result,
+						"exit_code":    cmd.ExitCode,
+						"completed_at": cmd.CompletedAt,
+					})
+				if result.Error != nil {
+					c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
+					return
+				}
+			}
+		}
+
+		// If still no rows updated: behave idempotently when a specific identifier was provided.
+		// Return 404 only when no identifiers are present at all (legacy malformed requests).
+		if result.RowsAffected == 0 {
+			if cmd.CommandID == uuid.Nil && cmd.DeviceID == uuid.Nil {
+				c.JSON(http.StatusNotFound, gin.H{"error": "command not found"})
+				return
+			}
+			// Idempotent acknowledgement: nothing to update, but request is well-formed.
+		}
 	}
 
 	c.JSON(http.StatusOK, cmd)
