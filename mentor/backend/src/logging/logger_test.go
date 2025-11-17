@@ -91,7 +91,7 @@ func TestLogger_WithField(t *testing.T) {
 		t.Error("Field 'key' not found in new logger")
 	}
 
-	if val, _ := newLogger.fields["key"]; val != "value" {
+	if val := newLogger.fields["key"]; val != "value" {
 		t.Errorf("Field 'key' = %v, want 'value'", val)
 	}
 }
