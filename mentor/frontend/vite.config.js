@@ -14,7 +14,7 @@ export default ({ mode }) => {
       proxy: {
         // Proxy API calls to stable Kubernetes NodePort service
         '/api': {
-          target: env.VITE_MENTOR_API_URL || process.env.VITE_MENTOR_API_URL || 'http://localhost:30081',
+          target: env.VITE_MENTOR_API_URL || process.env.VITE_MENTOR_API_URL || 'http://localhost:30090',
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/api/, ''),
         },

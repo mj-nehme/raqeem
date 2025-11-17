@@ -12,7 +12,7 @@ assignees: ''
 - **Device Simulator** (React frontend on port 4002) - simulates IoT devices
 - **Devices Backend** (Python/FastAPI on port 30080) - collects device data  
 - **Mentor Dashboard** (React frontend on port 5002) - monitors all devices
-- **Mentor Backend** (Go/Gin on port 30081) - serves dashboard data
+- **Mentor Backend** (Go/Gin on port 30090) - serves dashboard data
 
 ## 🎯 Task Overview
 <!-- Clear description of what needs to be done -->

@@ -193,7 +193,7 @@ curl -X POST http://localhost:30080/api/v1/devices/register \
 curl http://localhost:30080/api/v1/devices/test-device-123
 
 # 3. Query Mentor Backend (should also exist if forwarding works)
-curl http://localhost:30081/devices/test-device-123
+curl http://localhost:30090/devices/test-device-123
 
 # If device exists in Devices but not Mentor:
 # - Forwarding may be disabled (no MENTOR_API_URL)
@@ -247,7 +247,7 @@ kubectl logs -n raqeem deployment/devices-backend | grep "blocking\|sync.*forwar
 ```bash
 # Compare counts
 curl http://localhost:30080/api/v1/devices | jq 'length'
-curl http://localhost:30081/devices | jq 'length'
+curl http://localhost:30090/devices | jq 'length'
 ```
 
 **Solutions**:

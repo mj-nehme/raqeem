@@ -74,7 +74,7 @@ if [ -f .deploy/registry/mentor-backend ]; then
   source .deploy/registry/mentor-backend  
   MENTOR_BACKEND_URL="$URL"
 else
-  MENTOR_BACKEND_URL="http://localhost:30081"
+  MENTOR_BACKEND_URL="http://localhost:30090"
 fi
 
 sleep 2

@@ -68,7 +68,7 @@ pip install -e .
    - Monitor Dashboard: Auto-discovered port
    - Device Simulator: Auto-discovered port
    - Devices API: http://localhost:30080/docs
-   - Mentor API: http://localhost:30081/docs
+   - Mentor API: http://localhost:30090/docs
 
 3. **View Service URLs**
    ```bash

@@ -61,7 +61,7 @@ The following requirements were specified for v0.2.0:
 
 **Access Points (Local)**:
 - Devices API: http://localhost:30080/docs
-- Mentor API: http://localhost:30081/docs
+- Mentor API: http://localhost:30090/docs
 
 ---
 
@@ -208,7 +208,7 @@ git push origin master
 
 # Verify Swagger UIs are accessible
 curl http://localhost:30080/docs  # Devices API
-curl http://localhost:30081/docs  # Mentor API
+curl http://localhost:30090/docs  # Mentor API
 
 # Run smoke tests
 ./tests/smoke_test.py

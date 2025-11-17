@@ -30,7 +30,7 @@ Raqeem is a full-stack IoT device monitoring platform built with microservices a
     │   Backend       │◄─────│    Backend        │
     │   (Go + Gin)    │ Fwd  │  (Python/FastAPI) │
     │                 │      │                   │
-    │ Port: 30081     │      │  Port: 30080      │
+    │ Port: 30090     │      │  Port: 30080      │
     └────────┬────────┘      └──────────┬────────┘
              │                          │
              │  Kubernetes DNS          │
@@ -125,7 +125,7 @@ Raqeem is a full-stack IoT device monitoring platform built with microservices a
 - `POST /devices/commands` - Create remote command
 - `GET /health` - Health check
 
-**Port**: 30081 (NodePort on Kubernetes)
+**Port**: 30090 (NodePort on Kubernetes)
 
 ### 3. Mentor Frontend (React/Vite)
 
@@ -472,7 +472,7 @@ Current MVP has no authentication. Recommended additions:
 - `postgres-service`: ClusterIP + NodePort (30432)
 - `minio-service`: ClusterIP (9000, 9001) + NodePort (30001)
 - `devices-backend`: ClusterIP + NodePort (30080)
-- `mentor-backend`: ClusterIP + NodePort (30081)
+- `mentor-backend`: ClusterIP + NodePort (30090)
 
 #### Persistent Volumes
 - `postgres-pvc`: 1Gi (database data)

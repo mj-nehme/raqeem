@@ -16,7 +16,7 @@ info:
     - Process information
 
     ## Base URL
-    Local: `http://localhost:30081`
+    Local: `http://localhost:30090`
     Production: `https://dashboard-api.raqeem.example.com`
 
     ## Authentication

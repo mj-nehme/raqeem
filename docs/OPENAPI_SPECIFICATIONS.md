@@ -120,9 +120,9 @@ This document provides a summary of the OpenAPI specifications for both Raqeem b
 - **Base URL**: `/`
 
 ### Access Points
-- **Swagger UI**: http://localhost:30081/docs or http://localhost:30081/swagger/index.html
-- **OpenAPI JSON**: http://localhost:30081/swagger/doc.json
-- **YAML**: http://localhost:30081/swagger/swagger.yaml
+- **Swagger UI**: http://localhost:30090/docs or http://localhost:30090/swagger/index.html
+- **OpenAPI JSON**: http://localhost:30090/swagger/doc.json
+- **YAML**: http://localhost:30090/swagger/swagger.yaml
 
 ### Statistics
 - **Total Paths**: 16
@@ -190,7 +190,7 @@ This document provides a summary of the OpenAPI specifications for both Raqeem b
 | Framework | FastAPI (Python) | Gin (Go) |
 | OpenAPI Version | 3.1.0 | 2.0 |
 | Base Path | `/api/v1` | `/` |
-| Port | 30080 | 30081 |
+| Port | 30080 | 30090 |
 | Primary Use | Telemetry ingestion | Dashboard/monitoring |
 | Data Flow | Receives from devices | Receives forwarded data |
 
@@ -228,7 +228,7 @@ openapi-generator-cli generate \
 
 # Generate TypeScript client for Mentor Backend
 openapi-generator-cli generate \
-  -i http://localhost:30081/swagger/doc.json \
+  -i http://localhost:30090/swagger/doc.json \
   -g typescript-axios \
   -o ./clients/mentor-typescript
 ```
@@ -258,7 +258,7 @@ npm install -g @apidevtools/swagger-cli
 swagger-cli validate http://localhost:30080/openapi.json
 
 # Validate Mentor Backend
-swagger-cli validate http://localhost:30081/swagger/doc.json
+swagger-cli validate http://localhost:30090/swagger/doc.json
 ```
 
 ### Testing

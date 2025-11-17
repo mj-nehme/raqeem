@@ -1208,7 +1208,7 @@ const docTemplate = `{
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
-	Host:             "localhost:30081",
+	Host:             "localhost:30090",
 	BasePath:         "/",
 	Schemes:          []string{"http", "https"},
 	Title:            "Raqeem Mentor Backend API",

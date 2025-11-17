@@ -34,7 +34,7 @@ kubectl get svc -n default
 
 # Check health of backends
 curl http://localhost:30080/health
-curl http://localhost:30081/health
+curl http://localhost:30090/health
 
 # View recent events
 kubectl get events --sort-by=.metadata.creationTimestamp -n default | tail -20
@@ -443,7 +443,7 @@ EXPLAIN ANALYZE <your-query>;
 curl -I -X OPTIONS \
   -H "Origin: http://localhost:5001" \
   -H "Access-Control-Request-Method: GET" \
-  http://localhost:30081/devices
+  http://localhost:30090/devices
 ```
 
 **Solutions**:
@@ -481,7 +481,7 @@ kubectl set env deployment/mentor-backend \
 ```bash
 # Check backend is accessible
 curl http://localhost:30080/health
-curl http://localhost:30081/health
+curl http://localhost:30090/health
 
 # Check from inside cluster
 kubectl run curl-test -it --rm --image=curlimages/curl -n default -- \
@@ -509,10 +509,10 @@ cd mentor/frontend
 cat .env* 
 
 # Should be:
-# VITE_API_URL=http://localhost:30081
+# VITE_API_URL=http://localhost:30090
 
 # Restart frontend with correct URL
-VITE_API_URL=http://localhost:30081 npm run dev
+VITE_API_URL=http://localhost:30090 npm run dev
 ```
 
 ### Issue: Service Discovery Not Working
@@ -583,7 +583,7 @@ npm run dev
 echo $VITE_API_URL
 
 # Set if needed
-export VITE_API_URL=http://localhost:30081
+export VITE_API_URL=http://localhost:30090
 npm run dev
 ```
 

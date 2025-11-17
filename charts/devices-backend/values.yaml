@@ -54,5 +54,5 @@ affinity: {}
 
 # Optional: mentor backend API base URL. When set, devices backend will forward alerts to mentor backend
 # For Kubernetes deployment, use: http://mentor-backend-service.default.svc.cluster.local
-# For local development, use: http://localhost:30081
+# For local development, use: http://localhost:30090
 mentorApiUrl: ""

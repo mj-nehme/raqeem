@@ -39,7 +39,7 @@ After `./start.sh`, services auto-discover ports:
 - **Monitor Dashboard** — View all devices and metrics
 - **Device Simulator** — Generate test data
 - **Devices API Docs** — http://localhost:30080/docs (FastAPI Swagger UI)
-- **Mentor API Docs** — http://localhost:30081/docs (Swagger UI)
+- **Mentor API Docs** — http://localhost:30090/docs (Swagger UI)
 - **Service URLs** — `./scripts/discover.sh list`
 
 ## Documentation

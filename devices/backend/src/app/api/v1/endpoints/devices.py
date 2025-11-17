@@ -84,7 +84,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
     except (ValueError, AttributeError, TypeError) as e:
         raise HTTPException(status_code=400, detail=f"deviceid must be a valid UUID format: {e!s}") from e
 
-    now = datetime.datetime.now(datetime.UTC)
+    now = datetime.datetime.now(datetime.timezone.utc)
     res = await db.execute(select(dev_models.Device).where(dev_models.Device.deviceid == final_id))
     existing = res.scalars().first()
 
@@ -249,7 +249,7 @@ async def post_processes(device_id: str, processes: list[dict], db: AsyncSession
     _proc_table = cast("Any", dev_models.DeviceProcess.__table__)
     await db.execute(_proc_table.delete().where(dev_models.DeviceProcess.deviceid == device_id))
     to_add = []
-    now = datetime.datetime.now(datetime.UTC)
+    now = datetime.datetime.now(datetime.timezone.utc)
     for p in processes:
         to_add.append(
             {
@@ -338,7 +338,7 @@ async def post_activity(device_id: str, activities: list[dict], db: AsyncSession
             raise HTTPException(status_code=422, detail="invalid field: use activity_type instead of type")
 
     to_add = []
-    now = datetime.datetime.now(datetime.UTC)
+    now = datetime.datetime.now(datetime.timezone.utc)
     for a in activities:
         to_add.append(
             {
@@ -421,7 +421,7 @@ async def post_alerts(device_id: str, alerts: list[dict], db: AsyncSession = Dep
             raise HTTPException(status_code=400, detail="unsupported legacy field: type; use alert_type")
 
     to_add = []
-    now = datetime.datetime.now(datetime.UTC)
+    now = datetime.datetime.now(datetime.timezone.utc)
     for a in alerts:
         to_add.append(
             {
@@ -811,7 +811,7 @@ async def submit_command_result(command_id: UUID, payload: CommandResultSubmit, 
     command.status = payload.status  # type: ignore[assignment]
     command.result = payload.result or ""  # type: ignore[assignment]
     command.exit_code = payload.exit_code or 0  # type: ignore[assignment]
-    command.completed_at = datetime.datetime.now(datetime.UTC)  # type: ignore[assignment]
+    command.completed_at = datetime.datetime.now(datetime.timezone.utc)  # type: ignore[assignment]
     db.add(command)
     await db.commit()
 
@@ -884,7 +884,7 @@ async def create_command(device_id: str, payload: CommandCreate, db: AsyncSessio
         deviceid=device_id,
         command_text=payload.command_text,
         status="pending",
-        created_at=datetime.datetime.now(datetime.UTC),
+        created_at=datetime.datetime.now(datetime.timezone.utc),
     )
     db.add(command)
     await db.commit()

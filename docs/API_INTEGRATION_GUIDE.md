@@ -17,8 +17,8 @@ This guide demonstrates how to integrate with the Raqeem monitoring platform's t
 - OpenAPI JSON: `http://localhost:30080/openapi.json`
 
 **Mentor Backend:**
-- Swagger UI: `http://localhost:30081/swagger/index.html` or `http://localhost:30081/docs`
-- OpenAPI JSON: `http://localhost:30081/swagger/doc.json`
+- Swagger UI: `http://localhost:30090/swagger/index.html` or `http://localhost:30090/docs`
+- OpenAPI JSON: `http://localhost:30090/swagger/doc.json`
 
 ## Common Integration Patterns
 
@@ -54,7 +54,7 @@ The Devices Backend automatically forwards this registration to the Mentor Backe
 **Step 2: Verify registration in Mentor Backend**
 
 ```bash
-curl http://localhost:30081/devices
+curl http://localhost:30090/devices
 ```
 
 ### 2. Submit Performance Metrics
@@ -87,7 +87,7 @@ curl -X POST http://localhost:30080/api/v1/devices/a843a399-701f-5011-aff3-4b69d
 **Retrieve metrics from Mentor Backend:**
 
 ```bash
-curl http://localhost:30081/devices/a843a399-701f-5011-aff3-4b69d8f21b11/metrics?limit=60
+curl http://localhost:30090/devices/a843a399-701f-5011-aff3-4b69d8f21b11/metrics?limit=60
 ```
 
 ### 3. Submit Alerts
@@ -116,7 +116,7 @@ curl -X POST http://localhost:30080/api/v1/devices/a843a399-701f-5011-aff3-4b69d
 **Retrieve alerts from Mentor Backend:**
 
 ```bash
-curl http://localhost:30081/devices/a843a399-701f-5011-aff3-4b69d8f21b11/alerts?limit=100
+curl http://localhost:30090/devices/a843a399-701f-5011-aff3-4b69d8f21b11/alerts?limit=100
 ```
 
 ### 4. Remote Command Execution
@@ -124,7 +124,7 @@ curl http://localhost:30081/devices/a843a399-701f-5011-aff3-4b69d8f21b11/alerts?
 **Step 1: Create command from Mentor Backend**
 
 ```bash
-curl -X POST http://localhost:30081/devices/commands \
+curl -X POST http://localhost:30090/devices/commands \
   -H "Content-Type: application/json" \
   -d '{
     "deviceid": "a843a399-701f-5011-aff3-4b69d8f21b11",
@@ -175,7 +175,7 @@ curl -X POST http://localhost:30080/api/v1/devices/a843a399-701f-5011-aff3-4b69d
 **Query activities from Mentor Backend:**
 
 ```bash
-curl http://localhost:30081/activities
+curl http://localhost:30090/activities
 ```
 
 ### 6. Upload Screenshots
@@ -200,7 +200,7 @@ curl -X POST http://localhost:30080/api/v1/screenshots/ \
 **Retrieve screenshots from Mentor Backend:**
 
 ```bash
-curl http://localhost:30081/devices/a843a399-701f-5011-aff3-4b69d8f21b11/screenshots?limit=50
+curl http://localhost:30090/devices/a843a399-701f-5011-aff3-4b69d8f21b11/screenshots?limit=50
 ```
 
 ## API Consistency
@@ -257,7 +257,7 @@ Both APIs return consistent error responses:
                               ┌─────────────────────┐
                               │  Mentor Backend     │←─── 3. Query data
                               │  (Go)               │
-                              │  Port: 30081        │
+                              │  Port: 30090        │
                               └──────────┬──────────┘
                                          │
                                          │ 4. Display
@@ -292,7 +292,7 @@ openapi-generator generate \
 
 # Generate Mentor Backend client
 openapi-generator generate \
-  -i http://localhost:30081/swagger/doc.json \
+  -i http://localhost:30090/swagger/doc.json \
   -g python \
   -o ./clients/mentor-python
 ```
@@ -308,7 +308,7 @@ openapi-generator generate \
 
 # Generate Mentor Backend client
 openapi-generator generate \
-  -i http://localhost:30081/swagger/doc.json \
+  -i http://localhost:30090/swagger/doc.json \
   -g typescript-axios \
   -o ./clients/mentor-typescript
 ```
@@ -341,7 +341,7 @@ openapi-generator generate \
 **Solution:** Verify services are running:
 ```bash
 curl http://localhost:30080/health
-curl http://localhost:30081/health
+curl http://localhost:30090/health
 ```
 
 ### Data Not Appearing in Mentor Backend

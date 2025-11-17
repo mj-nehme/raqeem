@@ -63,7 +63,7 @@ cd raqeem
 - **Mentor Dashboard**: `http://localhost:<auto-detected>`
 - **Device Simulator**: `http://localhost:<auto-detected>`
 - **Devices API**: `http://localhost:30080/docs`
-- **Mentor API**: `http://localhost:30081/health`
+- **Mentor API**: `http://localhost:30090/health`
 - **MinIO Console**: `http://localhost:30001`
 
 ### Stopping Services

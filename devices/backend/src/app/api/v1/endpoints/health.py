@@ -7,7 +7,7 @@ Provides comprehensive health checks including:
 - Detailed component status
 """
 
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from app.core.config import settings
@@ -38,7 +38,7 @@ async def health_check() -> dict[str, Any]:
     return {
         "status": "ok",
         "service": "devices-backend",
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -100,7 +100,7 @@ async def readiness_check(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     response = {
         "status": overall_status,
         "service": "devices-backend",
-        "timestamp": datetime.now(UTC).isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "checks": checks,
     }
 

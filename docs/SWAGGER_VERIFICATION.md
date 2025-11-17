@@ -93,10 +93,10 @@ jq '.info.title' devices-openapi.json
 ./scripts/discover.sh list | grep "Mentor Backend"
 
 # Or directly access (typical port)
-open http://localhost:30081/swagger/index.html
+open http://localhost:30090/swagger/index.html
 
 # Alternative redirect endpoint
-open http://localhost:30081/docs
+open http://localhost:30090/docs
 ```
 
 **Expected Results:**
@@ -270,7 +270,7 @@ After making code changes to endpoints:
 **For Go (Mentor Backend):**
 1. Run `swag init -g main.go --output docs`
 2. Rebuild and restart the service
-3. Refresh http://localhost:30081/swagger/index.html
+3. Refresh http://localhost:30090/swagger/index.html
 4. ✅ Changes appear after regeneration
 
 ### 8. Accessibility Tests

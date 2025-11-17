@@ -18,7 +18,7 @@
         },
         "version": "1.0"
     },
-    "host": "localhost:30081",
+    "host": "localhost:30090",
     "basePath": "/",
     "paths": {
         "/activities": {

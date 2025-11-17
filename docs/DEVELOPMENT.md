@@ -137,7 +137,7 @@ Best for:
 
 # 3. Run frontends manually with custom ports
 cd mentor/frontend
-VITE_API_URL=http://localhost:30081 npm run dev -- --port 5173
+VITE_API_URL=http://localhost:30090 npm run dev -- --port 5173
 
 cd devices/frontend
 VITE_DEVICES_API_URL=http://localhost:30080 npm run dev -- --port 5174

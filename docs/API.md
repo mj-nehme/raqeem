@@ -61,7 +61,7 @@ Raqeem provides two REST APIs for device monitoring and management. This guide c
 
 ### Mentor Backend API
 
-**Base URL**: `http://localhost:30081` (local) or `https://dashboard-api.example.com` (production)
+**Base URL**: `http://localhost:30090` (local) or `https://dashboard-api.example.com` (production)
 
 **Purpose**: Device management and monitoring dashboard API
 
@@ -145,8 +145,8 @@ curl http://localhost:30080/openapi.json > devices-openapi.json
 
 #### Mentor Backend (Go)
 
-- **Swagger UI**: http://localhost:30081/swagger/index.html
-- **Docs Redirect**: http://localhost:30081/docs
+- **Swagger UI**: http://localhost:30090/swagger/index.html
+- **Docs Redirect**: http://localhost:30090/docs
 - **Swagger JSON**: Available in `mentor/backend/src/docs/swagger.json`
 
 ```bash
@@ -259,7 +259,7 @@ import (
 func main() {
     cfg := raqeem.NewConfiguration()
     cfg.Servers = raqeem.ServerConfigurations{
-        {URL: "http://localhost:30081"},
+        {URL: "http://localhost:30090"},
     }
     client := raqeem.NewAPIClient(cfg)
     
@@ -977,13 +977,13 @@ curl -X POST http://localhost:30080/api/v1/alerts \
 
 ```bash
 # List all devices
-curl http://localhost:30081/devices
+curl http://localhost:30090/devices
 
 # Get device metrics
-curl http://localhost:30081/devices/laptop-001/metrics?limit=10
+curl http://localhost:30090/devices/laptop-001/metrics?limit=10
 
 # Get device alerts
-curl http://localhost:30081/devices/laptop-001/alerts?level=high
+curl http://localhost:30090/devices/laptop-001/alerts?level=high
 ```
 
 ### Python Example
@@ -1170,7 +1170,7 @@ Features:
 
 Access interactive API documentation for the Mentor Backend:
 
-**URL**: `http://localhost:30081/docs` or `http://localhost:30081/swagger/index.html`
+**URL**: `http://localhost:30090/docs` or `http://localhost:30090/swagger/index.html`
 
 Features:
 - Try out API calls directly in the browser
@@ -1181,7 +1181,7 @@ Features:
 
 Download the OpenAPI specifications directly:
 - **Devices Backend**: `http://localhost:30080/openapi.json`
-- **Mentor Backend**: `http://localhost:30081/swagger/doc.json`
+- **Mentor Backend**: `http://localhost:30090/swagger/doc.json`
 
 ## Best Practices
 

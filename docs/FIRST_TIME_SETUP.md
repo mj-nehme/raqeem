@@ -68,7 +68,7 @@ You should see output showing your cluster is running. If not:
 
 The smart discovery system uses intelligent defaults:
 - Frontend ports: Auto-detected starting from 4000, 5000
-- Backend ports: Stable Kubernetes NodePort (30080, 30081)  
+- Backend ports: Stable Kubernetes NodePort (30080, 30090)  
 - Namespace: `default`
 - All other settings: Auto-configured
 
@@ -97,7 +97,7 @@ Once the start script completes, you'll see:
 
 📱 Discovered Services:
   - Devices Backend:   http://localhost:30080/docs
-  - Mentor Backend:    http://localhost:30081/health
+  - Mentor Backend:    http://localhost:30090/health
   - Mentor Dashboard:  http://localhost:5001
   - Device Simulator:  http://localhost:4000
 ```

@@ -60,8 +60,8 @@ GET  /devices/{device_id}/screenshots  → Get screenshot metadata (limit=50)
 ---
 
 ## Mentor Backend API (Go)
-**Base URL:** `http://localhost:30081`  
-**Docs:** http://localhost:30081/docs
+**Base URL:** `http://localhost:30090`  
+**Docs:** http://localhost:30090/docs
 
 ### Health Check
 ```
@@ -121,19 +121,19 @@ curl -X POST http://localhost:30080/api/v1/devices/a843a399-701f-5011-aff3-4b69d
 
 ### 3. View All Devices
 ```bash
-curl http://localhost:30081/devices
+curl http://localhost:30090/devices
 ```
 
 ### 4. Create Command
 ```bash
-curl -X POST http://localhost:30081/devices/commands \
+curl -X POST http://localhost:30090/devices/commands \
   -H "Content-Type: application/json" \
   -d '{"deviceid":"a843a399-701f-5011-aff3-4b69d8f21b11","command_text":"get_info"}'
 ```
 
 ### 5. Get Device Metrics
 ```bash
-curl http://localhost:30081/devices/a843a399-701f-5011-aff3-4b69d8f21b11/metrics?limit=60
+curl http://localhost:30090/devices/a843a399-701f-5011-aff3-4b69d8f21b11/metrics?limit=60
 ```
 
 ---
@@ -178,12 +178,12 @@ curl http://localhost:30081/devices/a843a399-701f-5011-aff3-4b69d8f21b11/metrics
 ## Data Flow
 
 ```
-Device → Devices Backend (30080) → Mentor Backend (30081) → Dashboard
+Device → Devices Backend (30080) → Mentor Backend (30090) → Dashboard
 ```
 
 ---
 
 For detailed documentation, visit:
 - Devices Backend: http://localhost:30080/docs
-- Mentor Backend: http://localhost:30081/docs
+- Mentor Backend: http://localhost:30090/docs
 - Full Guide: docs/API_INTEGRATION_GUIDE.md

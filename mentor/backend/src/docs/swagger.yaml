@@ -4,15 +4,15 @@ definitions:
     properties:
       activities:
         items:
-          $ref: '#/definitions/models.DeviceActivity'
+          $ref: "#/definitions/models.DeviceActivity"
         type: array
       alerts:
         items:
-          $ref: '#/definitions/models.DeviceAlert'
+          $ref: "#/definitions/models.DeviceAlert"
         type: array
       commands:
         items:
-          $ref: '#/definitions/models.DeviceRemoteCommand'
+          $ref: "#/definitions/models.DeviceRemoteCommand"
         type: array
       current_user:
         type: string
@@ -35,21 +35,21 @@ definitions:
       metrics:
         description: Relationships
         items:
-          $ref: '#/definitions/models.DeviceMetric'
+          $ref: "#/definitions/models.DeviceMetric"
         type: array
       os:
         type: string
       processes:
         items:
-          $ref: '#/definitions/models.DeviceProcess'
+          $ref: "#/definitions/models.DeviceProcess"
         type: array
       screenshots:
         items:
-          $ref: '#/definitions/models.DeviceScreenshot'
+          $ref: "#/definitions/models.DeviceScreenshot"
         type: array
       users:
         items:
-          $ref: '#/definitions/models.User'
+          $ref: "#/definitions/models.User"
         type: array
     type: object
   models.DeviceActivity:
@@ -179,7 +179,7 @@ definitions:
       username:
         type: string
     type: object
-host: localhost:30081
+host: localhost:30090
 info:
   contact:
     email: support@example.com
@@ -217,53 +217,53 @@ paths:
     get:
       description: Get a list of activities across all devices
       parameters:
-      - description: Filter by user ID
-        in: query
-        name: userid
-        type: string
-      - description: Filter by location
-        in: query
-        name: location
-        type: string
-      - description: Filter by start time (RFC3339 format)
-        in: query
-        name: start_time
-        type: string
-      - description: Filter by end time (RFC3339 format)
-        in: query
-        name: end_time
-        type: string
+        - description: Filter by user ID
+          in: query
+          name: userid
+          type: string
+        - description: Filter by location
+          in: query
+          name: location
+          type: string
+        - description: Filter by start time (RFC3339 format)
+          in: query
+          name: start_time
+          type: string
+        - description: Filter by end time (RFC3339 format)
+          in: query
+          name: end_time
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceActivity'
+              $ref: "#/definitions/models.DeviceActivity"
             type: array
       summary: List all activities
       tags:
-      - activities
+        - activities
   /commands/status:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Update the execution status of a remote command
       parameters:
-      - description: Command status update
-        in: body
-        name: status
-        required: true
-        schema:
-          $ref: '#/definitions/models.DeviceRemoteCommand'
+        - description: Command status update
+          in: body
+          name: status
+          required: true
+          schema:
+            $ref: "#/definitions/models.DeviceRemoteCommand"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.DeviceRemoteCommand'
+            $ref: "#/definitions/models.DeviceRemoteCommand"
         "400":
           description: Bad request - invalid JSON
           schema:
@@ -278,18 +278,18 @@ paths:
             type: object
       summary: Update command status
       tags:
-      - commands
+        - commands
   /devices:
     get:
       description: Get a list of all registered devices with their current status
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.Device'
+              $ref: "#/definitions/models.Device"
             type: array
         "500":
           description: Internal Server Error
@@ -299,29 +299,29 @@ paths:
             type: object
       summary: List all devices
       tags:
-      - devices
+        - devices
   /devices/{id}/activities:
     get:
       description: Get recent activity logs for a specific device
       parameters:
-      - description: Device ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - default: 100
-        description: Number of records to return
-        in: query
-        name: limit
-        type: integer
+        - description: Device ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
+        - default: 100
+          description: Number of records to return
+          in: query
+          name: limit
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceActivity'
+              $ref: "#/definitions/models.DeviceActivity"
             type: array
         "400":
           description: Bad request - invalid limit parameter
@@ -337,29 +337,29 @@ paths:
             type: object
       summary: Get device activities
       tags:
-      - devices
+        - devices
   /devices/{id}/alerts:
     get:
       description: Get recent alerts for a specific device
       parameters:
-      - description: Device ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - default: 100
-        description: Number of records to return
-        in: query
-        name: limit
-        type: integer
+        - description: Device ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - default: 100
+          description: Number of records to return
+          in: query
+          name: limit
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceAlert'
+              $ref: "#/definitions/models.DeviceAlert"
             type: array
         "400":
           description: Bad Request
@@ -375,31 +375,32 @@ paths:
             type: object
       summary: Get device alerts
       tags:
-      - devices
+        - devices
     post:
       consumes:
-      - application/json
-      description: Submit an alert from a device (threshold breach, error condition,
+        - application/json
+      description:
+        Submit an alert from a device (threshold breach, error condition,
         etc.)
       parameters:
-      - description: Device ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - description: Alert information
-        in: body
-        name: alert
-        required: true
-        schema:
-          $ref: '#/definitions/models.DeviceAlert'
+        - description: Device ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
+        - description: Alert information
+          in: body
+          name: alert
+          required: true
+          schema:
+            $ref: "#/definitions/models.DeviceAlert"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.DeviceAlert'
+            $ref: "#/definitions/models.DeviceAlert"
         "400":
           description: Bad request - invalid JSON
           schema:
@@ -414,29 +415,29 @@ paths:
             type: object
       summary: Report device alert
       tags:
-      - devices
+        - devices
   /devices/{id}/commands:
     get:
       description: Get command execution history for a specific device
       parameters:
-      - description: Device ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - default: 100
-        description: Number of records to return
-        in: query
-        name: limit
-        type: integer
+        - description: Device ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
+        - default: 100
+          description: Number of records to return
+          in: query
+          name: limit
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceRemoteCommand'
+              $ref: "#/definitions/models.DeviceRemoteCommand"
             type: array
         "400":
           description: Bad request - invalid limit parameter
@@ -452,24 +453,24 @@ paths:
             type: object
       summary: Get device command history
       tags:
-      - commands
+        - commands
   /devices/{id}/commands/pending:
     get:
       description: Get all pending remote commands for a specific device
       parameters:
-      - description: Device ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
+        - description: Device ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceRemoteCommand'
+              $ref: "#/definitions/models.DeviceRemoteCommand"
             type: array
         "500":
           description: Internal server error
@@ -479,29 +480,29 @@ paths:
             type: object
       summary: Get pending commands
       tags:
-      - commands
+        - commands
   /devices/{id}/metrics:
     get:
       description: Get recent metrics for a specific device
       parameters:
-      - description: Device ID
-        in: path
-        name: id
-        required: true
-        type: string
-      - default: 60
-        description: Number of records to return
-        in: query
-        name: limit
-        type: integer
+        - description: Device ID
+          in: path
+          name: id
+          required: true
+          type: string
+        - default: 60
+          description: Number of records to return
+          in: query
+          name: limit
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceMetric'
+              $ref: "#/definitions/models.DeviceMetric"
             type: array
         "400":
           description: Bad Request
@@ -517,29 +518,29 @@ paths:
             type: object
       summary: Get device metrics
       tags:
-      - devices
+        - devices
   /devices/{id}/processes:
     get:
       description: Get the latest process list for a specific device
       parameters:
-      - description: Device ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - default: 100
-        description: Number of records to return
-        in: query
-        name: limit
-        type: integer
+        - description: Device ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
+        - default: 100
+          description: Number of records to return
+          in: query
+          name: limit
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceProcess'
+              $ref: "#/definitions/models.DeviceProcess"
             type: array
         "400":
           description: Bad request - invalid limit parameter
@@ -555,24 +556,25 @@ paths:
             type: object
       summary: Get device processes
       tags:
-      - devices
+        - devices
   /devices/{id}/screenshots:
     get:
-      description: Get recent screenshot metadata for a specific device with presigned
+      description:
+        Get recent screenshot metadata for a specific device with presigned
         URLs
       parameters:
-      - description: Device ID (UUID)
-        in: path
-        name: id
-        required: true
-        type: string
-      - default: 50
-        description: Number of records to return
-        in: query
-        name: limit
-        type: integer
+        - description: Device ID (UUID)
+          in: path
+          name: id
+          required: true
+          type: string
+        - default: 50
+          description: Number of records to return
+          in: query
+          name: limit
+          type: integer
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: Array of screenshot metadata with presigned URLs
@@ -594,26 +596,26 @@ paths:
             type: object
       summary: Get device screenshots
       tags:
-      - devices
+        - devices
   /devices/activity:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Record user activity on a device (file access, app usage, etc.)
       parameters:
-      - description: Activity information
-        in: body
-        name: activity
-        required: true
-        schema:
-          $ref: '#/definitions/models.DeviceActivity'
+        - description: Activity information
+          in: body
+          name: activity
+          required: true
+          schema:
+            $ref: "#/definitions/models.DeviceActivity"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.DeviceActivity'
+            $ref: "#/definitions/models.DeviceActivity"
         "400":
           description: Bad request - invalid JSON
           schema:
@@ -628,26 +630,26 @@ paths:
             type: object
       summary: Log device activity
       tags:
-      - devices
+        - devices
   /devices/commands:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Queue a command for execution on a specific device
       parameters:
-      - description: Command to execute
-        in: body
-        name: command
-        required: true
-        schema:
-          $ref: '#/definitions/models.DeviceRemoteCommand'
+        - description: Command to execute
+          in: body
+          name: command
+          required: true
+          schema:
+            $ref: "#/definitions/models.DeviceRemoteCommand"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.DeviceRemoteCommand'
+            $ref: "#/definitions/models.DeviceRemoteCommand"
         "400":
           description: Bad request - invalid JSON
           schema:
@@ -662,26 +664,26 @@ paths:
             type: object
       summary: Create remote command
       tags:
-      - commands
+        - commands
   /devices/metrics:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Store performance metrics for a device (CPU, memory, disk, network)
       parameters:
-      - description: Device metrics
-        in: body
-        name: metrics
-        required: true
-        schema:
-          $ref: '#/definitions/models.DeviceMetric'
+        - description: Device metrics
+          in: body
+          name: metrics
+          required: true
+          schema:
+            $ref: "#/definitions/models.DeviceMetric"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.DeviceMetric'
+            $ref: "#/definitions/models.DeviceMetric"
         "400":
           description: Bad request - invalid JSON
           schema:
@@ -696,29 +698,29 @@ paths:
             type: object
       summary: Submit device metrics
       tags:
-      - devices
+        - devices
   /devices/processes:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Replace the current process list for a device with a new snapshot
       parameters:
-      - description: List of running processes
-        in: body
-        name: processes
-        required: true
-        schema:
-          items:
-            $ref: '#/definitions/models.DeviceProcess'
-          type: array
+        - description: List of running processes
+          in: body
+          name: processes
+          required: true
+          schema:
+            items:
+              $ref: "#/definitions/models.DeviceProcess"
+            type: array
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
             items:
-              $ref: '#/definitions/models.DeviceProcess'
+              $ref: "#/definitions/models.DeviceProcess"
             type: array
         "400":
           description: Bad request - invalid JSON or device ID
@@ -734,26 +736,26 @@ paths:
             type: object
       summary: Update device process list
       tags:
-      - devices
+        - devices
   /devices/register:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Register a new device or update existing device information
       parameters:
-      - description: Device information
-        in: body
-        name: device
-        required: true
-        schema:
-          $ref: '#/definitions/models.Device'
+        - description: Device information
+          in: body
+          name: device
+          required: true
+          schema:
+            $ref: "#/definitions/models.Device"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.Device'
+            $ref: "#/definitions/models.Device"
         "400":
           description: Bad Request
           schema:
@@ -768,26 +770,26 @@ paths:
             type: object
       summary: Register a device
       tags:
-      - devices
+        - devices
   /devices/screenshots:
     post:
       consumes:
-      - application/json
+        - application/json
       description: Store screenshot metadata (typically forwarded from devices backend)
       parameters:
-      - description: Screenshot metadata
-        in: body
-        name: screenshot
-        required: true
-        schema:
-          $ref: '#/definitions/models.DeviceScreenshot'
+        - description: Screenshot metadata
+          in: body
+          name: screenshot
+          required: true
+          schema:
+            $ref: "#/definitions/models.DeviceScreenshot"
       produces:
-      - application/json
+        - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.DeviceScreenshot'
+            $ref: "#/definitions/models.DeviceScreenshot"
         "400":
           description: Bad request - invalid JSON
           schema:
@@ -802,15 +804,15 @@ paths:
             type: object
       summary: Store screenshot metadata
       tags:
-      - devices
+        - devices
 schemes:
-- http
-- https
+  - http
+  - https
 swagger: "2.0"
 tags:
-- description: Device registration, status, and telemetry endpoints
-  name: devices
-- description: Remote command execution and status tracking
-  name: commands
-- description: Activity logging and retrieval across all devices
-  name: activities
+  - description: Device registration, status, and telemetry endpoints
+    name: devices
+  - description: Remote command execution and status tracking
+    name: commands
+  - description: Activity logging and retrieval across all devices
+    name: activities
