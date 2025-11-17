@@ -101,7 +101,7 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         existing.current_user = payload.get("current_user") or existing.current_user
         db.add(existing)
         await db.commit()
-        result = {"deviceid": final_id, "updated": True}
+        result = {"deviceid": str(final_id), "updated": True}
     else:
         obj = dev_models.Device(
             deviceid=device_id,
@@ -117,12 +117,12 @@ async def register_device(payload: dict, db: AsyncSession = Depends(get_db)):
         )
         db.add(obj)
         await db.commit()
-        result = {"deviceid": final_id, "created": True}
+        result = {"deviceid": str(final_id), "created": True}
 
     # Forward registration to mentor backend if configured (best-effort, non-blocking)
     if settings.mentor_api_url:
         fwd = dict(payload)
-        fwd["deviceid"] = final_id
+        fwd["deviceid"] = str(final_id)
         # Use retry logic for forwarding to mentor backend
         await post_with_retry(
             f"{settings.mentor_api_url}/devices/register",
