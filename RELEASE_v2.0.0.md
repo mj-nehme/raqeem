@@ -290,5 +290,42 @@ If critical issues are discovered post-release:
 ---
 
 **Document Created**: 2025-11-17  
-**Status**: Planning phase  
+**Status**: Planning phase - Version updates complete
 **Next Review**: After scope definition
+
+---
+
+## Quick Reference
+
+### Version Information
+- **Current Version**: 2.0.0
+- **Previous Version**: 0.2.0
+- **Release Type**: Major release
+
+### Key Files Updated
+- `VERSION` - Main version file
+- `CHANGELOG.md` - Release notes
+- `RELEASE_CHECKLIST.md` - Release process
+- Frontend: `mentor/frontend/package.json`, `devices/frontend/package.json`
+- Helm: All 4 Chart.yaml files
+
+### Commands for Release (When Ready)
+```bash
+# Create and push release tag
+./scripts/tag-release.sh v2.0.0
+git push origin v2.0.0
+git push origin master
+
+# Deploy with new version
+echo "IMAGE_TAG=v2.0.0" > .deploy/tag.env
+./start.sh
+```
+
+### Container Images (Will be created at release)
+- `ghcr.io/mj-nehme/raqeem/devices-backend:2.0.0`
+- `ghcr.io/mj-nehme/raqeem/mentor-backend:2.0.0`
+
+### Links
+- [CHANGELOG.md](./CHANGELOG.md) - Full changelog
+- [RELEASE_CHECKLIST.md](./RELEASE_CHECKLIST.md) - Release process
+- [GitHub Releases](https://github.com/mj-nehme/raqeem/releases) - Published releases
