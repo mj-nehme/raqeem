@@ -3,7 +3,7 @@
 
 find_available_port() {
   local start_port=$1
-  local max_attempts=${2:-50}
+  local max_attempts=${2:-5}
   
   for ((i=0; i<max_attempts; i++)); do
     local port=$((start_port + i))
@@ -13,7 +13,7 @@ find_available_port() {
     fi
   done
   
-  echo "ERROR: No available port found starting from $start_port" >&2
+  echo "ERROR: No available port found in range $start_port-$((start_port + max_attempts - 1))" >&2
   return 1
 }
 

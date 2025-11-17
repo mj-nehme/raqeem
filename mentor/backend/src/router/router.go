@@ -4,6 +4,7 @@ import (
 	"mentor-backend/controllers"
 	"mentor-backend/logging"
 	"os"
+	"regexp"
 	"strings"
 	"time"
 
@@ -54,12 +55,15 @@ func (r *Router) setupCORS() {
 		}
 	}
 
+	// Check for regex pattern (e.g. ^http://localhost:(4000|4001|4002|4003|4004)$)
+	originRegex := os.Getenv("FRONTEND_ORIGIN_REGEX")
+
 	// Development fallback: if nothing specified, use explicit localhost not wildcard.
-	if len(origins) == 0 {
+	if len(origins) == 0 && originRegex == "" {
 		origins = []string{"http://localhost:4000"}
 	}
 
-	wildcard := len(origins) == 1 && origins[0] == "*"
+	wildcard := (len(origins) == 1 && origins[0] == "*") || originRegex == ".*"
 
 	// Credentials only when not wildcard & env requests it.
 	allowCredEnv := strings.ToLower(os.Getenv("CORS_ALLOW_CREDENTIALS"))
@@ -108,14 +112,26 @@ func (r *Router) setupCORS() {
 		}
 	}
 
-	r.engine.Use(cors.New(cors.Config{
-		AllowOrigins:     origins,
+	corsConfig := cors.Config{
 		AllowMethods:     methods,
 		AllowHeaders:     allowHeaders,
 		ExposeHeaders:    exposeHeaders,
 		AllowCredentials: allowCredentials,
 		MaxAge:           maxAge,
-	}))
+	}
+
+	// Use regex pattern if provided, otherwise use explicit origins
+	if originRegex != "" {
+		corsConfig.AllowOriginFunc = func(origin string) bool {
+			// Simple regex matching - in production you'd want to compile this once
+			matched, err := regexp.MatchString(originRegex, origin)
+			return err == nil && matched
+		}
+	} else {
+		corsConfig.AllowOrigins = origins
+	}
+
+	r.engine.Use(cors.New(corsConfig))
 }
 
 // setupSwagger configures Swagger documentation routes

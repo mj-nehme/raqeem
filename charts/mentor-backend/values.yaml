@@ -38,6 +38,11 @@ minio:
 # Default development ports that start-smart.sh typically detects
 frontendOrigin: "http://localhost:5000,http://localhost:5001,http://localhost:5002"
 
+# Optional: CORS regex pattern to match allowed origins (takes precedence over frontendOrigin)
+# Example: "^http://localhost:(4000|4001|4002|4003|4004|5000|5001|5002|5003|5004)$"
+# This allows dynamic ports within a limited range, solving CORS issues with port discovery
+frontendOriginRegex: ""
+
 nodeSelector: {}
 
 tolerations: []

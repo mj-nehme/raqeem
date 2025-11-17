@@ -61,6 +61,10 @@ spec:
               value: {{ .Values.minio.bucket | quote }}
             - name: FRONTEND_ORIGINS
               value: {{ .Values.frontendOrigins | default "http://localhost:14000" | quote }}
+            {{- if .Values.frontendOriginRegex }}
+            - name: FRONTEND_ORIGIN_REGEX
+              value: {{ .Values.frontendOriginRegex | quote }}
+            {{- end }}
             {{- if .Values.env }}
             {{- range $key, $val := .Values.env }}
             - name: {{ $key }}
