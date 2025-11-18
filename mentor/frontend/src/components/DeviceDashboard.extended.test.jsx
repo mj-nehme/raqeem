@@ -72,27 +72,27 @@ const mockProcesses = [
 
 const mockActivities = [
     {
-        id: 1,
+        activityid: 1,
         description: 'User logged in',
-        type: 'authentication',
+        activity_type: 'authentication',
         timestamp: '2024-01-01T12:00:00Z'
     },
     {
-        id: 2,
+        activityid: 2,
         description: 'File accessed: document.pdf',
-        type: 'file_access',
+        activity_type: 'file_access',
         timestamp: '2024-01-01T11:30:00Z'
     }
 ]
 
 const mockScreenshots = [
     {
-        id: 1,
+        screenshotid: 1,
         screenshot_url: 'http://example.com/screenshot1.jpg',
         timestamp: '2024-01-01T12:00:00Z'
     },
     {
-        id: 2,
+        screenshotid: 2,
         url: 'http://example.com/screenshot2.jpg',
         created_at: '2024-01-01T11:30:00Z'
     }
@@ -100,21 +100,21 @@ const mockScreenshots = [
 
 const mockCommands = [
     {
-        id: 1,
-        command: 'get_info',
+        commandid: 1,
+        command_text: 'get_info',
         status: 'completed',
         result: 'System info retrieved successfully',
         created_at: '2024-01-01T12:00:00Z'
     },
     {
-        id: 2,
-        command: 'restart',
+        commandid: 2,
+        command_text: 'restart',
         status: 'pending',
         created_at: '2024-01-01T11:30:00Z'
     },
     {
-        id: 3,
-        command: 'update',
+        commandid: 3,
+        command_text: 'update',
         status: 'failed',
         created_at: '2024-01-01T11:00:00Z'
     }
@@ -122,13 +122,12 @@ const mockCommands = [
 
 describe('DeviceDashboard Extended Tests', () => {
     beforeEach(() => {
-        vi.clearAllMocks()
         fetch.mockClear()
+        fetch.mockReset()
     })
 
     afterEach(() => {
         cleanup()
-        vi.restoreAllMocks()
     })
 
     test('displays processes tab with process list', async () => {
@@ -357,7 +356,7 @@ describe('DeviceDashboard Extended Tests', () => {
                 expect.objectContaining({
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ device_id: 'device-1', command_text: 'test_command' })
+                    body: JSON.stringify({ deviceid: 'device-1', command_text: 'test_command' })
                 })
             )
         })
@@ -452,6 +451,10 @@ describe('DeviceDashboard Extended Tests', () => {
                 ok: true,
                 json: async () => []
             })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
+            })
             .mockResolvedValue({
                 ok: true,
                 json: async () => []
@@ -485,6 +488,10 @@ describe('DeviceDashboard Extended Tests', () => {
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockMetrics
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
             })
             .mockResolvedValueOnce({
                 ok: true,
@@ -556,10 +563,18 @@ describe('DeviceDashboard Extended Tests', () => {
                 ok: true,
                 json: async () => []
             })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
+            })
             // Second fetch for refresh
             .mockResolvedValueOnce({
                 ok: true,
                 json: async () => mockMetrics
+            })
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => []
             })
             .mockResolvedValueOnce({
                 ok: true,
@@ -614,10 +629,15 @@ describe('DeviceDashboard Extended Tests', () => {
             { id: '3', deviceid: '3', device_name: 'Desktop Device', device_type: 'desktop', is_online: true }
         ]
 
-        fetch.mockResolvedValue({
-            ok: true,
-            json: async () => devicesWithTypes
-        })
+        fetch
+            .mockResolvedValueOnce({
+                ok: true,
+                json: async () => devicesWithTypes
+            })
+            .mockResolvedValue({
+                ok: true,
+                json: async () => devicesWithTypes
+            })
 
         render(<DeviceDashboard />)
 
