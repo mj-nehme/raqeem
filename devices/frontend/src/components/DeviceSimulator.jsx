@@ -13,6 +13,7 @@ function DeviceSimulator() {
     const [isRegistered, setIsRegistered] = useState(false);
     const [isRunning, setIsRunning] = useState(false);
     const [logs, setLogs] = useState([]);
+    const [selectedFile, setSelectedFile] = useState(null);
     const [stats, setStats] = useState({
         metricsCount: 0,
         activitiesCount: 0,
@@ -186,12 +187,42 @@ function DeviceSimulator() {
                 if (response.ok) {
                     setStats(prev => ({ ...prev, screenshotsCount: prev.screenshotsCount + 1 }));
                     addLog('📸 Screenshot uploaded', 'success');
+                } else {
+                    addLog('✗ Screenshot upload failed', 'error');
                 }
             }, 'image/png');
         } catch (error) {
             addLog(`✗ Screenshot error: ${error.message}`, 'error');
         }
     }, [deviceId, addLog]);
+
+    const uploadImageFile = useCallback(async () => {
+        if (!selectedFile) {
+            addLog('⚠️ Please select a file first', 'warning');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('device_id', deviceId);
+            formData.append('file', selectedFile);
+
+            const response = await fetch(`${API_BASE_URL}/screenshots`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                setStats(prev => ({ ...prev, screenshotsCount: prev.screenshotsCount + 1 }));
+                addLog(`📸 Image file uploaded: ${selectedFile.name}`, 'success');
+                setSelectedFile(null);
+            } else {
+                addLog('✗ Image upload failed', 'error');
+            }
+        } catch (error) {
+            addLog(`✗ Upload error: ${error.message}`, 'error');
+        }
+    }, [deviceId, selectedFile, addLog]);
 
     const executeCommand = useCallback(async (cmd) => {
         try {
@@ -540,6 +571,33 @@ function DeviceSimulator() {
                                 disabled={!isRegistered}
                             >
                                 📸 Send Screenshot
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="manual-controls">
+                        <h3>Upload Image File</h3>
+                        <div className="form-group">
+                            <input
+                                type="file"
+                                accept="image/png,image/jpeg"
+                                onChange={(e) => setSelectedFile(e.target.files[0])}
+                                disabled={!isRegistered}
+                                style={{ marginBottom: '10px' }}
+                            />
+                            {selectedFile && (
+                                <p style={{ fontSize: '14px', color: '#666' }}>
+                                    Selected: {selectedFile.name}
+                                </p>
+                            )}
+                        </div>
+                        <div className="button-group">
+                            <button
+                                className="btn btn-small"
+                                onClick={uploadImageFile}
+                                disabled={!isRegistered || !selectedFile}
+                            >
+                                🖼️ Upload Image
                             </button>
                         </div>
                     </div>
