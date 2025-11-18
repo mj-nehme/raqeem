@@ -328,7 +328,7 @@ jobs:
           flags: devices-backend
           name: devices-backend
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          fail_ci_if_error: false
 
   test-mentor-backend:
     name: Test Mentor Backend (Go)

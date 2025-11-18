@@ -7,6 +7,7 @@ Provides file storage operations for screenshots and other binary data with:
 - Structured logging
 """
 
+import os
 from typing import cast
 
 from app.core.config import settings
@@ -36,6 +37,9 @@ class MinioURLError(MinioServiceError):
     """Exception raised when presigned URL generation fails."""
 
 
+SKIP_MINIO = os.getenv("MINIO_SKIP_CONNECT") == "1"
+
+
 class MinioService:
     """Service for interacting with MinIO object storage.
 
@@ -53,15 +57,20 @@ class MinioService:
 
     def __init__(self):
         """Initialize MinIO client and ensure bucket exists."""
+        self.bucket_name = "raqeem-screenshots"
+        if SKIP_MINIO:
+            logger.info(
+                "MINIO_SKIP_CONNECT=1 detected - skipping MinIO connectivity and bucket check",
+                extra={"bucket": self.bucket_name},
+            )
+            self.client = None  # type: ignore
+            return
+
         try:
             logger.info(
                 "Initializing MinIO service",
-                extra={
-                    "endpoint": settings.minio_endpoint,
-                    "secure": settings.minio_secure,
-                },
+                extra={"endpoint": settings.minio_endpoint, "secure": settings.minio_secure},
             )
-
             self.client = Minio(
                 endpoint=settings.minio_endpoint,
                 access_key=settings.minio_access_key,
@@ -69,6 +78,7 @@ class MinioService:
                 secure=settings.minio_secure,
             )
             logger.info("MinIO client initialized successfully")
+            self._ensure_bucket()
         except Exception as e:
             logger.error(
                 "Failed to initialize MinIO client",
@@ -78,15 +88,19 @@ class MinioService:
             msg = f"MinIO client initialization failed: {e}"
             raise MinioServiceError(msg) from e
 
-        self.bucket_name = "raqeem-screenshots"
-        self._ensure_bucket()
-
     def _ensure_bucket(self):
         """Ensure the storage bucket exists, create if necessary.
 
         Raises:
             MinioServiceError: If bucket check or creation fails.
         """
+        if SKIP_MINIO:
+            # Short-circuit upload during tests when connectivity is skipped
+            logger.debug(
+                "Skipping MinIO upload (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name, "file_path": file_path},
+            )
+            return object_name
         try:
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
@@ -123,6 +137,12 @@ class MinioService:
             >>> service.upload_file("/tmp/image.png", "device123/image.png")
             "device123/image.png"
         """
+        if SKIP_MINIO:
+            logger.debug(
+                "Skipping MinIO remove (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name},
+            )
+            return
         try:
             logger.info(
                 "Uploading file to MinIO",
@@ -174,6 +194,13 @@ class MinioService:
         Example:
             >>> service.remove_file("device123/image.png")
         """
+        if SKIP_MINIO:
+            logger.debug(
+                "Skipping presigned URL generation (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name, "expires": expires},
+            )
+            # Return deterministic placeholder URL for tests
+            return f"http://localhost/minio/{object_name}"
         try:
             logger.info(
                 "Removing file from MinIO",
