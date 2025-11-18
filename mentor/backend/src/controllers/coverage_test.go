@@ -331,7 +331,7 @@ func TestCreateRemoteCommandSuccess(t *testing.T) {
 	// Create command
 	command := models.DeviceRemoteCommand{
 		DeviceID:    sampleUUID,
-		CommandText: "ls -la",
+		CommandText: "get_info",
 		Status:      "pending",
 	}
 
