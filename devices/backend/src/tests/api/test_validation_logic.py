@@ -76,8 +76,8 @@ class TestDeviceRegistrationLogic:
 
     def test_datetime_generation(self):
         """Test datetime generation for timestamps."""
-        now1 = datetime.datetime.utcnow()
-        now2 = datetime.datetime.utcnow()
+        now1 = datetime.datetime.now(datetime.UTC)
+        now2 = datetime.datetime.now(datetime.UTC)
 
         # Should be very close in time
         diff = (now2 - now1).total_seconds()
