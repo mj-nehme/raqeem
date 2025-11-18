@@ -98,7 +98,7 @@ class TestDeviceRegistrationValidation:
         """Test error handling with malformed JSON."""
         response = client.post(
             "/api/v1/devices/register",
-            data="not-json",
+            content="not-json",
             headers={"Content-Type": "application/json"},
         )
         assert response.status_code == 422  # FastAPI validation error
