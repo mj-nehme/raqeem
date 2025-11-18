@@ -77,6 +77,8 @@ export default function DeviceDashboard() {
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
     const [tabValue, setTabValue] = useState(0);
+    const [commandError, setCommandError] = useState('');
+    const [commandSuccess, setCommandSuccess] = useState(false);
 
     // Poll devices list
     useEffect(() => {
@@ -163,15 +165,27 @@ export default function DeviceDashboard() {
 
     const sendCommand = async () => {
         if (!command.trim() || !selectedDevice) return;
+        setCommandError('');
+        setCommandSuccess(false);
         try {
-            await fetch(`${BACKEND_URL}/devices/commands`, {
+            const response = await fetch(`${BACKEND_URL}/devices/commands`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ device_id: selectedDevice.deviceid, command_text: command }),
+                body: JSON.stringify({ deviceid: selectedDevice.deviceid, command_text: command }),
             });
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || `Failed to send command: ${response.statusText}`);
+            }
             setCommand('');
+            setCommandSuccess(true);
+            // Clear success message after 3 seconds
+            setTimeout(() => setCommandSuccess(false), 3000);
+            // Refresh command list immediately
+            fetchDeviceDetails();
         } catch (err) {
             console.error('Failed to send command:', err);
+            setCommandError(err.message || 'Failed to send command');
         }
     };
 
@@ -441,6 +455,19 @@ export default function DeviceDashboard() {
                                             {tabValue === 4 && (
                                                 <Box>
                                                     <Typography variant="h6" gutterBottom>Commands</Typography>
+                                                    
+                                                    {commandError && (
+                                                        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setCommandError('')}>
+                                                            {commandError}
+                                                        </Alert>
+                                                    )}
+                                                    
+                                                    {commandSuccess && (
+                                                        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setCommandSuccess(false)}>
+                                                            Command sent successfully!
+                                                        </Alert>
+                                                    )}
+                                                    
                                                     <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 3 }}>
                                                         <TextField
                                                             fullWidth
@@ -464,7 +491,7 @@ export default function DeviceDashboard() {
                                                     ) : (
                                                         <List>
                                                             {commands.map((cmd) => (
-                                                                <ListItem key={cmd.id} divider>
+                                                                <ListItem key={cmd.commandid} divider>
                                                                     <ListItemIcon>
                                                                         {cmd.status === 'completed' ? (
                                                                             <Info color="success" />
@@ -477,7 +504,7 @@ export default function DeviceDashboard() {
                                                                         )}
                                                                     </ListItemIcon>
                                                                     <ListItemText
-                                                                        primary={cmd.command}
+                                                                        primary={cmd.command_text}
                                                                         secondary={
                                                                             <>
                                                                                 <Typography component="span" variant="body2" color="text.primary">
