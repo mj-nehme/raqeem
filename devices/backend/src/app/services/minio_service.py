@@ -63,7 +63,7 @@ class MinioService:
                 "MINIO_SKIP_CONNECT=1 detected - skipping MinIO connectivity and bucket check",
                 extra={"bucket": self.bucket_name},
             )
-            self.client = None  # type: ignore
+            self.client = None  # type: ignore[assignment]
             return
 
         try:
@@ -95,12 +95,12 @@ class MinioService:
             MinioServiceError: If bucket check or creation fails.
         """
         if SKIP_MINIO:
-            # Short-circuit upload during tests when connectivity is skipped
+            # Short-circuit bucket check during tests when connectivity is skipped
             logger.debug(
-                "Skipping MinIO upload (MINIO_SKIP_CONNECT=1)",
-                extra={"bucket": self.bucket_name, "object_name": object_name, "file_path": file_path},
+                "Skipping MinIO bucket check (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name},
             )
-            return object_name
+            return
         try:
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
@@ -139,10 +139,10 @@ class MinioService:
         """
         if SKIP_MINIO:
             logger.debug(
-                "Skipping MinIO remove (MINIO_SKIP_CONNECT=1)",
-                extra={"bucket": self.bucket_name, "object_name": object_name},
+                "Skipping MinIO upload (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name, "file_path": file_path},
             )
-            return
+            return None
         try:
             logger.info(
                 "Uploading file to MinIO",
@@ -196,11 +196,10 @@ class MinioService:
         """
         if SKIP_MINIO:
             logger.debug(
-                "Skipping presigned URL generation (MINIO_SKIP_CONNECT=1)",
-                extra={"bucket": self.bucket_name, "object_name": object_name, "expires": expires},
+                "Skipping MinIO remove (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name},
             )
-            # Return deterministic placeholder URL for tests
-            return f"http://localhost/minio/{object_name}"
+            return
         try:
             logger.info(
                 "Removing file from MinIO",
