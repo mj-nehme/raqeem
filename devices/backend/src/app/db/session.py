@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
@@ -47,7 +48,7 @@ is_test_mode = os.getenv("PYTEST_CURRENT_TEST") is not None
 poolclass = NullPool if is_test_mode else AsyncAdaptedQueuePool
 
 # Build engine kwargs based on pool type
-engine_kwargs = {
+engine_kwargs: dict[str, Any] = {
     "echo": os.getenv("DB_ECHO", "false").lower() == "true",
     "poolclass": poolclass,
 }

@@ -37,7 +37,7 @@ async def test_create_screenshot_file_upload(mock_minio):
     assert data["status"] == "success"
     assert "id" in data
     assert "image_url" in data
-    
+
     # Verify MinIO upload was called
     mock_minio.upload_file.assert_called_once()
 
@@ -58,6 +58,6 @@ async def test_create_screenshot_file_upload_jpg(mock_minio):
             files={"file": ("screenshot.jpg", fake_image, "image/jpeg")},
         )
     assert response.status_code == 201
-    
+
     # Verify MinIO upload was called
     mock_minio.upload_file.assert_called_once()
