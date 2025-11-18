@@ -1,8 +1,8 @@
-# Raqeem v0.1.0 - Package Release
+# Raqeem v0.2.0 - Package Release
 
 ## Quick Summary
 
-Raqeem is a full-stack IoT device monitoring platform with real-time telemetry, alerts, and analytics. This release represents the first stable version with comprehensive test coverage, clean code, and production-ready features.
+Raqeem is a full-stack IoT device monitoring platform with real-time telemetry, alerts, and analytics. This release includes enhanced reliability, comprehensive test coverage, and consistent Swagger/OpenAPI documentation across all backends.
 
 ## What's Included
 
@@ -23,18 +23,19 @@ Raqeem is a full-stack IoT device monitoring platform with real-time telemetry, 
 - Built-in device simulator
 
 ### Test Coverage
-- 189 backend unit tests (Python)
-- All Go backend tests passing
-- 76 devices frontend tests
-- 23 mentor frontend tests
-- 15 integration tests
-- **Total: 297+ tests**
+- Comprehensive test suite with 310+ tests
+- Backend unit tests (Python and Go)
+- Frontend tests (Devices and Mentor)
+- Integration and end-to-end tests
+- Battle-tested validation
+- **90% coverage target maintained**
 
 ### Code Quality
 - Clean linting (ruff, golangci-lint, ESLint)
 - Type checking with mypy
-- No critical issues or TODOs
-- Comprehensive documentation (9,960+ lines)
+- Comprehensive Swagger/OpenAPI documentation for all APIs
+- No critical security vulnerabilities
+- Detailed documentation
 
 ## Installation
 
@@ -104,6 +105,6 @@ MIT License - See [LICENSE](LICENSE) file
 
 ---
 
-**Version**: 0.1.0  
-**Release Date**: 2025-11-15  
+**Version**: 0.2.0  
+**Release Date**: 2025-11-16  
 **Status**: Stable

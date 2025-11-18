@@ -1,5 +1,7 @@
 # Raqeem API Integration Guide
 
+> **Integration Examples & Patterns** - For complete API reference, see [API.md](API.md). For quick reference, see [API_QUICK_REFERENCE.md](API_QUICK_REFERENCE.md)
+
 ## Overview
 
 This guide demonstrates how to integrate with the Raqeem monitoring platform's two backend APIs:
