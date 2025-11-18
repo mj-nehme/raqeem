@@ -913,6 +913,34 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/health/ready": {
+            "get": {
+                "description": "Validates database and MinIO connectivity",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "health"
+                ],
+                "summary": "Readiness health check",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "503": {
+                        "description": "Service Unavailable",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1221,9 +1249,4 @@ var SwaggerInfo = &swag.Spec{
 
 func init() {
 	swag.Register(SwaggerInfo.InstanceName(), SwaggerInfo)
-}
-
-// getDocTemplate returns the swagger documentation template for testing purposes
-func getDocTemplate() string {
-	return docTemplate
 }
