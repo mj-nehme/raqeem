@@ -1,6 +1,7 @@
 """Application configuration management using Pydantic Settings."""
 
 import logging
+from urllib.parse import urlparse
 
 from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -98,6 +99,55 @@ class Settings(BaseSettings):
             )
             raise ValueError(msg)
         return v
+
+    @field_validator("minio_endpoint")
+    @classmethod
+    def validate_minio_endpoint(cls, v: str) -> str:
+        """Validate and sanitize MinIO endpoint format.
+
+        Args:
+            v: MinIO endpoint string (may include protocol and/or path)
+
+        Returns:
+            Sanitized endpoint in host:port format
+
+        Raises:
+            ValueError: If endpoint contains a path component (not supported by MinIO client)
+
+        Note:
+            The MinIO Python client expects endpoint in 'host:port' format without protocol.
+            The protocol (HTTP/HTTPS) is determined by the 'secure' parameter.
+            This validator strips any protocol prefix but rejects paths as they are not supported.
+        """
+        # Strip whitespace
+        v = v.strip()
+
+        # Parse the endpoint to extract components
+        # If no scheme is present, add one temporarily for parsing
+        parsed = urlparse(v if "://" in v else f"http://{v}")
+
+        # Check for path component (not supported by MinIO client)
+        if parsed.path and parsed.path != "/":
+            msg = (
+                f"MINIO_ENDPOINT cannot contain a path component ('{parsed.path}'). "
+                "MinIO client only supports 'host:port' format. "
+                "Please remove the path from the endpoint."
+            )
+            raise ValueError(msg)
+
+        # Extract the netloc (host:port) without protocol
+        # If netloc is present (valid URL), use it; otherwise use original value
+        endpoint = parsed.netloc if parsed.netloc else v
+
+        # Log if we stripped the protocol for transparency
+        if v != endpoint:
+            logger.info(
+                "Sanitized MINIO_ENDPOINT by removing protocol: '%s' -> '%s'",
+                v,
+                endpoint,
+            )
+
+        return endpoint
 
     @field_validator("secret_key")
     @classmethod

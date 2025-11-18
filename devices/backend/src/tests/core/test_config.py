@@ -35,7 +35,7 @@ class TestSettingsWithoutDatabase:
         settings = Settings()
 
         assert settings.database_url == "postgresql+asyncpg://test:test@localhost/test"
-        assert settings.minio_endpoint == "http://localhost:9000"
+        assert settings.minio_endpoint == "localhost:9000"  # Protocol stripped by validator
         assert settings.minio_access_key == "test"
         assert settings.minio_secret_key == "test"
         assert settings.secret_key == "test-secret-key"
@@ -62,7 +62,7 @@ class TestSettingsWithoutDatabase:
         settings = Settings()
 
         assert settings.database_url == "postgresql+asyncpg://test:test@localhost/test"
-        assert settings.minio_endpoint == "http://localhost:9000"
+        assert settings.minio_endpoint == "localhost:9000"  # Protocol stripped by validator
         assert settings.minio_access_key == "test"
         assert settings.minio_secret_key == "test"
         assert settings.minio_secure is False
@@ -220,7 +220,7 @@ class TestSettingsWithoutDatabase:
         settings = Settings()
 
         assert settings.database_url == "postgresql+asyncpg://test:test@localhost/test"
-        assert settings.minio_endpoint == "https://s3.amazonaws.com"
+        assert settings.minio_endpoint == "s3.amazonaws.com"  # Protocol stripped by validator
         assert settings.minio_access_key == "AKIAIOSFODNN7EXAMPLE"
         assert settings.minio_secret_key == "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
         assert settings.minio_secure is True
@@ -263,7 +263,9 @@ class TestConfigurationValidation:
         from app.core.config import Settings
 
         settings = Settings()
-        assert settings.minio_endpoint.startswith("http://") or settings.minio_endpoint.startswith("https://")
+        # Validator now strips protocol, so we expect just host:port
+        assert settings.minio_endpoint == "localhost:9000"
+        assert "://" not in settings.minio_endpoint  # No protocol in sanitized endpoint
 
     @mock.patch.dict(
         os.environ,
@@ -334,7 +336,144 @@ class TestEnvironmentHandling:
 
         # Validators trim whitespace for better data quality
         assert settings.database_url == "postgresql+asyncpg://test:test@localhost/test"
-        assert settings.minio_endpoint == "  http://localhost:9000  "  # Not validated yet
+        assert settings.minio_endpoint == "localhost:9000"  # Trimmed and protocol stripped
         assert settings.minio_access_key == "  test  "  # Not validated
         assert settings.minio_secret_key == "  test  "  # Not validated
         assert settings.secret_key == "test-secret-key"  # Trimmed by validator
+
+
+class TestMinioEndpointValidation:
+    """Test MinIO endpoint validation and sanitization."""
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
+            "MINIO_ENDPOINT": "localhost:9000",
+            "MINIO_ACCESS_KEY": "test",
+            "MINIO_SECRET_KEY": "test",
+            "SECRET_KEY": "test-secret-key",
+        },
+        clear=True,
+    )
+    def test_endpoint_without_protocol(self):
+        """Test that endpoint without protocol is accepted as-is."""
+        from app.core.config import Settings
+
+        settings = Settings()
+        assert settings.minio_endpoint == "localhost:9000"
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
+            "MINIO_ENDPOINT": "http://localhost:9000",
+            "MINIO_ACCESS_KEY": "test",
+            "MINIO_SECRET_KEY": "test",
+            "SECRET_KEY": "test-secret-key",
+        },
+        clear=True,
+    )
+    def test_endpoint_with_http_protocol(self):
+        """Test that HTTP protocol is stripped from endpoint."""
+        from app.core.config import Settings
+
+        settings = Settings()
+        assert settings.minio_endpoint == "localhost:9000"
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
+            "MINIO_ENDPOINT": "https://s3.amazonaws.com",
+            "MINIO_ACCESS_KEY": "test",
+            "MINIO_SECRET_KEY": "test",
+            "SECRET_KEY": "test-secret-key",
+        },
+        clear=True,
+    )
+    def test_endpoint_with_https_protocol(self):
+        """Test that HTTPS protocol is stripped from endpoint."""
+        from app.core.config import Settings
+
+        settings = Settings()
+        assert settings.minio_endpoint == "s3.amazonaws.com"
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
+            "MINIO_ENDPOINT": "minio:9000",
+            "MINIO_ACCESS_KEY": "test",
+            "MINIO_SECRET_KEY": "test",
+            "SECRET_KEY": "test-secret-key",
+        },
+        clear=True,
+    )
+    def test_endpoint_with_service_name(self):
+        """Test that Docker service name endpoints work correctly."""
+        from app.core.config import Settings
+
+        settings = Settings()
+        assert settings.minio_endpoint == "minio:9000"
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
+            "MINIO_ENDPOINT": "http://localhost:9000/minio",
+            "MINIO_ACCESS_KEY": "test",
+            "MINIO_SECRET_KEY": "test",
+            "SECRET_KEY": "test-secret-key",
+        },
+        clear=True,
+    )
+    def test_endpoint_with_path_component_raises_error(self):
+        """Test that endpoint with path component raises ValidationError."""
+        from app.core.config import Settings
+
+        with pytest.raises(ValidationError) as exc_info:
+            Settings()
+
+        # Check that the error message mentions path component
+        error_str = str(exc_info.value)
+        assert "path component" in error_str.lower() or "/minio" in error_str
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
+            "MINIO_ENDPOINT": "  http://localhost:9000  ",
+            "MINIO_ACCESS_KEY": "test",
+            "MINIO_SECRET_KEY": "test",
+            "SECRET_KEY": "test-secret-key",
+        },
+        clear=True,
+    )
+    def test_endpoint_with_whitespace(self):
+        """Test that whitespace is trimmed and protocol stripped."""
+        from app.core.config import Settings
+
+        settings = Settings()
+        assert settings.minio_endpoint == "localhost:9000"
+        assert settings.minio_endpoint.strip() == settings.minio_endpoint  # No leading/trailing whitespace
+
+    @mock.patch.dict(
+        os.environ,
+        {
+            "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
+            "MINIO_ENDPOINT": "https://storage.example.com:9000",
+            "MINIO_ACCESS_KEY": "test",
+            "MINIO_SECRET_KEY": "test",
+            "SECRET_KEY": "test-secret-key",
+        },
+        clear=True,
+    )
+    def test_endpoint_with_custom_port(self):
+        """Test that custom ports are preserved."""
+        from app.core.config import Settings
+
+        settings = Settings()
+        assert settings.minio_endpoint == "storage.example.com:9000"
+        assert ":9000" in settings.minio_endpoint
+
