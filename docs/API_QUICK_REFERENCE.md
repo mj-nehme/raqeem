@@ -1,5 +1,7 @@
 # Raqeem API Quick Reference
 
+> **Quick Cheat Sheet** - For detailed documentation with examples and authentication, see [API.md](API.md)
+
 ## Devices Backend API (FastAPI)
 **Base URL:** `http://localhost:30080/api/v1`  
 **Docs:** http://localhost:30080/docs

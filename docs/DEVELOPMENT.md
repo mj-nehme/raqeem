@@ -143,6 +143,45 @@ cd devices/frontend
 VITE_DEVICES_API_URL=http://localhost:30080 npm run dev -- --port 5174
 ```
 
+### Local Docker Image Builds
+
+The platform uses **local Docker images** for development, eliminating external dependencies and authentication issues.
+
+**Automatic Build (Recommended)**:
+```bash
+./start.sh  # Automatically builds local images before deployment
+```
+
+**Manual Build**:
+```bash
+./scripts/build-local-images.sh  # Build without deploying
+```
+
+**Local Images Created**:
+- `raqeem/devices-backend:latest`
+- `raqeem/mentor-backend:latest`
+
+**Benefits**:
+- No GitHub Container Registry authentication needed
+- Faster iteration with immediate local builds
+- Works offline (after base images cached)
+- Simpler development workflow
+
+**Troubleshooting**:
+```bash
+# Verify local images exist
+docker images | grep raqeem
+
+# Rebuild if needed
+./scripts/build-local-images.sh
+
+# Delete old deployments if upgrading
+kubectl delete deployment mentor-backend devices-backend
+./start.sh
+```
+
+**Production Note**: For production deployments, use versioned images from GHCR (e.g., `ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0`). See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+
 ## Code Structure
 
 ### Repository Layout

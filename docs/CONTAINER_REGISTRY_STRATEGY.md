@@ -378,7 +378,7 @@ kubectl patch serviceaccount default \
 - [GHCR Migration Guide](./GHCR_MIGRATION.md) - Migration from DockerHub
 - [Deployment Guide](./DEPLOYMENT.md) - Production deployment
 - [Development Guide](./DEVELOPMENT.md) - Local development setup
-- [CI/CD Documentation](./.github/workflows/README.md) - Build pipeline
+- [CI/CD Documentation](./CI_CD_TESTING.md) - Build pipeline
 
 ## Support
 
