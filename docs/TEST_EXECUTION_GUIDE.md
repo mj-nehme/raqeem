@@ -614,7 +614,6 @@ Use this checklist before any release:
 - [tests/integration/README.md](../tests/integration/README.md) - Integration test details
 - [tests/battle/README.md](../tests/battle/README.md) - Battle test details
 - [TESTING.md](./TESTING.md) - Complete testing guide
-- [BATTLE_TESTED_VALIDATION.md](../BATTLE_TESTED_VALIDATION.md) - Testing validation report
 
 ---
 

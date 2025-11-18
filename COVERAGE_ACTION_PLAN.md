@@ -45,7 +45,7 @@
 ### Devices Frontend (62.31% → 90%)
 
 **Effort Estimate**: 8-10 hours
-**Uncovered Areas** (from TEST_COVERAGE_ANALYSIS_v0.2.0.md):
+**Uncovered Areas**:
 - Simulation interval logic (lines 368-380)
 - Auto-polling mechanism (lines 383-390)
 - Random data generation paths
@@ -254,10 +254,10 @@ t.Run("handles database error", func(t *testing.T) {
 
 ## References
 
-- [TEST_COVERAGE_ANALYSIS_v0.2.0.md](./TEST_COVERAGE_ANALYSIS_v0.2.0.md) - Detailed coverage analysis
 - [codecov.yml](./codecov.yml) - Codecov configuration
 - [.github/workflows/ci.yml](./.github/workflows/ci.yml) - CI pipeline configuration
-- [MVP_TEST_COVERAGE_REPORT.md](./MVP_TEST_COVERAGE_REPORT.md) - Historical coverage data
+- [docs/TESTING.md](./docs/TESTING.md) - Testing guide
+- [docs/TEST_COVERAGE_REPORT.md](./docs/TEST_COVERAGE_REPORT.md) - Coverage report
 
 ## Next Steps
 
