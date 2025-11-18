@@ -170,7 +170,7 @@ jobs:
   publish-images:
     name: Publish Images to GHCR
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
     needs:
       - build-artifacts
       - test-devices-backend
