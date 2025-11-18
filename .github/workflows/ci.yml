@@ -289,12 +289,12 @@ jobs:
         run: pytest -v --tb=short --cov=app --cov-report=xml:coverage.xml --cov-report=term --maxfail=1
       - name: Upload Python coverage to Codecov
         uses: codecov/codecov-action@v5
-        continue-on-error: true
         with:
           files: devices/backend/src/coverage.xml
           flags: devices-backend
           name: devices-backend
           token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 
   test-mentor-backend:
     name: Test Mentor Backend (Go)
@@ -340,12 +340,12 @@ jobs:
         run: go test ./... -v -race -coverprofile=coverage.out
       - name: Upload Go coverage to Codecov
         uses: codecov/codecov-action@v5
-        continue-on-error: true
         with:
           files: mentor/backend/src/coverage.out
           flags: mentor-backend
           name: mentor-backend
           token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 
   test-mentor-frontend:
     name: Test Mentor Frontend (React)
@@ -386,12 +386,12 @@ jobs:
 
       - name: Upload Mentor Frontend coverage to Codecov
         uses: codecov/codecov-action@v5
-        continue-on-error: true
         with:
           files: mentor/frontend/coverage/lcov.info
           flags: mentor-frontend
           name: mentor-frontend
           token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 
   test-devices-frontend:
     name: Test Devices Frontend (React)
@@ -431,10 +431,10 @@ jobs:
         run: npm run test:coverage -- --run
       - name: Upload Devices Frontend coverage to Codecov
         uses: codecov/codecov-action@v5
-        continue-on-error: true
         with:
           files: devices/frontend/coverage/lcov.info
           flags: devices-frontend
           name: devices-frontend
           token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 
