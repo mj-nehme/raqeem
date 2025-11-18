@@ -1,12 +1,23 @@
 import io
+from unittest.mock import MagicMock, patch
 
 import pytest
 from app.main import app
 from httpx import ASGITransport, AsyncClient
 
 
+@pytest.fixture
+def mock_minio():
+    """Fixture to mock MinIO service."""
+    with patch('app.api.v1.endpoints.screenshots.MinioService') as mock_minio_class:
+        mock_instance = MagicMock()
+        mock_instance.upload_file.return_value = "test-file-id.png"
+        mock_minio_class.return_value = mock_instance
+        yield mock_instance
+
+
 @pytest.mark.asyncio
-async def test_create_screenshot_file_upload():
+async def test_create_screenshot_file_upload(mock_minio):
     """Test uploading screenshot file."""
     # Create a fake image file
     fake_image = io.BytesIO(b"fake image content")
@@ -26,10 +37,13 @@ async def test_create_screenshot_file_upload():
     assert data["status"] == "success"
     assert "id" in data
     assert "image_url" in data
+    
+    # Verify MinIO upload was called
+    mock_minio.upload_file.assert_called_once()
 
 
 @pytest.mark.asyncio
-async def test_create_screenshot_file_upload_jpg():
+async def test_create_screenshot_file_upload_jpg(mock_minio):
     """Test uploading JPG screenshot file."""
     fake_image = io.BytesIO(b"fake jpg content")
     fake_image.name = "test.jpg"
@@ -44,3 +58,6 @@ async def test_create_screenshot_file_upload_jpg():
             files={"file": ("screenshot.jpg", fake_image, "image/jpeg")},
         )
     assert response.status_code == 201
+    
+    # Verify MinIO upload was called
+    mock_minio.upload_file.assert_called_once()
