@@ -5,7 +5,7 @@ replicaCount: 1
 
 image:
   repository: raqeem/devices-backend
-  tag: latest
+  tag: v0.2.0
   pullPolicy: Never
 
 service:
