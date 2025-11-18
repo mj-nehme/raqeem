@@ -1,97 +1,88 @@
-# Release Checklist for v0.2.0
+# Release Checklist Template
 
-> **Note**: As of v0.2.0, container images are hosted on GitHub Container Registry (GHCR) instead of DockerHub. See [GHCR Migration Guide](docs/GHCR_MIGRATION.md) for details.
+> **Note**: As of v0.2.0, container images are hosted on GitHub Container Registry (GHCR). See [GHCR Migration Guide](docs/GHCR_MIGRATION.md) for details.
+
+This is a template checklist for creating new releases. Copy and customize for each release.
 
 ## Pre-Release Verification
 
 ### Code Quality
-- [x] All tests pass (189 backend + 76 devices frontend + 23 mentor frontend + 15 integration)
-- [x] Linting clean (ruff, golangci-lint, ESLint)
-- [x] Type checking passes (mypy with relaxed settings)
-- [x] No TODOs or FIXMEs in production code
-- [x] Code review completed
+- [ ] All tests pass
+- [ ] Linting clean (ruff, golangci-lint, ESLint)
+- [ ] Type checking passes (mypy)
+- [ ] No TODOs or FIXMEs in production code
+- [ ] Code review completed
 
 ### Documentation
-- [x] README.md up to date
-- [x] CHANGELOG.md updated with v0.1.0 changes
-- [x] API documentation current
-- [x] All docs reviewed for accuracy
-- [x] CONTRIBUTING.md created
-- [x] LICENSE file present (MIT)
+- [ ] README.md up to date
+- [ ] CHANGELOG.md updated with new version changes
+- [ ] API documentation current
+- [ ] All docs reviewed for accuracy
+- [ ] VERSION file updated
 
 ### Version Consistency
-- [x] VERSION file set to 0.1.0
-- [x] devices/frontend/package.json version 0.1.0
-- [x] mentor/frontend/package.json version 0.1.0
-- [x] All Helm charts version 0.1.0
-- [x] CHANGELOG.md dated correctly
+- [ ] VERSION file updated to new version
+- [ ] devices/frontend/package.json version updated
+- [ ] mentor/frontend/package.json version updated
+- [ ] All Helm charts version updated
+- [ ] CHANGELOG.md dated correctly
 
 ### Build & Packaging
-- [x] setup.py created
-- [x] pyproject.toml created
-- [x] MANIFEST.in created
-- [x] .dockerignore updated
-- [x] All build artifacts cleaned
+- [ ] All build artifacts cleaned
+- [ ] Docker images build successfully
 
 ### Repository Cleanup
-- [x] Temporary files removed
-- [x] __pycache__ directories cleaned
-- [x] .gitignore updated
-- [x] No sensitive data in repo
+- [ ] Temporary files removed
+- [ ] __pycache__ directories cleaned
+- [ ] No sensitive data in repo
 
 ### CI/CD
-- [x] GitHub Actions workflow verified
-- [x] Docker builds successful
-- [x] All CI checks pass
-
-### GitHub Setup
-- [x] Issue templates created
-- [x] PR template created
-- [x] Branch protection configured (if applicable)
+- [ ] GitHub Actions workflow verified
+- [ ] Docker builds successful
+- [ ] All CI checks pass
 
 ## Release Process
 
 ### 1. Final Commit
 ```bash
 git add .
-git commit -m "Release v0.1.0
+git commit -m "Release v<VERSION>
 
-- Clean repository for first stable release
-- Add packaging configuration
-- Update all documentation
-- Ensure test coverage across all components
+- <Summary of changes>
+- <Key features>
+- <Important updates>
 "
 ```
 
 ### 2. Create Git Tag
 ```bash
-git tag -a v0.1.0 -m "Release v0.1.0 - Initial stable release"
+git tag -a v<VERSION> -m "Release v<VERSION> - <Brief description>"
 git push origin master
-git push origin v0.1.0
+git push origin v<VERSION>
 ```
 
 ### 3. GitHub Release
 - Go to https://github.com/mj-nehme/raqeem/releases/new
-- Tag: v0.1.0
-- Title: "Raqeem v0.1.0 - Initial Release"
+- Tag: v<VERSION>
+- Title: "Raqeem v<VERSION> - <Release Name>"
 - Description: Copy from CHANGELOG.md
 - Upload any release artifacts
 
 ### 4. Docker Images
 ```bash
 # Build and push Docker images to GHCR
-docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:0.2.0 ./devices/backend
-docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:0.2.0 ./mentor/backend
+docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:<VERSION> ./devices/backend
+docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:<VERSION> ./mentor/backend
 
 # Login to GHCR
 echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
 
 # Push images
-docker push ghcr.io/mj-nehme/raqeem/devices-backend:0.2.0
-docker push ghcr.io/mj-nehme/raqeem/mentor-backend:0.2.0
+docker push ghcr.io/mj-nehme/raqeem/devices-backend:<VERSION>
+docker push ghcr.io/mj-nehme/raqeem/mentor-backend:<VERSION>
 
 # Or use the automated script:
-./scripts/tag-release.sh v0.2.0
+./scripts/tag-release.sh v<VERSION>
 ```
 
 ### 5. Python Package (Optional)
@@ -117,7 +108,7 @@ twine upload dist/*
 - [ ] Close related milestone
 
 ### Next Steps
-- [ ] Create v0.2.0 milestone
+- [ ] Create next version milestone
 - [ ] Plan next features
 - [ ] Address any release feedback
 
@@ -125,10 +116,9 @@ twine upload dist/*
 
 If issues are discovered:
 1. Remove GitHub release
-2. Delete git tag: `git tag -d v0.2.0 && git push origin :refs/tags/v0.2.0`
+2. Delete git tag: `git tag -d v<VERSION> && git push origin :refs/tags/v<VERSION>`
 3. Remove Docker images from GHCR registry
 4. Fix issues and restart release process
 
 ---
-**Release Date**: 2025-11-15
-**Release Manager**: Raqeem Team
+**Last Updated**: 2025-11-18
