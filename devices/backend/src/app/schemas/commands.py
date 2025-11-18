@@ -9,19 +9,19 @@ class CommandCreate(BaseModel):
         json_schema_extra={
             "examples": [
                 {
-                    "summary": "Simple info command",
+                    "summary": "Get device information",
                     "description": "Request basic device information",
                     "value": {"command_text": "get_info"},
                 },
                 {
-                    "summary": "System diagnostic",
-                    "description": "Run system diagnostics",
-                    "value": {"command_text": "run_diagnostics --verbose"},
+                    "summary": "Check device status",
+                    "description": "Get current device status",
+                    "value": {"command_text": "status"},
                 },
                 {
-                    "summary": "Configuration update",
-                    "description": "Update device configuration",
-                    "value": {"command_text": "update_config --key=telemetry_interval --value=30"},
+                    "summary": "Restart a service",
+                    "description": "Restart a specific service with arguments",
+                    "value": {"command_text": "restart_service nginx"},
                 },
             ]
         }

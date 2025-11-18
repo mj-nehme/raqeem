@@ -357,7 +357,7 @@ func TestRemoteCommandValidation(t *testing.T) {
 			name: "valid command",
 			command: DeviceRemoteCommand{
 				DeviceID:    sampleUUID,
-				CommandText: "ls -la",
+				CommandText: "get_info",
 				Status:      "pending",
 			},
 			wantErrs: 0,
@@ -374,8 +374,17 @@ func TestRemoteCommandValidation(t *testing.T) {
 			name: "invalid status",
 			command: DeviceRemoteCommand{
 				DeviceID:    sampleUUID,
-				CommandText: "ls -la",
+				CommandText: "get_info",
 				Status:      "invalid",
+			},
+			wantErrs: 1,
+		},
+		{
+			name: "disallowed command",
+			command: DeviceRemoteCommand{
+				DeviceID:    sampleUUID,
+				CommandText: "rm -rf /",
+				Status:      "pending",
 			},
 			wantErrs: 1,
 		},
