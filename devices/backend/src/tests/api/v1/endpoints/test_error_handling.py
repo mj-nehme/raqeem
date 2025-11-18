@@ -1,37 +1,4 @@
 """
-Comprehensive error handling tests for devices endpoints.
-
-Tests various error scenarios to improve coverage and ensure
-robust error handling across the API.
-"""
-
-import uuid
-from datetime import datetime
-from unittest.mock import AsyncMock, Mock, patch
-
-import pytest
-from fastapi import HTTPException
-from fastapi.testclient import TestClient
-from sqlalchemy.exc import DatabaseError, IntegrityError, OperationalError
-
-from app.main import app
-
-client = TestClient(app)
-
-
-# Helper to check if an endpoint exists
-def endpoint_exists(path: str, method: str = "GET") -> bool:
-    """Check if an endpoint exists by testing with a request."""
-    if method == "GET":
-        response = client.get(path)
-    else:
-        response = client.post(path, json={})
-    # 405 = Method Not Allowed means path exists but wrong method
-    # 404 = Not Found means path doesn't exist
-    return response.status_code != 404
-
-
-"""
 Focused error handling tests for devices endpoints.
 
 Tests error validation and handling without requiring database connectivity.
@@ -41,9 +8,8 @@ Integration tests cover database-dependent scenarios.
 import uuid
 
 import pytest
-from fastapi.testclient import TestClient
-
 from app.main import app
+from fastapi.testclient import TestClient
 
 client = TestClient(app)
 
@@ -274,10 +240,10 @@ class TestHealthEndpoint:
         # Try both possible paths
         response1 = client.get("/api/v1/health")
         response2 = client.get("/health")
-        
+
         # At least one should work
         assert (response1.status_code == 200 or response2.status_code == 200)
-        
+
         # Check the response that worked
         if response1.status_code == 200:
             data = response1.json()
