@@ -184,15 +184,14 @@ Our strategy ensures:
 
 **Before (v0.1.x)**:
 ```yaml
-# Old DockerHub images
-image: jaafarn/raqeem-devices-backend:v0.1.1
+# Implicit registry references (DockerHub)
 image: postgres:16
 image: minio/minio:latest
 ```
 
 **After (v0.2.0+)**:
 ```yaml
-# New GHCR and explicit registry images
+# Explicit registry references
 image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
 image: docker.io/library/postgres:16
 image: quay.io/minio/minio:latest

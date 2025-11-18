@@ -14,16 +14,22 @@ This document tracks the progress and status of release v0.2.0 preparation.
 
 The following requirements were specified for v0.2.0:
 
-### 1. ✅ Remove DockerHub Connection
+### 1. ✅ Remove DockerHub Connection and Migrate to GHCR
 
 **Status**: COMPLETED
 
 **Changes Made**:
-- Removed the `build-images` job from `.github/workflows/ci.yml`
-- Docker images are still built for validation in the `build-artifacts` job
-- No longer pushing to DockerHub (jaafarn/raqeem-* repositories)
+- Migrated from DockerHub to GitHub Container Registry (GHCR)
+- Updated CI pipeline to publish images to `ghcr.io/mj-nehme/raqeem/*`
+- All deployment scripts and documentation updated to use GHCR
+- Created comprehensive migration guide at `docs/GHCR_MIGRATION.md`
+- No longer pushing to DockerHub (legacy jaafarn/raqeem-* repositories deprecated)
 
-**Rationale**: The project does not require DockerHub distribution. Images are built locally via Helm charts and Kubernetes manifests.
+**Current Registry URLs**:
+- Devices Backend: `ghcr.io/mj-nehme/raqeem/devices-backend`
+- Mentor Backend: `ghcr.io/mj-nehme/raqeem/mentor-backend`
+
+**Rationale**: GHCR provides better GitHub integration, built-in security scanning, no rate limits, and improved reliability compared to DockerHub.
 
 ---
 
@@ -243,7 +249,7 @@ curl http://localhost:30090/docs  # Mentor API
 ## Post-Release Notes
 
 ### What Changed
-1. **Removed DockerHub Integration**: No longer automatically pushing Docker images to DockerHub. Images are built locally via Kubernetes/Helm.
+1. **Migrated to GHCR**: Moved from DockerHub to GitHub Container Registry for better integration and reliability. Images now published to `ghcr.io/mj-nehme/raqeem/*`.
 2. **Documentation**: Confirmed both backends have comprehensive Swagger/OpenAPI documentation.
 3. **Reliability**: Maintained high test coverage with comprehensive testing infrastructure.
 
@@ -255,8 +261,9 @@ curl http://localhost:30090/docs  # Mentor API
 
 ### Migration Notes
 - No breaking changes in this release
-- No action required for existing deployments
-- DockerHub images from v0.1.0 remain available if needed
+- No action required for local development (scripts handle GHCR automatically)
+- For production deployments, update image references from DockerHub to GHCR (see `docs/GHCR_MIGRATION.md`)
+- Legacy DockerHub images (jaafarn/raqeem-*) are deprecated and no longer updated
 
 ---
 
