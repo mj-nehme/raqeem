@@ -21,7 +21,7 @@ type HTTPClientWithRetry struct {
 }
 
 // NewHTTPClientWithRetry creates a new HTTP client with retry logic.
-// 
+//
 // The client implements the following retry strategy:
 // - Retries network errors (connection failures, timeouts)
 // - Retries server errors (5xx status codes)
@@ -56,7 +56,7 @@ func NewHTTPClientWithRetry(timeout time.Duration, maxRetries int) *HTTPClientWi
 }
 
 // Do performs an HTTP request with retry logic and exponential backoff.
-// 
+//
 // The request body is buffered to allow retries. If the request fails with a retryable
 // error, it will be retried with increasing delays between attempts. The delay doubles
 // after each attempt until it reaches maxDelay, preventing rapid retry storms.

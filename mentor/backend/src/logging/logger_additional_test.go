@@ -206,13 +206,13 @@ func TestLogger_LogJSON_EdgeCases(t *testing.T) {
 		})
 
 		complexFields := map[string]interface{}{
-			"string":  "value",
-			"number":  42,
-			"float":   3.14,
-			"bool":    true,
-			"nil":     nil,
-			"array":   []int{1, 2, 3},
-			"nested":  map[string]string{"key": "value"},
+			"string": "value",
+			"number": 42,
+			"float":  3.14,
+			"bool":   true,
+			"nil":    nil,
+			"array":  []int{1, 2, 3},
+			"nested": map[string]string{"key": "value"},
 		}
 		logger.log(INFO, "complex message", complexFields)
 

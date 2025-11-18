@@ -397,7 +397,7 @@ func TestUpdateCommandStatusSuccess(t *testing.T) {
 	// Create command
 	command := models.DeviceRemoteCommand{
 		DeviceID:    sampleUUID,
-		CommandText: "test command",
+		CommandText: "get_info",
 		Status:      "pending",
 		CreatedAt:   time.Now(),
 	}

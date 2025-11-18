@@ -443,9 +443,9 @@ func TestGetPendingCommandsEdgeCases(t *testing.T) {
 
 	// Create test commands
 	commands := []models.DeviceRemoteCommand{
-		{DeviceID: sampleUUID, CommandText: "cmd1", Status: "pending"},
-		{DeviceID: sampleUUID, CommandText: "cmd2", Status: "completed"},
-		{DeviceID: sampleUUID, CommandText: "cmd3", Status: "pending"},
+		{DeviceID: sampleUUID, CommandText: "get_info", Status: "pending"},
+		{DeviceID: sampleUUID, CommandText: "status", Status: "completed"},
+		{DeviceID: sampleUUID, CommandText: "restart", Status: "pending"},
 	}
 	for _, cmd := range commands {
 		db.Create(&cmd)

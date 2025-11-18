@@ -69,11 +69,11 @@ func TestSetupTestDBSQLitePragmas(t *testing.T) {
 	// For PostgreSQL, verify the connection is working
 	sqlDB, err := db.DB()
 	require.NoError(t, err)
-	
+
 	// Verify connection is alive
 	err = sqlDB.Ping()
 	assert.NoError(t, err)
-	
+
 	// Verify we can execute a simple query
 	var result int
 	err = db.Raw("SELECT 1").Scan(&result).Error
@@ -105,7 +105,7 @@ func TestSetupTestDBConcurrentAccess(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, testDB)
 	defer CleanupTestDB(t, testDB)
-	
+
 	// Use baseConnection for concurrent access since transaction-wrapped DB can't be used concurrently
 	db := baseConnection
 
@@ -131,7 +131,7 @@ func TestSetupTestDBConcurrentAccess(t *testing.T) {
 	for i := 0; i < 3; i++ {
 		<-done
 	}
-	
+
 	close(errors)
 	for err := range errors {
 		assert.NoError(t, err)

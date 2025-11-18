@@ -19,7 +19,7 @@ func TestConnectEnvironmentVariableLoading(t *testing.T) {
 	dbname := os.Getenv("POSTGRES_DB")
 	host := os.Getenv("POSTGRES_HOST")
 	port := os.Getenv("POSTGRES_PORT")
-	
+
 	// If no environment variables are set, use defaults for testing
 	if user == "" {
 		user = "monitor"
@@ -433,10 +433,10 @@ func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 
 	// Only try to connect if we have database environment variables set
 	// Otherwise, this test will skip
-	hasDBConfig := os.Getenv("POSTGRES_USER") != "" || 
-		          os.Getenv("POSTGRES_HOST") != "" ||
-		          os.Getenv("POSTGRES_DB") != ""
-	
+	hasDBConfig := os.Getenv("POSTGRES_USER") != "" ||
+		os.Getenv("POSTGRES_HOST") != "" ||
+		os.Getenv("POSTGRES_DB") != ""
+
 	if !hasDBConfig {
 		// Set default environment variables for testing
 		_ = os.Setenv("POSTGRES_USER", "monitor")
@@ -444,7 +444,7 @@ func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 		_ = os.Setenv("POSTGRES_DB", "monitoring_db")
 		_ = os.Setenv("POSTGRES_HOST", "127.0.0.1")
 		_ = os.Setenv("POSTGRES_PORT", "5432")
-		
+
 		defer func() {
 			_ = os.Unsetenv("POSTGRES_USER")
 			_ = os.Unsetenv("POSTGRES_PASSWORD")
@@ -466,10 +466,10 @@ func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 		t.Skipf("Skipping test - database migration failed: %v", err)
 		return
 	}
-	
+
 	// Verify DB was initialized
 	assert.NotNil(t, DB)
-		
+
 	// Test a simple query
 	var result int
 	err = DB.Raw("SELECT 1").Scan(&result).Error
@@ -613,7 +613,7 @@ func TestConnectDatabaseConnectionSuccess(t *testing.T) {
 		"POSTGRES_HOST":     os.Getenv("POSTGRES_HOST"),
 		"POSTGRES_PORT":     os.Getenv("POSTGRES_PORT"),
 	}
-	
+
 	defer func() {
 		DB = originalDB
 		for k, v := range originalVars {

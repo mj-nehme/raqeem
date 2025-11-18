@@ -284,7 +284,7 @@ jobs:
             -e MINIO_ROOT_USER=minio \
             -e MINIO_ROOT_PASSWORD=miniosecret \
             minio/minio:latest server /data --console-address ":9001"
-          
+
           # Wait for MinIO to be ready
           echo "Waiting for MinIO to be ready..."
           for i in {1..30}; do
@@ -295,7 +295,7 @@ jobs:
             echo "Waiting for MinIO... ($i/30)"
             sleep 2
           done
-          
+
           # Verify MinIO is accessible
           curl -sf http://localhost:9000/minio/health/live || (echo "❌ MinIO failed to start" && exit 1)
       - name: Setup MinIO bucket

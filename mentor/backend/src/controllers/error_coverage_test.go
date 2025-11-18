@@ -127,7 +127,7 @@ func TestGetPendingCommandsErrorHandling(t *testing.T) {
 
 	GetPendingCommands(c)
 	assert.Equal(t, http.StatusOK, w.Code)
-	
+
 	// Verify it returns an empty array
 	var commands []models.DeviceRemoteCommand
 	err = json.Unmarshal(w.Body.Bytes(), &commands)
@@ -160,7 +160,7 @@ func TestCreateRemoteCommandErrorHandling(t *testing.T) {
 	c.Params = gin.Params{gin.Param{Key: "id", Value: "invalid-uuid"}} // URL param not used
 	command := models.DeviceRemoteCommand{
 		DeviceID:    uuid.New(),
-		CommandText: "test command",
+		CommandText: "get_info",
 	}
 	body, _ := json.Marshal(command)
 	c.Request, _ = http.NewRequest("POST", "/commands", bytes.NewBuffer(body))

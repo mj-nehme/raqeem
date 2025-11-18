@@ -73,7 +73,7 @@ func TestCleanupTestDB(t *testing.T) {
 
 	// CleanupTestDB is now a no-op since transaction rollback handles cleanup
 	CleanupTestDB(t, db)
-	
+
 	// Data should still exist because we're still in the transaction
 	// The actual cleanup happens when the test ends and the transaction is rolled back
 	db.Model(&models.Device{}).Count(&deviceCount)
@@ -239,7 +239,7 @@ func TestDatabaseTransactionRollback(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
-	
+
 	// Use base connection to test transaction behavior (not the test's transaction)
 	// Create a fresh transaction for this test
 	tx := baseConnection.Begin()
@@ -270,7 +270,7 @@ func TestConcurrentDatabaseAccess(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, testDB)
 	defer CleanupTestDB(t, testDB)
-	
+
 	// Use baseConnection instead of transaction-wrapped db for concurrent access
 	// Transactions cannot be safely used from multiple goroutines
 	db := baseConnection
@@ -324,7 +324,7 @@ func TestConcurrentDatabaseAccess(t *testing.T) {
 	var count int64
 	db.Model(&models.Device{}).Where("device_name LIKE ?", "Concurrent Device%").Count(&count)
 	assert.GreaterOrEqual(t, count, int64(15), "Should create at least 15 devices")
-	
+
 	// Cleanup: delete the test devices
 	db.Where("device_name LIKE ?", "Concurrent Device%").Delete(&models.Device{})
 }
@@ -423,7 +423,7 @@ func TestDatabaseComplexQueries(t *testing.T) {
 	uuid1 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440031")
 	uuid2 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440032")
 	uuid3 := uuid.MustParse("550e8400-e29b-41d4-a716-446655440033")
-	
+
 	devices := []models.Device{
 		{DeviceID: uuid1, DeviceName: "Device 1", DeviceType: "laptop", IsOnline: true},
 		{DeviceID: uuid2, DeviceName: "Device 2", DeviceType: "desktop", IsOnline: false},

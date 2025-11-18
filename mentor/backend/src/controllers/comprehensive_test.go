@@ -648,7 +648,7 @@ func TestRemoteCommandStatusTransitions(t *testing.T) {
 	// Create a command
 	command := models.DeviceRemoteCommand{
 		DeviceID:    sampleUUID,
-		CommandText: "test command",
+		CommandText: "get_info",
 	}
 
 	commandJSON, _ := json.Marshal(command)

@@ -354,7 +354,7 @@ func TestGetDeviceCommandsComprehensive(t *testing.T) {
 		for i := 0; i < 3; i++ {
 			cmd := models.DeviceRemoteCommand{
 				DeviceID:    sampleUUID,
-				CommandText: "test command",
+				CommandText: "get_info",
 				Status:      "completed",
 			}
 			database.DB.Create(&cmd)

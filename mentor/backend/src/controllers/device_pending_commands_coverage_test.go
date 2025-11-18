@@ -52,7 +52,7 @@ func TestGetPendingCommandsSuccess(t *testing.T) {
 
 		testCmd := models.DeviceRemoteCommand{
 			DeviceID:    sampleUUID,
-			CommandText: "test command",
+			CommandText: "get_info",
 			Status:      "pending",
 		}
 		db.Create(&testCmd)
@@ -65,6 +65,6 @@ func TestGetPendingCommandsSuccess(t *testing.T) {
 		GetPendingCommands(c)
 
 		assert.Equal(t, http.StatusOK, w.Code)
-		assert.Contains(t, w.Body.String(), "test command")
+		assert.Contains(t, w.Body.String(), "get_info")
 	})
 }

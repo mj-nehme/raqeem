@@ -252,7 +252,7 @@ func TestCreateRemoteCommandWithForwarding_CoverageBoost(t *testing.T) {
 
 		cmd := models.DeviceRemoteCommand{
 			DeviceID:    sampleUUID,
-			CommandText: "get_status",
+			CommandText: "status",
 		}
 		b, _ := json.Marshal(cmd)
 		c.Request, _ = http.NewRequest("POST", "/devices/test-device-no-forward/commands", bytes.NewReader(b))
@@ -333,7 +333,7 @@ func TestUpdateCommandStatusEdgeCases(t *testing.T) {
 	// Create a test command
 	testCmd := models.DeviceRemoteCommand{
 		DeviceID:    sampleUUID,
-		CommandText: "test_command",
+		CommandText: "get_info",
 		Status:      "pending",
 		CreatedAt:   time.Now(),
 	}
