@@ -23,7 +23,7 @@ def skip_smoke_if_disabled(request):
             pytest.skip("Skipping smoke test; set RUN_SMOKE_TESTS=1 to enable.")
 
 
-def pytest_collection_modifyitems(config, items):
+def pytest_collection_modifyitems(_config, items):
     """Skip integration tests if services are not running."""
     # Only skip if RUN_INTEGRATION_TESTS env var is explicitly set to 0
     if os.environ.get("RUN_INTEGRATION_TESTS", "1") == "0":

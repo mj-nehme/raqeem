@@ -63,7 +63,7 @@ class MinioService:
                 "MINIO_SKIP_CONNECT=1 detected - skipping MinIO connectivity and bucket check",
                 extra={"bucket": self.bucket_name},
             )
-            self.client = None  # type: ignore
+            self.client = None  # type: ignore[assignment]
             return
 
         try:
@@ -95,6 +95,7 @@ class MinioService:
             MinioServiceError: If bucket check or creation fails.
         """
         if SKIP_MINIO:
+            # Short-circuit bucket check during tests when connectivity is skipped
             logger.debug(
                 "Skipping MinIO bucket check (MINIO_SKIP_CONNECT=1)",
                 extra={"bucket": self.bucket_name},
