@@ -246,8 +246,10 @@ func TestDatabaseTransactionRollback(t *testing.T) {
 	require.NotNil(t, tx)
 	require.NoError(t, tx.Error)
 
+	// Use a unique UUID for this test to avoid conflicts with concurrent tests
+	testUUID := uuid.New()
 	device := models.Device{
-		DeviceID:   sampleUUID,
+		DeviceID:   testUUID,
 		DeviceName: "Rollback Test Device",
 	}
 
@@ -259,7 +261,7 @@ func TestDatabaseTransactionRollback(t *testing.T) {
 
 	// Verify device was not actually saved (check in base connection, not the rolled-back tx)
 	var count int64
-	baseConnection.Model(&models.Device{}).Where("deviceid = ?", sampleUUID).Count(&count)
+	baseConnection.Model(&models.Device{}).Where("deviceid = ?", testUUID).Count(&count)
 	assert.Equal(t, int64(0), count)
 }
 func TestConcurrentDatabaseAccess(t *testing.T) {
@@ -458,8 +460,8 @@ func TestDatabaseRelationships(t *testing.T) {
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
-	// Create device
-	deviceUUID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440041")
+	// Create device with a unique UUID
+	deviceUUID := uuid.New()
 	device := models.Device{
 		DeviceID:   deviceUUID,
 		DeviceName: "Relations Test",
@@ -488,8 +490,8 @@ func TestDatabaseErrorHandling(t *testing.T) {
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
-	// Test duplicate primary key
-	deviceUUID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440042")
+	// Test duplicate primary key - use a unique UUID for this test
+	deviceUUID := uuid.New()
 	device := models.Device{
 		DeviceID:   deviceUUID,
 		DeviceName: "Duplicate",
@@ -507,7 +509,7 @@ func TestDatabaseErrorHandling(t *testing.T) {
 
 	// Test query for non-existent record
 	var notFound models.Device
-	nonExistentUUID := uuid.MustParse("550e8400-e29b-41d4-a716-446655449999")
+	nonExistentUUID := uuid.New() // Use a newly generated UUID that definitely doesn't exist
 	err = db.Where("deviceid = ?", nonExistentUUID).First(&notFound).Error
 	assert.Error(t, err, "Should error when record not found")
 }
@@ -518,7 +520,7 @@ func TestAddActivityLogAndCheckExistence(t *testing.T) {
 	require.NotNil(t, db)
 	defer CleanupTestDB(t, db)
 
-	activityUUID := uuid.MustParse("550e8400-e29b-41d4-a716-446655440043")
+	activityUUID := uuid.New()
 	activity := models.DeviceActivity{
 		DeviceID:     activityUUID,
 		ActivityType: "app_launch",
