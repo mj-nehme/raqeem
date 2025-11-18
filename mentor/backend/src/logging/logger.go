@@ -16,6 +16,7 @@ import (
 	"os"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -55,6 +56,7 @@ type Logger struct {
 	output     io.Writer
 	jsonFormat bool
 	fields     map[string]interface{}
+	mu         sync.Mutex // protects concurrent writes to output
 }
 
 // Config holds logger configuration
@@ -185,6 +187,8 @@ func (l *Logger) logJSON(level LogLevel, message string, fields map[string]inter
 		return
 	}
 
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	if _, err := fmt.Fprintln(l.output, string(data)); err != nil {
 		log.Printf("Failed to write log entry: %v", err)
 	}
@@ -213,6 +217,8 @@ func (l *Logger) logText(level LogLevel, message string, fields map[string]inter
 		}
 	}
 
+	l.mu.Lock()
+	defer l.mu.Unlock()
 	if _, err := fmt.Fprintln(l.output, sb.String()); err != nil {
 		log.Printf("Failed to write log entry: %v", err)
 	}
