@@ -142,7 +142,7 @@ class MinioService:
                 "Skipping MinIO upload (MINIO_SKIP_CONNECT=1)",
                 extra={"bucket": self.bucket_name, "object_name": object_name, "file_path": file_path},
             )
-            return None
+            return object_name
         try:
             logger.info(
                 "Uploading file to MinIO",
@@ -253,6 +253,13 @@ class MinioService:
             >>> url = service.get_presigned_url("device123/image.png", expires=7200)
             >>> # URL valid for 2 hours
         """
+        if SKIP_MINIO:
+            logger.debug(
+                "Skipping presigned URL generation (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name, "expires": expires},
+            )
+            # Return deterministic placeholder URL for tests
+            return f"http://localhost/minio/{object_name}"
         try:
             logger.debug(
                 "Generating presigned URL",
