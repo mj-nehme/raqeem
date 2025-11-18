@@ -179,6 +179,22 @@ func TestCreateRemoteCommand_ErrorCases(t *testing.T) {
 
 	router.ServeHTTP(w, req)
 	assert.Equal(t, http.StatusBadRequest, w.Code) // Should reject empty command
+
+	// Test disallowed command
+	disallowedCommand := models.DeviceRemoteCommand{
+		DeviceID:    sampleUUID,
+		CommandText: "rm -rf /",
+	}
+	commandJSON, _ = json.Marshal(disallowedCommand)
+	req, _ = http.NewRequest("POST", fmt.Sprintf("/devices/%s/commands", deviceID), bytes.NewBuffer(commandJSON))
+	req.Header.Set("Content-Type", "application/json")
+	w = httptest.NewRecorder()
+
+	router.ServeHTTP(w, req)
+	assert.Equal(t, http.StatusBadRequest, w.Code) // Should reject disallowed command
+	var errResp map[string]string
+	_ = json.Unmarshal(w.Body.Bytes(), &errResp)
+	assert.Contains(t, errResp["error"], "not allowed")
 }
 
 func TestUpdateCommandStatus_ErrorCases(t *testing.T) {

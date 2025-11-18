@@ -470,6 +470,13 @@ func CreateRemoteCommand(c *gin.Context) {
 		return
 	}
 
+	// Validate command using model validation (includes whitelist check)
+	validationErrors := cmd.ValidateRemoteCommand()
+	if len(validationErrors) > 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": strings.Join(validationErrors, "; ")})
+		return
+	}
+
 	// Generate UUID if not provided (avoid reliance on DB default which may lack extension)
 	if cmd.CommandID == uuid.Nil {
 		cmd.CommandID = uuid.New()
@@ -487,7 +494,7 @@ func CreateRemoteCommand(c *gin.Context) {
 	if devicesAPIURL != "" {
 		go func() {
 			payload := map[string]interface{}{
-				"command": cmd.CommandText,
+				"command_text": cmd.CommandText,
 			}
 			jsonData, err := json.Marshal(payload)
 			if err != nil {

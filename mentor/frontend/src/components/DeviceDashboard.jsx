@@ -468,6 +468,10 @@ export default function DeviceDashboard() {
                                                         </Alert>
                                                     )}
                                                     
+                                                    <Alert severity="info" sx={{ mb: 2 }}>
+                                                        <strong>Allowed commands:</strong> get_info, status, restart, get_processes, get_logs, restart_service [service_name], screenshot
+                                                    </Alert>
+                                                    
                                                     <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 3 }}>
                                                         <TextField
                                                             fullWidth

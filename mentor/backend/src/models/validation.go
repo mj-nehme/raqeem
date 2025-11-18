@@ -59,6 +59,18 @@ var validCommandStatuses = map[string]bool{
 	"failed":    true,
 }
 
+// AllowedCommands is the whitelist of commands that can be executed on devices
+// This must match the whitelist in the devices backend for security
+var AllowedCommands = map[string]bool{
+	"get_info":        true,
+	"status":          true,
+	"restart":         true,
+	"get_processes":   true,
+	"get_logs":        true,
+	"restart_service": true,
+	"screenshot":      true,
+}
+
 // -------------------- DEVICE --------------------
 
 // ValidateDevice validates device fields and returns validation errors
@@ -185,6 +197,12 @@ func (command *DeviceRemoteCommand) ValidateRemoteCommand() []string {
 
 	if strings.TrimSpace(command.CommandText) == "" {
 		errors = append(errors, "command cannot be empty")
+	}
+
+	// Validate command against whitelist
+	commandBase := strings.ToLower(strings.TrimSpace(strings.Split(command.CommandText, " ")[0]))
+	if commandBase != "" && !AllowedCommands[commandBase] {
+		errors = append(errors, "command not allowed. Allowed commands: get_info, status, restart, get_processes, get_logs, restart_service, screenshot")
 	}
 
 	if command.Status != "" && !validCommandStatuses[strings.ToLower(command.Status)] {

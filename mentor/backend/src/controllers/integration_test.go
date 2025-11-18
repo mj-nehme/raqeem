@@ -165,7 +165,7 @@ func TestDeviceLifecycleIntegration(t *testing.T) {
 	// 5. Create a remote command
 	command := models.DeviceRemoteCommand{
 		DeviceID:    sampleUUID,
-		CommandText: "ls -la /home",
+		CommandText: "status",
 		Status:      "pending",
 		CreatedAt:   time.Now(),
 	}
