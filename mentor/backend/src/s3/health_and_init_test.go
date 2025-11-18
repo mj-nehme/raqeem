@@ -77,32 +77,32 @@ func TestInitClient(t *testing.T) {
 		originalClient := client
 
 		// Set test environment variables
-		os.Setenv("MINIO_ENDPOINT", "test-endpoint:9000")
-		os.Setenv("MINIO_ACCESS_KEY", "test-access")
-		os.Setenv("MINIO_SECRET_KEY", "test-secret")
-		os.Setenv("MINIO_SKIP_CONNECT", "1") // Skip connectivity check
+		_ = os.Setenv("MINIO_ENDPOINT", "test-endpoint:9000")
+		_ = os.Setenv("MINIO_ACCESS_KEY", "test-access")
+		_ = os.Setenv("MINIO_SECRET_KEY", "test-secret")
+		_ = os.Setenv("MINIO_SKIP_CONNECT", "1") // Skip connectivity check
 
 		// Restore after test
 		defer func() {
 			if originalEndpoint != "" {
-				os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
 			} else {
-				os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("MINIO_ENDPOINT")
 			}
 			if originalAccessKey != "" {
-				os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
 			} else {
-				os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("MINIO_ACCESS_KEY")
 			}
 			if originalSecretKey != "" {
-				os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
 			} else {
-				os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("MINIO_SECRET_KEY")
 			}
 			if originalSkipConnect != "" {
-				os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+				_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
 			} else {
-				os.Unsetenv("MINIO_SKIP_CONNECT")
+				_ = os.Unsetenv("MINIO_SKIP_CONNECT")
 			}
 			client = originalClient
 		}()
@@ -123,32 +123,32 @@ func TestInitClient(t *testing.T) {
 		originalClient := client
 
 		// Set invalid endpoint (will fail to connect but not crash)
-		os.Setenv("MINIO_ENDPOINT", "invalid-endpoint-that-does-not-exist:9000")
-		os.Setenv("MINIO_ACCESS_KEY", "test")
-		os.Setenv("MINIO_SECRET_KEY", "test")
-		os.Unsetenv("MINIO_SKIP_CONNECT") // Don't skip connect to test failure path
+		_ = os.Setenv("MINIO_ENDPOINT", "invalid-endpoint-that-does-not-exist:9000")
+		_ = os.Setenv("MINIO_ACCESS_KEY", "test")
+		_ = os.Setenv("MINIO_SECRET_KEY", "test")
+		_ = os.Unsetenv("MINIO_SKIP_CONNECT") // Don't skip connect to test failure path
 
 		// Restore after test
 		defer func() {
 			if originalEndpoint != "" {
-				os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
 			} else {
-				os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("MINIO_ENDPOINT")
 			}
 			if originalAccessKey != "" {
-				os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
 			} else {
-				os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("MINIO_ACCESS_KEY")
 			}
 			if originalSecretKey != "" {
-				os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
 			} else {
-				os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("MINIO_SECRET_KEY")
 			}
 			if originalSkipConnect != "" {
-				os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+				_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
 			} else {
-				os.Unsetenv("MINIO_SKIP_CONNECT")
+				_ = os.Unsetenv("MINIO_SKIP_CONNECT")
 			}
 			client = originalClient
 		}()
@@ -168,32 +168,32 @@ func TestInitClient(t *testing.T) {
 		originalClient := client
 
 		// Set environment to skip connection
-		os.Setenv("MINIO_ENDPOINT", "any-endpoint:9000")
-		os.Setenv("MINIO_ACCESS_KEY", "any-key")
-		os.Setenv("MINIO_SECRET_KEY", "any-secret")
-		os.Setenv("MINIO_SKIP_CONNECT", "1")
+		_ = os.Setenv("MINIO_ENDPOINT", "any-endpoint:9000")
+		_ = os.Setenv("MINIO_ACCESS_KEY", "any-key")
+		_ = os.Setenv("MINIO_SECRET_KEY", "any-secret")
+		_ = os.Setenv("MINIO_SKIP_CONNECT", "1")
 
 		// Restore after test
 		defer func() {
 			if originalEndpoint != "" {
-				os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
 			} else {
-				os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("MINIO_ENDPOINT")
 			}
 			if originalAccessKey != "" {
-				os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
 			} else {
-				os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("MINIO_ACCESS_KEY")
 			}
 			if originalSecretKey != "" {
-				os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
 			} else {
-				os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("MINIO_SECRET_KEY")
 			}
 			if originalSkipConnect != "" {
-				os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+				_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
 			} else {
-				os.Unsetenv("MINIO_SKIP_CONNECT")
+				_ = os.Unsetenv("MINIO_SKIP_CONNECT")
 			}
 			client = originalClient
 		}()
@@ -214,22 +214,22 @@ func TestGetFunctions(t *testing.T) {
 		originalEndpoint := os.Getenv("MINIO_ENDPOINT")
 		defer func() {
 			if originalEndpoint != "" {
-				os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
 			} else {
-				os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("MINIO_ENDPOINT")
 			}
 		}()
 
-		os.Setenv("MINIO_ENDPOINT", "custom-endpoint:9000")
+		_ = os.Setenv("MINIO_ENDPOINT", "custom-endpoint:9000")
 		assert.Equal(t, "custom-endpoint:9000", GetEndpoint())
 	})
 
 	t.Run("GetEndpoint returns default when not set", func(t *testing.T) {
 		originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-		os.Unsetenv("MINIO_ENDPOINT")
+		_ = os.Unsetenv("MINIO_ENDPOINT")
 		defer func() {
 			if originalEndpoint != "" {
-				os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
 			}
 		}()
 
@@ -240,22 +240,22 @@ func TestGetFunctions(t *testing.T) {
 		originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
 		defer func() {
 			if originalAccessKey != "" {
-				os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
 			} else {
-				os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("MINIO_ACCESS_KEY")
 			}
 		}()
 
-		os.Setenv("MINIO_ACCESS_KEY", "custom-access-key")
+		_ = os.Setenv("MINIO_ACCESS_KEY", "custom-access-key")
 		assert.Equal(t, "custom-access-key", GetAccessKey())
 	})
 
 	t.Run("GetAccessKey returns default when not set", func(t *testing.T) {
 		originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
-		os.Unsetenv("MINIO_ACCESS_KEY")
+		_ = os.Unsetenv("MINIO_ACCESS_KEY")
 		defer func() {
 			if originalAccessKey != "" {
-				os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
 			}
 		}()
 
@@ -266,22 +266,22 @@ func TestGetFunctions(t *testing.T) {
 		originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
 		defer func() {
 			if originalSecretKey != "" {
-				os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
 			} else {
-				os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("MINIO_SECRET_KEY")
 			}
 		}()
 
-		os.Setenv("MINIO_SECRET_KEY", "custom-secret-key")
+		_ = os.Setenv("MINIO_SECRET_KEY", "custom-secret-key")
 		assert.Equal(t, "custom-secret-key", GetSecretKey())
 	})
 
 	t.Run("GetSecretKey returns default when not set", func(t *testing.T) {
 		originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
-		os.Unsetenv("MINIO_SECRET_KEY")
+		_ = os.Unsetenv("MINIO_SECRET_KEY")
 		defer func() {
 			if originalSecretKey != "" {
-				os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
 			}
 		}()
 
