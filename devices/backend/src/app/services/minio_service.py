@@ -95,12 +95,11 @@ class MinioService:
             MinioServiceError: If bucket check or creation fails.
         """
         if SKIP_MINIO:
-            # Short-circuit upload during tests when connectivity is skipped
             logger.debug(
-                "Skipping MinIO upload (MINIO_SKIP_CONNECT=1)",
-                extra={"bucket": self.bucket_name, "object_name": object_name, "file_path": file_path},
+                "Skipping MinIO bucket check (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name},
             )
-            return object_name
+            return
         try:
             if not self.client.bucket_exists(self.bucket_name):
                 self.client.make_bucket(self.bucket_name)
@@ -139,10 +138,10 @@ class MinioService:
         """
         if SKIP_MINIO:
             logger.debug(
-                "Skipping MinIO remove (MINIO_SKIP_CONNECT=1)",
-                extra={"bucket": self.bucket_name, "object_name": object_name},
+                "Skipping MinIO upload (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name, "file_path": file_path},
             )
-            return
+            return object_name
         try:
             logger.info(
                 "Uploading file to MinIO",
@@ -196,11 +195,10 @@ class MinioService:
         """
         if SKIP_MINIO:
             logger.debug(
-                "Skipping presigned URL generation (MINIO_SKIP_CONNECT=1)",
-                extra={"bucket": self.bucket_name, "object_name": object_name, "expires": expires},
+                "Skipping MinIO remove (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name},
             )
-            # Return deterministic placeholder URL for tests
-            return f"http://localhost/minio/{object_name}"
+            return
         try:
             logger.info(
                 "Removing file from MinIO",
@@ -254,6 +252,13 @@ class MinioService:
             >>> url = service.get_presigned_url("device123/image.png", expires=7200)
             >>> # URL valid for 2 hours
         """
+        if SKIP_MINIO:
+            logger.debug(
+                "Skipping presigned URL generation (MINIO_SKIP_CONNECT=1)",
+                extra={"bucket": self.bucket_name, "object_name": object_name, "expires": expires},
+            )
+            # Return deterministic placeholder URL for tests
+            return f"http://localhost/minio/{object_name}"
         try:
             logger.debug(
                 "Generating presigned URL",
