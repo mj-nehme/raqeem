@@ -1,7 +1,7 @@
 import logging
-import os
 import tempfile
 import uuid
+from pathlib import Path
 
 from app.core.config import settings
 from app.db.session import get_db
@@ -97,7 +97,7 @@ async def create_screenshot(
             minio_service.upload_file(temp_file_path, filename)
             logger.info(f"Screenshot uploaded to MinIO: {filename}")
         except Exception as minio_error:
-            logger.error(f"MinIO upload failed: {minio_error}")
+            logger.exception("MinIO upload failed")
             raise HTTPException(status_code=500, detail=f"MinIO upload failed: {minio_error!s}") from minio_error
 
         # Store in device_screenshots table
@@ -130,8 +130,8 @@ async def create_screenshot(
         raise HTTPException(status_code=500, detail=f"Screenshot upload failed: {e!s}") from e
     finally:
         # Clean up temporary file
-        if temp_file_path and os.path.exists(temp_file_path):
+        if temp_file_path and Path(temp_file_path).exists():
             try:
-                os.unlink(temp_file_path)
+                Path(temp_file_path).unlink()
             except Exception as cleanup_error:
                 logger.warning(f"Failed to delete temporary file {temp_file_path}: {cleanup_error}")

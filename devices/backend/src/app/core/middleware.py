@@ -8,7 +8,7 @@ This module provides middleware for:
 
 import time
 import uuid
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 
 from app.core.logging_config import get_logger
 from fastapi import Request, Response
@@ -31,7 +31,7 @@ class RequestIDMiddleware(BaseHTTPMiddleware):
     - Added to response headers for client tracking
     """
 
-    async def dispatch(self, request: Request, call_next: Callable) -> Response:
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         # Extract or generate request ID
         request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
 
