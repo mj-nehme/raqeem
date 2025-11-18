@@ -580,3 +580,17 @@ test('renders correctly', () => {
 - [Go testing package](https://pkg.go.dev/testing)
 - [Vitest documentation](https://vitest.dev/)
 - [act (run GitHub Actions locally)](https://github.com/nektos/act)
+
+## Related Documentation
+
+- **[Error Handling Guide](ERROR_HANDLING.md)** - Error handling patterns and best practices
+- **[CI/CD Testing](CI_CD_TESTING.md)** - Automated testing pipeline documentation
+- **[Test Coverage Report](TEST_COVERAGE_REPORT.md)** - Current coverage status and goals
+- **[Test Execution Guide](TEST_EXECUTION_GUIDE.md)** - Detailed execution instructions
+- **[Battle Testing](../tests/battle/README.md)** - Stress, load, and chaos testing
+
+---
+
+**Last Updated**: 2025-11-18  
+**Version**: v0.2.0
+
