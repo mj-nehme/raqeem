@@ -188,7 +188,7 @@ func TestRequestLoggingMiddleware(t *testing.T) {
 		router.Use(RequestIDMiddleware())
 		router.Use(RequestLoggingMiddleware())
 		router.GET("/test", func(c *gin.Context) {
-			c.Error(http.ErrAbortHandler)
+			_ = c.Error(http.ErrAbortHandler)
 			c.String(400, "Bad Request")
 		})
 

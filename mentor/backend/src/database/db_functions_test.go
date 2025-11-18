@@ -13,7 +13,7 @@ func TestGetEnvInt(t *testing.T) {
 	t.Run("returns value from environment", func(t *testing.T) {
 		err := os.Setenv("TEST_INT_VAR", "42")
 		require.NoError(t, err)
-		defer os.Unsetenv("TEST_INT_VAR")
+		defer func() { _ = os.Unsetenv("TEST_INT_VAR") }()
 
 		result := getEnvInt("TEST_INT_VAR", 10)
 		assert.Equal(t, 42, result)
@@ -30,7 +30,7 @@ func TestGetEnvInt(t *testing.T) {
 	t.Run("returns default when env var is not a valid int", func(t *testing.T) {
 		err := os.Setenv("INVALID_INT_VAR", "not_a_number")
 		require.NoError(t, err)
-		defer os.Unsetenv("INVALID_INT_VAR")
+		defer func() { _ = os.Unsetenv("INVALID_INT_VAR") }()
 
 		result := getEnvInt("INVALID_INT_VAR", 50)
 		assert.Equal(t, 50, result)
@@ -39,7 +39,7 @@ func TestGetEnvInt(t *testing.T) {
 	t.Run("returns default when env var is empty", func(t *testing.T) {
 		err := os.Setenv("EMPTY_INT_VAR", "")
 		require.NoError(t, err)
-		defer os.Unsetenv("EMPTY_INT_VAR")
+		defer func() { _ = os.Unsetenv("EMPTY_INT_VAR") }()
 
 		result := getEnvInt("EMPTY_INT_VAR", 75)
 		assert.Equal(t, 75, result)
@@ -48,7 +48,7 @@ func TestGetEnvInt(t *testing.T) {
 	t.Run("handles negative numbers", func(t *testing.T) {
 		err := os.Setenv("NEGATIVE_INT_VAR", "-10")
 		require.NoError(t, err)
-		defer os.Unsetenv("NEGATIVE_INT_VAR")
+		defer func() { _ = os.Unsetenv("NEGATIVE_INT_VAR") }()
 
 		result := getEnvInt("NEGATIVE_INT_VAR", 0)
 		assert.Equal(t, -10, result)
@@ -57,7 +57,7 @@ func TestGetEnvInt(t *testing.T) {
 	t.Run("handles zero value", func(t *testing.T) {
 		err := os.Setenv("ZERO_INT_VAR", "0")
 		require.NoError(t, err)
-		defer os.Unsetenv("ZERO_INT_VAR")
+		defer func() { _ = os.Unsetenv("ZERO_INT_VAR") }()
 
 		result := getEnvInt("ZERO_INT_VAR", 100)
 		assert.Equal(t, 0, result)
@@ -67,17 +67,17 @@ func TestGetEnvInt(t *testing.T) {
 func TestConnectWithRetry(t *testing.T) {
 	t.Run("fails immediately with invalid config", func(t *testing.T) {
 		// Set invalid environment variables
-		os.Setenv("POSTGRES_USER", "invalid_user")
-		os.Setenv("POSTGRES_PASSWORD", "invalid_password")
-		os.Setenv("POSTGRES_DB", "invalid_db")
-		os.Setenv("POSTGRES_HOST", "invalid_host")
-		os.Setenv("POSTGRES_PORT", "99999")
+		_ = os.Setenv("POSTGRES_USER", "invalid_user")
+		_ = os.Setenv("POSTGRES_PASSWORD", "invalid_password")
+		_ = os.Setenv("POSTGRES_DB", "invalid_db")
+		_ = os.Setenv("POSTGRES_HOST", "invalid_host")
+		_ = os.Setenv("POSTGRES_PORT", "99999")
 		defer func() {
-			os.Unsetenv("POSTGRES_USER")
-			os.Unsetenv("POSTGRES_PASSWORD")
-			os.Unsetenv("POSTGRES_DB")
-			os.Unsetenv("POSTGRES_HOST")
-			os.Unsetenv("POSTGRES_PORT")
+			_ = os.Unsetenv("POSTGRES_USER")
+			_ = os.Unsetenv("POSTGRES_PASSWORD")
+			_ = os.Unsetenv("POSTGRES_DB")
+			_ = os.Unsetenv("POSTGRES_HOST")
+			_ = os.Unsetenv("POSTGRES_PORT")
 		}()
 
 		err := connectWithRetry(1, 10*time.Millisecond)
@@ -87,17 +87,17 @@ func TestConnectWithRetry(t *testing.T) {
 
 	t.Run("respects max retries", func(t *testing.T) {
 		// Set invalid environment variables to ensure connection fails
-		os.Setenv("POSTGRES_USER", "test_user")
-		os.Setenv("POSTGRES_PASSWORD", "test_password")
-		os.Setenv("POSTGRES_DB", "test_db")
-		os.Setenv("POSTGRES_HOST", "nonexistent_host_12345")
-		os.Setenv("POSTGRES_PORT", "5432")
+		_ = os.Setenv("POSTGRES_USER", "test_user")
+		_ = os.Setenv("POSTGRES_PASSWORD", "test_password")
+		_ = os.Setenv("POSTGRES_DB", "test_db")
+		_ = os.Setenv("POSTGRES_HOST", "nonexistent_host_12345")
+		_ = os.Setenv("POSTGRES_PORT", "5432")
 		defer func() {
-			os.Unsetenv("POSTGRES_USER")
-			os.Unsetenv("POSTGRES_PASSWORD")
-			os.Unsetenv("POSTGRES_DB")
-			os.Unsetenv("POSTGRES_HOST")
-			os.Unsetenv("POSTGRES_PORT")
+			_ = os.Unsetenv("POSTGRES_USER")
+			_ = os.Unsetenv("POSTGRES_PASSWORD")
+			_ = os.Unsetenv("POSTGRES_DB")
+			_ = os.Unsetenv("POSTGRES_HOST")
+			_ = os.Unsetenv("POSTGRES_PORT")
 		}()
 
 		maxRetries := 3
@@ -192,14 +192,14 @@ func TestValidateEnvVars(t *testing.T) {
 		savedVals := make(map[string]string)
 		for _, key := range requiredVars {
 			savedVals[key] = os.Getenv(key)
-			os.Unsetenv(key)
+			_ = os.Unsetenv(key)
 		}
 
 		// Restore after test
 		defer func() {
 			for key, val := range savedVals {
 				if val != "" {
-					os.Setenv(key, val)
+					_ = os.Setenv(key, val)
 				}
 			}
 		}()
@@ -226,16 +226,16 @@ func TestValidateEnvVars(t *testing.T) {
 
 		// Set test values
 		for key, val := range requiredVars {
-			os.Setenv(key, val)
+			_ = os.Setenv(key, val)
 		}
 
 		// Restore after test
 		defer func() {
 			for key, val := range savedVals {
 				if val != "" {
-					os.Setenv(key, val)
+					_ = os.Setenv(key, val)
 				} else {
-					os.Unsetenv(key)
+					_ = os.Unsetenv(key)
 				}
 			}
 		}()
@@ -257,19 +257,19 @@ func TestValidateEnvVars(t *testing.T) {
 		savedVals := make(map[string]string)
 		for _, key := range requiredVars {
 			savedVals[key] = os.Getenv(key)
-			os.Unsetenv(key)
+			_ = os.Unsetenv(key)
 		}
 
 		// Set only some
-		os.Setenv("POSTGRES_USER", "test_user")
-		os.Setenv("POSTGRES_PASSWORD", "test_password")
+		_ = os.Setenv("POSTGRES_USER", "test_user")
+		_ = os.Setenv("POSTGRES_PASSWORD", "test_password")
 		// Missing: POSTGRES_DB, POSTGRES_HOST, POSTGRES_PORT
 
 		// Restore after test
 		defer func() {
 			for key, val := range savedVals {
 				if val != "" {
-					os.Setenv(key, val)
+					_ = os.Setenv(key, val)
 				}
 			}
 		}()

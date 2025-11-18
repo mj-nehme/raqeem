@@ -139,7 +139,7 @@ func TestErrorHandlerMiddleware(t *testing.T) {
 		router.Use(CorrelationIDMiddleware())
 		router.Use(ErrorHandlerMiddleware())
 		router.GET("/test", func(c *gin.Context) {
-			c.Error(http.ErrAbortHandler)
+			_ = c.Error(http.ErrAbortHandler)
 		})
 
 		req := httptest.NewRequest("GET", "/test", nil)
@@ -155,8 +155,8 @@ func TestErrorHandlerMiddleware(t *testing.T) {
 		router.Use(CorrelationIDMiddleware())
 		router.Use(ErrorHandlerMiddleware())
 		router.GET("/test", func(c *gin.Context) {
-			c.Error(http.ErrAbortHandler)
-			c.Error(http.ErrBodyNotAllowed)
+			_ = c.Error(http.ErrAbortHandler)
+			_ = c.Error(http.ErrBodyNotAllowed)
 		})
 
 		req := httptest.NewRequest("GET", "/test", nil)
@@ -172,7 +172,7 @@ func TestErrorHandlerMiddleware(t *testing.T) {
 		router.Use(CorrelationIDMiddleware())
 		router.Use(ErrorHandlerMiddleware())
 		router.GET("/test", func(c *gin.Context) {
-			c.Error(http.ErrAbortHandler)
+			_ = c.Error(http.ErrAbortHandler)
 		})
 
 		existingID := "test-error-correlation-id"
@@ -285,7 +285,7 @@ func TestMiddlewareChain(t *testing.T) {
 		router.Use(RequestLoggerMiddleware())
 		router.Use(ErrorHandlerMiddleware())
 		router.GET("/test", func(c *gin.Context) {
-			c.Error(http.ErrAbortHandler)
+			_ = c.Error(http.ErrAbortHandler)
 		})
 
 		req := httptest.NewRequest("GET", "/test", nil)
