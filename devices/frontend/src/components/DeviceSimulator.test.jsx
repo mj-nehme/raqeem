@@ -1341,4 +1341,74 @@ describe('DeviceSimulator Component', () => {
         expect(requestBody[0]).toHaveProperty('alert_type')
         expect(requestBody[0]).toHaveProperty('message')
     })
+
+    test('start simulation requires device registration first', async () => {
+        render(<DeviceSimulator />)
+
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        expect(startButton).toBeDisabled()
+    })
+
+    test('simulation can be started after device registration', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Start simulation button should now be enabled
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        expect(startButton).toBeEnabled()
+
+        // Click start simulation
+        fireEvent.click(startButton)
+
+        // Should see log message
+        await waitFor(() => {
+            expect(screen.getByText(/simulation started/i)).toBeInTheDocument()
+        })
+    })
+
+    test('simulation can be stopped after starting', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Start simulation
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        fireEvent.click(startButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/simulation started/i)).toBeInTheDocument()
+        })
+
+        // Find and click stop button
+        const stopButton = screen.getByRole('button', { name: /stop simulation/i })
+        fireEvent.click(stopButton)
+
+        // Should see stopped message
+        await waitFor(() => {
+            expect(screen.getByText(/simulation stopped/i)).toBeInTheDocument()
+        })
+    })
 })

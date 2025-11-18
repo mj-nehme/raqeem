@@ -52,6 +52,7 @@ After `./start.sh`, services auto-discover ports:
 ### Development
 - [Development Guide](docs/DEVELOPMENT.md) — Local setup and coding standards
 - [Testing Guide](docs/TESTING.md) — Unit, integration, and E2E testing
+- [Coverage Action Plan](COVERAGE_ACTION_PLAN.md) — Path to 90% test coverage
 - [Troubleshooting](docs/TROUBLESHOOTING.md) — Common issues and fixes
 
 ### Operations
