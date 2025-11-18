@@ -109,6 +109,28 @@ docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION} \
 print_success "Images built successfully"
 echo ""
 
+# Check Docker authentication before pushing
+print_info "Checking GitHub Container Registry authentication..."
+if ! docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest 2>/dev/null && ! echo "" | docker login ghcr.io --username mj-nehme --password-stdin 2>/dev/null; then
+  print_error "Not authenticated with GitHub Container Registry"
+  echo ""
+  echo "Please authenticate with one of these methods:"
+  echo ""
+  echo "1. Using GitHub CLI (recommended):"
+  echo "   gh auth login"
+  echo "   gh auth token | docker login ghcr.io -u USERNAME --password-stdin"
+  echo ""
+  echo "2. Using Personal Access Token:"
+  echo "   echo YOUR_TOKEN | docker login ghcr.io -u USERNAME --password-stdin"
+  echo ""
+  echo "Generate token at: https://github.com/settings/tokens"
+  echo "Required scopes: write:packages, read:packages"
+  echo ""
+  exit 1
+fi
+print_success "Authentication verified"
+echo ""
+
 # Push images to registry
 print_info "Pushing images to GitHub Container Registry..."
 echo ""
