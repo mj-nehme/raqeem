@@ -1,6 +1,22 @@
 #!/usr/bin/env bash
 set -e
 
+# =============================================================================
+# RELEASE SCRIPT - Creates and publishes official releases
+# =============================================================================
+# This script is for maintainers to create official releases.
+# It builds Docker images and pushes them to GitHub Container Registry (GHCR).
+#
+# For local development, use:
+#   ./scripts/build-local-images.sh  # Build images locally
+#   ./start.sh                       # Start local Kubernetes cluster
+#
+# Prerequisites for this script:
+#   - GitHub authentication (gh CLI or Personal Access Token)
+#   - Docker login to ghcr.io
+#   - Write access to the repository packages
+# =============================================================================
+
 # Color codes for output
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
@@ -111,7 +127,7 @@ echo ""
 
 # Check Docker authentication before pushing
 print_info "Checking GitHub Container Registry authentication..."
-if ! grep -q "ghcr.io" ~/.docker/config.json 2>/dev/null && ! [ -f ~/.docker/config.json ]; then
+if ! grep -q "ghcr.io" ~/.docker/config.json 2>/dev/null; then
   print_error "Not authenticated with GitHub Container Registry"
   echo ""
   echo "Please authenticate with one of these methods:"
@@ -129,6 +145,26 @@ if ! grep -q "ghcr.io" ~/.docker/config.json 2>/dev/null && ! [ -f ~/.docker/con
   exit 1
 fi
 print_success "Authentication verified"
+echo ""
+
+# Confirmation prompt before pushing to registry
+print_warning "Ready to push Docker images to GitHub Container Registry (ghcr.io)"
+echo ""
+echo "This will publish the following images:"
+echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:latest"
+echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:latest"
+echo ""
+read -p "Continue with push to GHCR? (yes/no): " confirm
+if [[ "$confirm" != "yes" ]]; then
+  print_warning "Push cancelled by user"
+  echo ""
+  echo "Images are built locally and ready for use with 'pullPolicy: Never'"
+  exit 0
+fi
 echo ""
 
 # Push images to registry
