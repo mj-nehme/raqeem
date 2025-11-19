@@ -67,13 +67,13 @@ This will verify:
 **What happens:**
 ```
 📦 Docker Images Tagged:
-  • ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
-  • ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44
-  • ghcr.io/mj-nehme/raqeem/devices-backend:latest
+  • ghcr.io/mj-nehme/raqeem-devices-backend:v1.0.0
+  • ghcr.io/mj-nehme/raqeem-devices-backend:v1.0.0-86e6e44
+  • ghcr.io/mj-nehme/raqeem-devices-backend:latest
 
-  • ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0
-  • ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0-86e6e44
-  • ghcr.io/mj-nehme/raqeem/mentor-backend:latest
+  • ghcr.io/mj-nehme/raqeem-mentor-backend:v1.0.0
+  • ghcr.io/mj-nehme/raqeem-mentor-backend:v1.0.0-86e6e44
+  • ghcr.io/mj-nehme/raqeem-mentor-backend:latest
 
 🏷️  Git Tag: v1.0.0
 ```
@@ -108,9 +108,9 @@ When you run `./scripts/tag-release.sh v1.0.0`, it creates **ONE image** but giv
 
 ```bash
 # These all point to THE SAME IMAGE:
-ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0           # Semantic version
-ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44   # Version + git SHA
-ghcr.io/mj-nehme/raqeem/devices-backend:latest           # Latest tag
+ghcr.io/mj-nehme/raqeem-devices-backend:v1.0.0           # Semantic version
+ghcr.io/mj-nehme/raqeem-devices-backend:v1.0.0-86e6e44   # Version + git SHA
+ghcr.io/mj-nehme/raqeem-devices-backend:latest           # Latest tag
 ```
 
 **Analogy:** Like having three bookmarks pointing to the same webpage.
@@ -130,21 +130,21 @@ ghcr.io/mj-nehme/raqeem/devices-backend:latest           # Latest tag
 docker images | grep raqeem
 
 # You have:
-ghcr.io/mj-nehme/raqeem/devices-backend:86e6e44    # Git commit SHA
-ghcr.io/mj-nehme/raqeem/devices-backend:latest     # Latest tag
-ghcr.io/mj-nehme/raqeem/mentor-backend:86e6e44  # Git commit SHA  
-ghcr.io/mj-nehme/raqeem/mentor-backend:latest   # Latest tag
+ghcr.io/mj-nehme/raqeem-devices-backend:86e6e44    # Git commit SHA
+ghcr.io/mj-nehme/raqeem-devices-backend:latest     # Latest tag
+ghcr.io/mj-nehme/raqeem-mentor-backend:86e6e44  # Git commit SHA  
+ghcr.io/mj-nehme/raqeem-mentor-backend:latest   # Latest tag
 ```
 
 ### What Will Be Built When You Run tag-release.sh
 ```bash
 # Will ADD these tags (same images, new tags):
-ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
-ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44
+ghcr.io/mj-nehme/raqeem-devices-backend:v1.0.0
+ghcr.io/mj-nehme/raqeem-devices-backend:v1.0.0-86e6e44
 # (latest gets updated)
 
-ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0
-ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0-86e6e44
+ghcr.io/mj-nehme/raqeem-mentor-backend:v1.0.0
+ghcr.io/mj-nehme/raqeem-mentor-backend:v1.0.0-86e6e44
 # (latest gets updated)
 ```
 
@@ -213,8 +213,8 @@ jaafarn/raqeem-mentor-backend    ⚠️ Deprecated
 
 **After (v0.2.0+ - GitHub Container Registry):**
 ```
-ghcr.io/mj-nehme/raqeem/devices-backend   ✅ Current
-ghcr.io/mj-nehme/raqeem/mentor-backend    ✅ Current
+ghcr.io/mj-nehme/raqeem-devices-backend   ✅ Current
+ghcr.io/mj-nehme/raqeem-mentor-backend    ✅ Current
 ```
 
 All images are now hosted on GitHub Container Registry (GHCR) for better integration, security, and reliability.

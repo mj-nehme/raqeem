@@ -232,8 +232,8 @@ Coverage: c8
 - Automatic authentication with `GITHUB_TOKEN`
 
 **Images**:
-- `ghcr.io/mj-nehme/raqeem/devices-backend`
-- `ghcr.io/mj-nehme/raqeem/mentor-backend`
+- `ghcr.io/mj-nehme/raqeem-devices-backend`
+- `ghcr.io/mj-nehme/raqeem-mentor-backend`
 
 **Tags**:
 - `latest` - Most recent main branch build

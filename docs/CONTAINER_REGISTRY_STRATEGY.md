@@ -14,10 +14,10 @@ All Raqeem application images are published to GHCR:
 
 ```yaml
 # Devices Backend
-image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 
 # Mentor Backend  
-image: ghcr.io/mj-nehme/raqeem/mentor-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem-mentor-backend:v0.2.0
 ```
 
 **Benefits**:
@@ -134,7 +134,7 @@ Our CI/CD workflows automatically:
   with:
     context: ./devices/backend
     push: true
-    tags: ghcr.io/${{ github.repository }}/devices-backend:latest
+    tags: ghcr.io/${{ github.repository_owner }}/raqeem-devices-backend:latest
     cache-from: type=gha
     cache-to: type=gha,mode=max
 ```
@@ -192,7 +192,7 @@ image: minio/minio:latest
 **After (v0.2.0+)**:
 ```yaml
 # Explicit registry references
-image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 image: docker.io/library/postgres:16
 image: quay.io/minio/minio:latest
 ```
@@ -211,7 +211,7 @@ Update your Helm values:
 # Application images
 devices-backend:
   image:
-    repository: ghcr.io/mj-nehme/raqeem/devices-backend
+    repository: ghcr.io/mj-nehme/raqeem-devices-backend
     tag: v0.2.0
 
 # Infrastructure images
@@ -231,7 +231,7 @@ minio:
 ```yaml
 services:
   devices-backend:
-    image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+    image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
   
   postgres:
     image: docker.io/library/postgres:16
@@ -279,7 +279,7 @@ services:
 
 1. **Check image exists**:
    ```bash
-   docker manifest inspect ghcr.io/mj-nehme/raqeem/devices-backend:latest
+   docker manifest inspect ghcr.io/mj-nehme/raqeem-devices-backend:latest
    ```
 
 2. **Login to GHCR** (if private):
@@ -290,7 +290,7 @@ services:
 3. **Use correct registry**:
    ```bash
    # Correct
-   docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
+   docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
    
    # Incorrect (old)
    docker pull jaafarn/raqeem-devices-backend:latest
