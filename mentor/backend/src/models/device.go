@@ -96,10 +96,10 @@ type DeviceRemoteCommand struct {
 type DeviceScreenshot struct {
 	ScreenshotID uuid.UUID `json:"screenshotid" gorm:"column:screenshotid;type:uuid;primaryKey;default:gen_random_uuid()"`
 	DeviceID     uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
-	Timestamp    time.Time `json:"timestamp" gorm:"column:screenshot_timestamp;default:now()"`
-	Path         string    `json:"path" gorm:"column:screenshot_path"`
-	Resolution   string    `json:"resolution" gorm:"column:screenshot_resolution"`
-	Size         int64     `json:"size" gorm:"column:screenshot_size"`
+	Timestamp    time.Time `json:"timestamp" gorm:"default:now()"`
+	Path         string    `json:"path"`
+	Resolution   string    `json:"resolution"`
+	Size         int64     `json:"size"`
 }
 
 // User represents a user linked to a device.

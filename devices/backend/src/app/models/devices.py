@@ -98,9 +98,9 @@ class DeviceScreenshot(Base):
     __tablename__ = "device_screenshots"
     __table_args__ = {"extend_existing": True}
 
-    screenshotid = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    deviceid = Column(UUID(as_uuid=True), nullable=False)
-    timestamp = Column("screenshot_timestamp", TIMESTAMP(timezone=True), server_default=sa.func.now())
-    path = Column("screenshot_path", Text, nullable=False)
-    resolution = Column("screenshot_resolution", Text, nullable=True)
-    size = Column("screenshot_size", BigInteger, nullable=True)
+    screenshotid = Column("screenshotid", UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    deviceid = Column("deviceid", UUID(as_uuid=True), nullable=False)
+    timestamp = Column("timestamp", TIMESTAMP(timezone=True), server_default=sa.func.now())
+    path = Column("path", Text, nullable=False)
+    resolution = Column("resolution", Text, nullable=True)
+    size = Column("size", BigInteger, nullable=True)
