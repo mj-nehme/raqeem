@@ -94,8 +94,8 @@ type DeviceRemoteCommand struct {
 
 // DeviceScreenshot stores screen captures.
 type DeviceScreenshot struct {
-	ScreenshotID uuid.UUID `json:"screenshotid" gorm:"column:screenshot_id;type:uuid;primaryKey;default:gen_random_uuid()"`
-	DeviceID     uuid.UUID `json:"deviceid" gorm:"column:device_id"`
+	ScreenshotID uuid.UUID `json:"screenshotid" gorm:"column:screenshotid;type:uuid;primaryKey;default:gen_random_uuid()"`
+	DeviceID     uuid.UUID `json:"deviceid" gorm:"column:deviceid"`
 	Timestamp    time.Time `json:"timestamp" gorm:"column:screenshot_timestamp;default:now()"`
 	Path         string    `json:"path" gorm:"column:screenshot_path"`
 	Resolution   string    `json:"resolution" gorm:"column:screenshot_resolution"`
