@@ -26,9 +26,10 @@ postgres:
     key: POSTGRES_PASSWORD
 
 minio:
-  endpoint: http://minio-service.default.svc.cluster.local:9000
+  endpoint: minio-service.default.svc.cluster.local:9000
   region: us-east-1
   bucket: screenshots
+  secure: false
   accessKeySecret:
     name: minio-secret
     key: accesskey

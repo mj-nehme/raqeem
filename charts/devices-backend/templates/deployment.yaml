@@ -45,6 +45,8 @@ spec:
                   key: {{ .Values.postgres.passwordSecret.key | quote }}
             - name: MINIO_ENDPOINT
               value: {{ .Values.minio.endpoint | quote }}
+            - name: MINIO_SECURE
+              value: {{ .Values.minio.secure | default false | quote }}
             - name: MINIO_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
