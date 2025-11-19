@@ -335,3 +335,90 @@ func TestStoreScreenshot(t *testing.T) {
 		t.Errorf("expected path %s, got %s", screenshot.Path, storedScreenshot.Path)
 	}
 }
+
+func TestGetDeviceScreenshotsResponseStructure(t *testing.T) {
+	setupTestDB(t)
+
+	// Ensure tables are migrated
+	if err := database.DB.AutoMigrate(&models.DeviceScreenshot{}); err != nil {
+		t.Fatalf("AutoMigrate Screenshot failed: %v", err)
+	}
+
+	deviceID := sampleUUID
+
+	// Clean up any existing screenshots for this device
+	database.DB.Where("deviceid = ?", deviceID).Delete(&models.DeviceScreenshot{})
+
+	// Create a test screenshot
+	screenshot := models.DeviceScreenshot{
+		DeviceID:   sampleUUID,
+		Path:       "screenshots/test-response-screenshot.png",
+		Resolution: "1920x1080",
+		Size:       2048000,
+	}
+	if err := database.DB.Create(&screenshot).Error; err != nil {
+		t.Fatalf("failed to create test screenshot: %v", err)
+	}
+
+	// Prepare request to get screenshots
+	w := httptest.NewRecorder()
+	c, _ := gin.CreateTestContext(w)
+	c.Params = []gin.Param{{Key: "id", Value: deviceID.String()}}
+	c.Request, _ = http.NewRequest("GET", "/devices/"+deviceID.String()+"/screenshots", nil)
+
+	GetDeviceScreenshot(c)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected status 200, got %d, body: %s", w.Code, w.Body.String())
+	}
+
+	// Verify response structure
+	var response []map[string]interface{}
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
+		t.Fatalf("failed to unmarshal response: %v", err)
+	}
+
+	if len(response) == 0 {
+		t.Fatal("expected at least one screenshot in response")
+	}
+
+	// Verify first screenshot has correct field names
+	firstShot := response[0]
+	
+	// Check that 'screenshotid' field exists
+	if _, ok := firstShot["screenshotid"]; !ok {
+		t.Errorf("response should contain 'screenshotid' field, got keys: %v", getKeys(firstShot))
+	}
+	
+	// Check that 'screenshot_url' field exists
+	if _, ok := firstShot["screenshot_url"]; !ok {
+		t.Errorf("response should contain 'screenshot_url' field, got keys: %v", getKeys(firstShot))
+	}
+	
+	// Check that deprecated 'id' field does not exist
+	if _, ok := firstShot["id"]; ok {
+		t.Errorf("response should not contain 'id' field, should use 'screenshotid' instead")
+	}
+	
+	// Check that deprecated 'url' field does not exist
+	if _, ok := firstShot["url"]; ok {
+		t.Errorf("response should not contain 'url' field, should use 'screenshot_url' instead")
+	}
+
+	// Verify other expected fields
+	expectedFields := []string{"deviceid", "timestamp", "path", "resolution", "size"}
+	for _, field := range expectedFields {
+		if _, ok := firstShot[field]; !ok {
+			t.Errorf("response should contain '%s' field", field)
+		}
+	}
+}
+
+// Helper function to get keys from a map
+func getKeys(m map[string]interface{}) []string {
+	keys := make([]string, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	return keys
+}
