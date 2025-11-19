@@ -287,6 +287,32 @@ func TestGetFunctions(t *testing.T) {
 
 		assert.Equal(t, "minioadmin1234", GetSecretKey())
 	})
+
+	t.Run("GetBucketName returns environment variable", func(t *testing.T) {
+		originalBucketName := os.Getenv("MINIO_BUCKET_NAME")
+		defer func() {
+			if originalBucketName != "" {
+				_ = os.Setenv("MINIO_BUCKET_NAME", originalBucketName)
+			} else {
+				_ = os.Unsetenv("MINIO_BUCKET_NAME")
+			}
+		}()
+
+		_ = os.Setenv("MINIO_BUCKET_NAME", "custom-bucket")
+		assert.Equal(t, "custom-bucket", GetBucketName())
+	})
+
+	t.Run("GetBucketName returns default when not set", func(t *testing.T) {
+		originalBucketName := os.Getenv("MINIO_BUCKET_NAME")
+		_ = os.Unsetenv("MINIO_BUCKET_NAME")
+		defer func() {
+			if originalBucketName != "" {
+				_ = os.Setenv("MINIO_BUCKET_NAME", originalBucketName)
+			}
+		}()
+
+		assert.Equal(t, "screenshots", GetBucketName())
+	})
 }
 
 func TestGeneratePresignedURLContext(t *testing.T) {

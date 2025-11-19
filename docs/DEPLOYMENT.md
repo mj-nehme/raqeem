@@ -654,6 +654,10 @@ kubectl apply -f hpa.yaml
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
+| `MINIO_ENDPOINT` | MinIO/S3 endpoint | `minio-service:9000` or `s3.amazonaws.com` |
+| `MINIO_ACCESS_KEY` | S3 access key | `AKIAIOSFODNN7EXAMPLE` |
+| `MINIO_SECRET_KEY` | S3 secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
+| `MINIO_BUCKET_NAME` | S3 bucket name for screenshots | `screenshots` |
 | `PORT` | Server port | `8080` |
 | `FRONTEND_ORIGIN` | Allowed CORS origins | `https://dashboard.example.com` |
 
