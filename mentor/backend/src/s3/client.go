@@ -107,7 +107,7 @@ func GeneratePresignedURL(filename string) string {
 	reqParams := url.Values{}
 	reqParams.Set("response-content-disposition", "inline")
 
-	presignedURL, err := client.PresignedGetObject(ctx, "screenshots", filename, 1*time.Hour, reqParams)
+	presignedURL, err := client.PresignedGetObject(ctx, "raqeem-screenshots", filename, 1*time.Hour, reqParams)
 	if err != nil {
 		log.Println("Error generating presigned URL:", err)
 		return ""
