@@ -40,6 +40,14 @@ func GetSecretKey() string {
 	return "minioadmin1234"
 }
 
+// GetBucketName returns the MinIO bucket name with environment variable fallback
+func GetBucketName() string {
+	if bucketName := os.Getenv("MINIO_BUCKET_NAME"); bucketName != "" {
+		return bucketName
+	}
+	return "screenshots"
+}
+
 // GetClient returns the initialized MinIO client
 func GetClient() *minio.Client {
 	return client
@@ -107,7 +115,8 @@ func GeneratePresignedURL(filename string) string {
 	reqParams := url.Values{}
 	reqParams.Set("response-content-disposition", "inline")
 
-	presignedURL, err := client.PresignedGetObject(ctx, "raqeem-screenshots", filename, 1*time.Hour, reqParams)
+	bucketName := GetBucketName()
+	presignedURL, err := client.PresignedGetObject(ctx, bucketName, filename, 1*time.Hour, reqParams)
 	if err != nil {
 		log.Println("Error generating presigned URL:", err)
 		return ""
