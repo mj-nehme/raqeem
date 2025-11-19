@@ -6,6 +6,7 @@ import (
 	"mentor-backend/database"
 	"mentor-backend/logging"
 	"mentor-backend/router"
+	"mentor-backend/s3"
 	"net/http"
 	"os"
 	"os/signal"
@@ -105,6 +106,10 @@ func (a *App) Start() error {
 		})
 		return err
 	}
+
+	// Initialize MinIO/S3 client for screenshot presigned URLs
+	logging.Info("Initializing MinIO client")
+	s3.InitClient()
 
 	// Setup router
 	a.setupRouter()
