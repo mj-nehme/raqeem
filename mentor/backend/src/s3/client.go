@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -17,11 +18,18 @@ import (
 var client *minio.Client
 
 // GetEndpoint returns the MinIO endpoint with environment variable fallback
+// Strips http:// or https:// prefix if present, as minio.New() expects host:port format
 func GetEndpoint() string {
-	if endpoint := os.Getenv("MINIO_ENDPOINT"); endpoint != "" {
-		return endpoint
+	endpoint := os.Getenv("MINIO_ENDPOINT")
+	if endpoint == "" {
+		endpoint = "minio.default.svc.cluster.local:9000"
 	}
-	return "minio.default.svc.cluster.local:9000"
+	
+	// Strip http:// or https:// prefix if present
+	endpoint = strings.TrimPrefix(endpoint, "http://")
+	endpoint = strings.TrimPrefix(endpoint, "https://")
+	
+	return endpoint
 }
 
 // GetAccessKey returns the MinIO access key with environment variable fallback

@@ -275,3 +275,53 @@ func TestInitClientAfterPreviousInitialization(t *testing.T) {
 	InitClient()
 	assert.NotNil(t, client, "Second initialization should create client")
 }
+
+func TestGetEndpointStripsHttpPrefix(t *testing.T) {
+	testCases := []struct {
+		name     string
+		envValue string
+		expected string
+	}{
+		{
+			name:     "endpoint with http prefix",
+			envValue: "http://minio-service.default.svc.cluster.local:9000",
+			expected: "minio-service.default.svc.cluster.local:9000",
+		},
+		{
+			name:     "endpoint with https prefix",
+			envValue: "https://minio-service.default.svc.cluster.local:9000",
+			expected: "minio-service.default.svc.cluster.local:9000",
+		},
+		{
+			name:     "endpoint without prefix",
+			envValue: "minio-service.default.svc.cluster.local:9000",
+			expected: "minio-service.default.svc.cluster.local:9000",
+		},
+		{
+			name:     "endpoint with localhost",
+			envValue: "http://localhost:9000",
+			expected: "localhost:9000",
+		},
+		{
+			name:     "endpoint with IP address",
+			envValue: "https://192.168.1.100:9000",
+			expected: "192.168.1.100:9000",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("MINIO_ENDPOINT", tc.envValue)
+			endpoint := GetEndpoint()
+			assert.Equal(t, tc.expected, endpoint, "Endpoint should have protocol prefix stripped")
+		})
+	}
+}
+
+func TestGetEndpointDefaultValue(t *testing.T) {
+	// Ensure MINIO_ENDPOINT is not set
+	t.Setenv("MINIO_ENDPOINT", "")
+	
+	endpoint := GetEndpoint()
+	assert.Equal(t, "minio.default.svc.cluster.local:9000", endpoint, "Should return default endpoint when env var is not set")
+}
