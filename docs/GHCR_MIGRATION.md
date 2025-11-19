@@ -21,8 +21,8 @@ jaafarn/raqeem-mentor-backend:v0.1.1
 
 ### New Image Names (GHCR)
 ```
-ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
-ghcr.io/mj-nehme/raqeem/mentor-backend:v0.2.0
+ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
+ghcr.io/mj-nehme/raqeem-mentor-backend:v0.2.0
 ```
 
 ## Migration Steps
@@ -53,7 +53,7 @@ image:
 **After:**
 ```yaml
 image:
-  repository: ghcr.io/mj-nehme/raqeem/devices-backend
+  repository: ghcr.io/mj-nehme/raqeem-devices-backend
   tag: v0.2.0
 ```
 
@@ -106,7 +106,7 @@ services:
 ```yaml
 services:
   devices-backend:
-    image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+    image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 ```
 
 Then pull and restart:
@@ -125,8 +125,8 @@ docker run jaafarn/raqeem-devices-backend:latest
 
 **After:**
 ```bash
-docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
-docker run ghcr.io/mj-nehme/raqeem/devices-backend:latest
+docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
+docker run ghcr.io/mj-nehme/raqeem-devices-backend:latest
 ```
 
 ## Image Availability
@@ -148,13 +148,13 @@ Images are tagged with multiple identifiers:
 Example:
 ```bash
 # Pull specific version
-docker pull ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+docker pull ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 
 # Pull latest
-docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
+docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
 
 # Pull from main branch
-docker pull ghcr.io/mj-nehme/raqeem/devices-backend:main
+docker pull ghcr.io/mj-nehme/raqeem-devices-backend:main
 ```
 
 ## CI/CD Integration
@@ -204,7 +204,7 @@ git push origin v0.2.0
 
 1. **Check image name**:
    ```bash
-   docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
+   docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
    ```
 
 2. **Login to GHCR**:
@@ -271,7 +271,7 @@ GHCR images include provenance and SBOM (Software Bill of Materials):
 
 ```bash
 # Verify image signature (requires cosign)
-cosign verify ghcr.io/mj-nehme/raqeem/devices-backend:latest
+cosign verify ghcr.io/mj-nehme/raqeem-devices-backend:latest
 ```
 
 ### Vulnerability Scanning

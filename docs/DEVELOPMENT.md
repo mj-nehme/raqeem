@@ -180,7 +180,7 @@ kubectl delete deployment mentor-backend devices-backend
 ./start.sh
 ```
 
-**Production Note**: For production deployments, use versioned images from GHCR (e.g., `ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0`). See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+**Production Note**: For production deployments, use versioned images from GHCR (e.g., `ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0`). See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
 
 ## Code Structure
 

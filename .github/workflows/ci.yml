@@ -199,7 +199,7 @@ jobs:
         id: meta-devices
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/devices-backend
+          images: ghcr.io/${{ github.repository_owner }}/raqeem-devices-backend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -211,7 +211,7 @@ jobs:
         id: meta-mentor
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository }}/mentor-backend
+          images: ghcr.io/${{ github.repository_owner }}/raqeem-mentor-backend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
