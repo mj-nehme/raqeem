@@ -100,6 +100,7 @@ export DATABASE_URL="postgresql://monitor:password@localhost:5432/monitoring_db"
 export MINIO_ENDPOINT="localhost:9000"
 export MINIO_ACCESS_KEY="minioadmin"
 export MINIO_SECRET_KEY="minioadmin"
+export MINIO_BUCKET_NAME="screenshots"
 
 # 4. Run backends locally
 # Terminal 1: Devices Backend
