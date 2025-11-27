@@ -311,7 +311,7 @@ func TestGetFunctions(t *testing.T) {
 			}
 		}()
 
-		assert.Equal(t, "screenshots", GetBucketName())
+		assert.Equal(t, "raqeem-screenshots", GetBucketName())
 	})
 }
 
