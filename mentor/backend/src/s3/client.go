@@ -58,7 +58,6 @@ func GetPublicEndpoint() string {
 	}
 	return GetEndpoint()
 }
-}
 
 // GetClient returns the initialized MinIO client
 func GetClient() *minio.Client {
