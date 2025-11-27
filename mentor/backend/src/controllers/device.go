@@ -769,7 +769,11 @@ func GetScreenshotFile(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": "screenshot not found"})
 		return
 	}
-	defer obj.Close()
+	defer func() {
+		if closeErr := obj.Close(); closeErr != nil {
+			log.Printf("Failed to close S3 object '%s': %v", filename, closeErr)
+		}
+	}()
 
 	// Read first 512 bytes to detect content type (fallback to extension)
 	buf := make([]byte, 512)
@@ -791,7 +795,10 @@ func GetScreenshotFile(c *gin.Context) {
 	c.Status(http.StatusOK)
 	// Write the bytes we already read
 	if n > 0 {
-		c.Writer.Write(buf[:n])
+		if _, writeErr := c.Writer.Write(buf[:n]); writeErr != nil {
+			log.Printf("Failed to write initial bytes for '%s': %v", filename, writeErr)
+			return
+		}
 	}
 	// Stream rest
 	_, copyErr := io.Copy(c.Writer, obj)
