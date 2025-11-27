@@ -178,8 +178,9 @@ def verify_presigned_url_format(screenshot):
     if "raqeem-screenshots" in screenshot_url:
         log("✓ URL contains correct bucket name (raqeem-screenshots)", "SUCCESS")
     elif "screenshots" in screenshot_url:
-        # Legacy bucket name - still acceptable
-        log("  Note: URL contains legacy bucket name", "INFO")
+        # Legacy bucket name indicates the fix may not be working
+        log("✗ URL contains legacy bucket name 'screenshots' - expected 'raqeem-screenshots'", "ERROR")
+        return False
 
     # Verify the path from the screenshot is in the URL
     screenshot_path = screenshot.get("path", "")
