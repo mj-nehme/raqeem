@@ -28,7 +28,7 @@ postgres:
 minio:
   endpoint: minio-service.default.svc.cluster.local:9000
   region: us-east-1
-  bucket: screenshots
+  bucket: raqeem-screenshots
   secure: false
   accessKeySecret:
     name: minio-secret

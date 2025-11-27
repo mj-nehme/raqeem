@@ -4,6 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
+	"io"
+	"mime"
+	"path/filepath"
 	"mentor-backend/database"
 	"mentor-backend/models"
 	"mentor-backend/s3"
@@ -16,6 +20,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"github.com/minio/minio-go/v7"
 )
 
 // Constants for device and metrics handling
@@ -725,11 +730,74 @@ func StoreScreenshot(c *gin.Context) {
 	// Timestamp is set by database default, so we do not override it here
 
 	if err := database.DB.Create(&screenshot).Error; err != nil {
+		log.Printf("Screenshot metadata insert failed: deviceid=%s path=%s error=%v", screenshot.DeviceID, screenshot.Path, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
+	log.Printf("Screenshot metadata stored: screenshotid=%s deviceid=%s path=%s resolution=%s size=%d", screenshot.ScreenshotID, screenshot.DeviceID, screenshot.Path, screenshot.Resolution, screenshot.Size)
 	c.JSON(http.StatusOK, screenshot)
+}
+
+// GetScreenshotFile streams a screenshot image directly from MinIO via backend to avoid CORS/signature issues
+// @Summary Get screenshot file
+// @Description Stream a screenshot image by filename
+// @Tags devices
+// @Produce image/png
+// @Param filename path string true "Screenshot filename"
+// @Success 200 {string} binary "Image bytes"
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /screenshots/{filename} [get]
+func GetScreenshotFile(c *gin.Context) {
+	filename := c.Param("filename")
+	if strings.TrimSpace(filename) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "filename required"})
+		return
+	}
+
+	client := s3.GetClient()
+	if client == nil {
+		c.JSON(http.StatusServiceUnavailable, gin.H{"error": "storage client unavailable"})
+		return
+	}
+
+	bucket := s3.GetBucketName()
+	obj, err := client.GetObject(c, bucket, filename, minio.GetObjectOptions{})
+	if err != nil {
+		log.Printf("GetObject failed for '%s': %v", filename, err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "screenshot not found"})
+		return
+	}
+	defer obj.Close()
+
+	// Read first 512 bytes to detect content type (fallback to extension)
+	buf := make([]byte, 512)
+	n, _ := obj.Read(buf)
+	contentType := http.DetectContentType(buf[:n])
+	if contentType == "application/octet-stream" {
+		ext := filepath.Ext(filename)
+		if mt := mime.TypeByExtension(ext); mt != "" {
+			contentType = mt
+		} else if strings.EqualFold(ext, ".png") {
+			contentType = "image/png"
+		} else if strings.EqualFold(ext, ".jpg") || strings.EqualFold(ext, ".jpeg") {
+			contentType = "image/jpeg"
+		}
+	}
+
+	c.Header("Content-Type", contentType)
+	c.Header("Cache-Control", "public, max-age=300")
+	c.Status(http.StatusOK)
+	// Write the bytes we already read
+	if n > 0 {
+		c.Writer.Write(buf[:n])
+	}
+	// Stream rest
+	_, copyErr := io.Copy(c.Writer, obj)
+	if copyErr != nil {
+		log.Printf("Streaming remainder failed for '%s': %v", filename, copyErr)
+	}
 }
 
 // ListActivities returns all device activities (global, not per device)

@@ -384,22 +384,22 @@ func TestGetDeviceScreenshotsResponseStructure(t *testing.T) {
 
 	// Verify first screenshot has correct field names
 	firstShot := response[0]
-	
+
 	// Check that 'screenshotid' field exists
 	if _, ok := firstShot["screenshotid"]; !ok {
 		t.Errorf("response should contain 'screenshotid' field, got keys: %v", getKeys(firstShot))
 	}
-	
+
 	// Check that 'screenshot_url' field exists
 	if _, ok := firstShot["screenshot_url"]; !ok {
 		t.Errorf("response should contain 'screenshot_url' field, got keys: %v", getKeys(firstShot))
 	}
-	
+
 	// Check that deprecated 'id' field does not exist
 	if _, ok := firstShot["id"]; ok {
 		t.Errorf("response should not contain 'id' field, should use 'screenshotid' instead")
 	}
-	
+
 	// Check that deprecated 'url' field does not exist
 	if _, ok := firstShot["url"]; ok {
 		t.Errorf("response should not contain 'url' field, should use 'screenshot_url' instead")

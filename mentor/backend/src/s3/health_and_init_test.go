@@ -311,6 +311,7 @@ func TestGetFunctions(t *testing.T) {
 			}
 		}()
 
+		// Updated default bucket name to match application-wide convention
 		assert.Equal(t, "raqeem-screenshots", GetBucketName())
 	})
 }

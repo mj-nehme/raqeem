@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/minio/minio-go/v7"
@@ -15,6 +16,7 @@ import (
 )
 
 var client *minio.Client
+var presignClient *minio.Client // separate client for public endpoint presigning (host must match signature)
 
 // GetEndpoint returns the MinIO endpoint with environment variable fallback
 func GetEndpoint() string {
@@ -48,6 +50,16 @@ func GetBucketName() string {
 	return "raqeem-screenshots"
 }
 
+// GetPublicEndpoint returns externally reachable MinIO endpoint used for browser presigned URLs.
+// Falls back to internal endpoint if MINIO_PUBLIC_ENDPOINT is not set.
+func GetPublicEndpoint() string {
+	if publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT"); publicEndpoint != "" {
+		return publicEndpoint
+	}
+	return GetEndpoint()
+}
+}
+
 // GetClient returns the initialized MinIO client
 func GetClient() *minio.Client {
 	return client
@@ -57,6 +69,11 @@ func InitClient() {
 	endpoint := GetEndpoint()
 	accessKey := GetAccessKey()
 	secretKey := GetSecretKey()
+
+	// Strip http:// or https:// prefix if present
+	// MinIO client doesn't want the protocol in the endpoint
+	endpoint = strings.TrimPrefix(endpoint, "http://")
+	endpoint = strings.TrimPrefix(endpoint, "https://")
 
 	// Use retry logic for MinIO connection
 	retryConfig := reliability.ExternalServiceRetryConfig()
@@ -92,6 +109,38 @@ func InitClient() {
 		// The health check will report the issue
 	} else {
 		log.Println("MinIO client initialized successfully")
+
+		// Ensure the bucket exists
+		ensureBucketExists()
+	}
+}
+
+// ensureBucketExists creates the screenshots bucket if it doesn't exist
+func ensureBucketExists() {
+	if client == nil {
+		return
+	}
+
+	bucketName := GetBucketName()
+	ctx := context.Background()
+
+	// Check if bucket exists
+	exists, err := client.BucketExists(ctx, bucketName)
+	if err != nil {
+		log.Printf("Warning: Failed to check if bucket '%s' exists: %v", bucketName, err)
+		return
+	}
+
+	if !exists {
+		// Create the bucket
+		err = client.MakeBucket(ctx, bucketName, minio.MakeBucketOptions{})
+		if err != nil {
+			log.Printf("Warning: Failed to create bucket '%s': %v", bucketName, err)
+			return
+		}
+		log.Printf("Created MinIO bucket: %s", bucketName)
+	} else {
+		log.Printf("MinIO bucket '%s' already exists", bucketName)
 	}
 }
 
@@ -103,26 +152,56 @@ func SetClient(c *minio.Client) {
 func GeneratePresignedURL(filename string) string {
 	// Return empty string if client is not initialized (e.g., in tests)
 	if client == nil {
+		log.Printf("Warning: MinIO client is not initialized, cannot generate presigned URL for: %s", filename)
 		return ""
 	}
 
 	// Return empty string for empty filename
 	if filename == "" {
+		log.Println("Warning: Empty filename provided to GeneratePresignedURL")
 		return ""
 	}
 
 	ctx := context.Background()
 	reqParams := url.Values{}
 	reqParams.Set("response-content-disposition", "inline")
-
 	bucketName := GetBucketName()
-	presignedURL, err := client.PresignedGetObject(ctx, bucketName, filename, 1*time.Hour, reqParams)
-	if err != nil {
-		log.Println("Error generating presigned URL:", err)
-		return ""
+
+	publicEndpoint := GetPublicEndpoint()
+	internalEndpoint := GetEndpoint()
+	publicEndpointClean := strings.TrimPrefix(strings.TrimPrefix(publicEndpoint, "http://"), "https://")
+	internalEndpointClean := strings.TrimPrefix(strings.TrimPrefix(internalEndpoint, "http://"), "https://")
+
+	// Attempt stat (non-blocking)
+	if _, statErr := client.StatObject(ctx, bucketName, filename, minio.StatObjectOptions{}); statErr != nil {
+		log.Printf("Notice: StatObject failed for '%s' in bucket '%s': %v (continuing to presign)", filename, bucketName, statErr)
 	}
 
-	return presignedURL.String()
+	// Determine which client to use for presign
+	var presignTarget *minio.Client
+	if publicEndpointClean != internalEndpointClean {
+		if presignClient == nil {
+			pc, err := minio.New(publicEndpointClean, &minio.Options{Creds: credentials.NewStaticV4(GetAccessKey(), GetSecretKey(), ""), Secure: false})
+			if err != nil {
+				log.Printf("Error creating presign client for public endpoint '%s': %v", publicEndpointClean, err)
+				return ""
+			}
+			presignClient = pc
+			log.Printf("Presign client initialized for public endpoint: %s", publicEndpointClean)
+		}
+		presignTarget = presignClient
+	} else {
+		presignTarget = client
+	}
+
+	presignedURL, err := presignTarget.PresignedGetObject(ctx, bucketName, filename, 1*time.Hour, reqParams)
+	if err != nil {
+		log.Printf("Error generating presigned URL for %s in bucket %s using endpoint %s: %v", filename, bucketName, publicEndpointClean, err)
+		return ""
+	}
+	finalURL := presignedURL.String()
+	log.Printf("Presigned URL generated for '%s' via endpoint '%s': %s", filename, publicEndpointClean, finalURL)
+	return finalURL
 }
 
 // HealthCheck checks if the S3/MinIO connection is healthy

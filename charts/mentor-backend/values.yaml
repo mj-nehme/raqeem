@@ -24,8 +24,11 @@ postgres:
 
 minio:
   endpoint: http://minio-service.default.svc.cluster.local:9000
+  # Public endpoint for presigned URLs (accessible from browser)
+  # If not set, uses the internal endpoint (which won't work from browser)
+  publicEndpoint: http://localhost:30421
   region: us-east-1
-  bucket: screenshots
+  bucket: raqeem-screenshots
   accessKeySecret:
     name: minio-secret
     key: accesskey

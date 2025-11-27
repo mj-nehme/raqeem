@@ -57,6 +57,10 @@ spec:
               value: {{ .Values.minio.region | quote }}
             - name: MINIO_BUCKET_NAME
               value: {{ .Values.minio.bucket | quote }}
+            {{- if .Values.minio.publicEndpoint }}
+            - name: MINIO_PUBLIC_ENDPOINT
+              value: {{ .Values.minio.publicEndpoint | quote }}
+            {{- end }}
             - name: FRONTEND_ORIGIN
               value: {{ .Values.frontendOrigin | default "http://localhost:15000" | quote }}
             {{- if .Values.frontendOriginRegex }}

@@ -11,6 +11,9 @@ spec:
     - name: api
       port: {{ .Values.service.apiPort }}
       targetPort: 9000
+      {{- if eq .Values.service.type "NodePort" }}
+      nodePort: {{ .Values.service.apiNodePort }}
+      {{- end }}
     - name: console
       port: {{ .Values.service.consolePort }}
       targetPort: 9001

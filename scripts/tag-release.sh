@@ -40,6 +40,42 @@ print_error() {
   echo -e "${RED}❌ $1${NC}"
 }
 
+# Check if we're logged in to GHCR already
+docker_logged_in_to_ghcr() {
+  # Docker may not create config.json until the first login; treat as not logged in
+  [[ -f "$HOME/.docker/config.json" ]] || return 1
+  grep -q '"ghcr.io"' "$HOME/.docker/config.json" 2>/dev/null
+}
+
+# Ensure we are authenticated to GHCR, attempt non-interactive login if possible
+ensure_ghcr_login() {
+  if docker_logged_in_to_ghcr; then
+    return 0
+  fi
+
+  # Try to login using provided credentials
+  local USERNAME="${GHCR_USERNAME:-${GH_USERNAME:-${GITHUB_ACTOR}}}"
+  local TOKEN="${GHCR_PAT:-${GH_TOKEN:-${GITHUB_TOKEN}}}"
+
+  if [[ -n "$TOKEN" ]]; then
+    if [[ -z "$USERNAME" ]]; then
+      print_warning "GHCR username not provided. Set GHCR_USERNAME or GH_USERNAME (fallbacks to GITHUB_ACTOR in CI)."
+      return 1
+    fi
+    print_info "Attempting non-interactive docker login to ghcr.io as '$USERNAME'..."
+    if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
+      print_success "Authenticated to GHCR"
+      return 0
+    else
+      print_error "Docker login to GHCR failed"
+      return 1
+    fi
+  fi
+
+  # No token available; require manual login
+  return 1
+}
+
 # Check if version argument is provided
 if [[ -z "$1" ]]; then
   print_error "Usage: $0 <version> [--skip-tests]"
@@ -125,26 +161,29 @@ docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION} \
 print_success "Images built successfully"
 echo ""
 
-# Check Docker authentication before pushing
-print_info "Checking GitHub Container Registry authentication..."
-if ! grep -q "ghcr.io" ~/.docker/config.json 2>/dev/null; then
-  print_error "Not authenticated with GitHub Container Registry"
+# Check or establish Docker authentication before pushing
+print_info "Ensuring GitHub Container Registry authentication..."
+if ! ensure_ghcr_login; then
+  print_error "Not authenticated with GitHub Container Registry (ghcr.io)"
   echo ""
-  echo "Please authenticate with one of these methods:"
+  echo "I couldn't log in automatically. Authenticate using one of these methods:"
   echo ""
-  echo "1. Using GitHub CLI (recommended):"
+  echo "1) Non-interactive env vars (recommended):"
+  echo "   export GHCR_USERNAME=your-github-username"
+  echo "   export GHCR_PAT=your-personal-access-token"
+  echo "   # Required scopes: write:packages, read:packages"
+  echo ""
+  echo "   Or in GitHub Actions, prefer GITHUB_TOKEN and the docker/login-action."
+  echo ""
+  echo "2) GitHub CLI:"
   echo "   gh auth login"
-  echo "   gh auth token | docker login ghcr.io -u mj-nehme --password-stdin"
+  echo "   gh auth token | docker login ghcr.io -u \"$USER\" --password-stdin"
   echo ""
-  echo "2. Using Personal Access Token:"
-  echo "   echo YOUR_TOKEN | docker login ghcr.io -u mj-nehme --password-stdin"
-  echo ""
-  echo "Generate token at: https://github.com/settings/tokens"
-  echo "Required scopes: write:packages, read:packages"
+  echo "3) Manual PAT login:"
+  echo "   echo YOUR_TOKEN | docker login ghcr.io -u your-github-username --password-stdin"
   echo ""
   exit 1
 fi
-print_success "Authentication verified"
 echo ""
 
 # Confirmation prompt before pushing to registry

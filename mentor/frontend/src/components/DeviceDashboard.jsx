@@ -437,7 +437,26 @@ export default function DeviceDashboard() {
                                                             screenshots.slice(0, 12).map((screenshot) => (
                                                                 <Grid item xs={12} sm={6} md={4} key={screenshot.screenshotid}>
                                                                     <Card>
-                                                                        <Box component="img" src={screenshot.screenshot_url || screenshot.url} alt={`Screenshot ${screenshot.screenshotid}`} sx={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }} onClick={() => window.open(screenshot.screenshot_url || screenshot.url, '_blank')} onError={(e) => { e.target.style.display = 'none'; }} />
+                                                                        <Box
+                                                                            component="img"
+                                                                            src={
+                                                                                screenshot.screenshot_url && screenshot.screenshot_url.trim() !== ''
+                                                                                    ? screenshot.screenshot_url
+                                                                                    : `/screenshots/${screenshot.path}`
+                                                                            }
+                                                                            alt={`Screenshot ${screenshot.screenshotid}`}
+                                                                            sx={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }}
+                                                                            onClick={() => {
+                                                                                const target = screenshot.screenshot_url && screenshot.screenshot_url.trim() !== ''
+                                                                                    ? screenshot.screenshot_url
+                                                                                    : `/screenshots/${screenshot.path}`;
+                                                                                window.open(target, '_blank');
+                                                                            }}
+                                                                            onError={(e) => {
+                                                                                // Hide broken image but keep card
+                                                                                e.target.style.display = 'none';
+                                                                            }}
+                                                                        />
                                                                         <CardContent>
                                                                             <Typography variant="caption" color="text.secondary">{new Date(screenshot.timestamp || screenshot.created_at).toLocaleString()}</Typography>
                                                                         </CardContent>

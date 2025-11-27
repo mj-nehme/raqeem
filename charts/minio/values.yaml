@@ -8,6 +8,7 @@ image:
 service:
   type: NodePort
   apiPort: 9000
+  apiNodePort: 30421
   consolePort: 9001
   consoleNodePort: 30001
 
