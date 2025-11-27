@@ -474,23 +474,23 @@ export default function DeviceDashboard() {
                                             {tabValue === 4 && (
                                                 <Box>
                                                     <Typography variant="h6" gutterBottom>Commands</Typography>
-                                                    
+
                                                     {commandError && (
                                                         <Alert severity="error" sx={{ mb: 2 }} onClose={() => setCommandError('')}>
                                                             {commandError}
                                                         </Alert>
                                                     )}
-                                                    
+
                                                     {commandSuccess && (
                                                         <Alert severity="success" sx={{ mb: 2 }} onClose={() => setCommandSuccess(false)}>
                                                             Command sent successfully!
                                                         </Alert>
                                                     )}
-                                                    
+
                                                     <Alert severity="info" sx={{ mb: 2 }}>
                                                         <strong>Allowed commands:</strong> get_info, status, restart, get_processes, get_logs, restart_service [service_name], screenshot
                                                     </Alert>
-                                                    
+
                                                     <Box sx={{ display: 'flex', gap: 2, mt: 2, mb: 3 }}>
                                                         <TextField
                                                             fullWidth

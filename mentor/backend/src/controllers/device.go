@@ -4,23 +4,23 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"io"
-	"mime"
-	"path/filepath"
+	"log"
 	"mentor-backend/database"
 	"mentor-backend/models"
 	"mentor-backend/s3"
 	"mentor-backend/util"
+	"mime"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 	"github.com/minio/minio-go/v7"
+	"gorm.io/gorm"
 )
 
 // Constants for device and metrics handling
