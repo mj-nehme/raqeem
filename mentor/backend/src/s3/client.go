@@ -45,7 +45,7 @@ func GetBucketName() string {
 	if bucketName := os.Getenv("MINIO_BUCKET_NAME"); bucketName != "" {
 		return bucketName
 	}
-	return "screenshots"
+	return "raqeem-screenshots"
 }
 
 // GetClient returns the initialized MinIO client
