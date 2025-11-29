@@ -4,7 +4,7 @@ env:
 replicaCount: 1
 
 image:
-  repository: raqeem/devices-backend
+  repository: raqeem-devices-backend
   tag: v0.2.0
   pullPolicy: Never
 
