@@ -534,68 +534,30 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('refresh button triggers data refresh', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
+        // Use URL-based mock to handle parallel fetch calls in any order
+        // Pattern matching is based on the actual API endpoints used by the component
+        fetch.mockImplementation((url) => {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockDevices
+                })
+            }
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockMetrics
+                })
+            }
+            // Default response for other device detail endpoints
+            // (processes, activities, alerts, screenshots, commands)
+            return Promise.resolve({
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            // Second fetch for refresh
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
+        })
 
         render(<DeviceDashboard />)
 
