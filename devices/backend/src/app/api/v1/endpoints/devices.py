@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 from typing import Any, cast
 from uuid import UUID
@@ -801,19 +802,15 @@ async def get_pending_commands(device_id: str, db: AsyncSession = Depends(get_db
 )
 async def submit_command_result(command_id: UUID, payload: CommandResultSubmit, db: AsyncSession = Depends(get_db)):
     # Diagnostic: log incoming command result
-    try:
+    with contextlib.suppress(Exception):
         print(f"[devices] submit_command_result: id={command_id} status={payload.status} exit_code={payload.exit_code}")
-    except Exception:
-        pass
     res = await db.execute(
         select(dev_models.DeviceRemoteCommand).where(dev_models.DeviceRemoteCommand.commandid == command_id)
     )
     command = res.scalars().first()
     if not command:
-        try:
+        with contextlib.suppress(Exception):
             print(f"[devices] submit_command_result: command not found id={command_id}")
-        except Exception:
-            pass
         raise HTTPException(status_code=404, detail="Command not found")
 
     # Update command with result
@@ -833,10 +830,8 @@ async def submit_command_result(command_id: UUID, payload: CommandResultSubmit, 
             "result": command.result,
             "exit_code": command.exit_code,
         }
-        try:
+        with contextlib.suppress(Exception):
             print(f"[devices] forwarding result to mentor: {forward_payload}")
-        except Exception:
-            pass
         await post_with_retry(
             f"{settings.mentor_api_url}/commands/status",
             json=forward_payload,
