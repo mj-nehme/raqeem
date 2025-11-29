@@ -8,16 +8,16 @@ As of v0.2.0, Raqeem uses a multi-registry strategy to eliminate dependencies on
 
 ### Application Images (Raqeem Services)
 
-image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 
 All Raqeem application images are published to GHCR:
 
 ```yaml
 # Devices Backend
-image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 
 # Mentor Backend  
-image: ghcr.io/mj-nehme/raqeem/mentor-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem-mentor-backend:v0.2.0
 ```
 
 **Benefits**:
@@ -34,7 +34,7 @@ image: ghcr.io/mj-nehme/raqeem/mentor-backend:v0.2.0
 ```dockerfile
 # Go applications
 FROM docker.io/library/golang:1.25-alpine
-    tags: ghcr.io/${{ github.repository_owner }}/raqeem/devices-backend:latest
+    tags: ghcr.io/${{ github.repository_owner }}/raqeem-devices-backend:latest
 # Python applications
 FROM docker.io/library/python:3.10-slim
 ```
@@ -49,7 +49,7 @@ FROM docker.io/library/python:3.10-slim
 ### Third-Party Services
 
 #### PostgreSQL
-   docker manifest inspect ghcr.io/mj-nehme/raqeem/devices-backend:latest
+   docker manifest inspect ghcr.io/mj-nehme/raqeem-devices-backend:latest
 **Registry**: Docker Official Images - `docker.io/library/`
 
 ```yaml
@@ -60,7 +60,7 @@ image: docker.io/library/postgres:16
 - ✅ Directly maintained by PostgreSQL team via Docker
 - ✅ Regular security patches
 - ✅ Most widely used and tested
-   docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
+   docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
 
 #### MinIO
 
@@ -76,7 +76,7 @@ image: quay.io/minio/minio:latest
 - ✅ No rate limits
 - ✅ Better performance than DockerHub
 
-    repository: ghcr.io/mj-nehme/raqeem/devices-backend
+    repository: ghcr.io/mj-nehme/raqeem-devices-backend
 
 All container images now use explicit registry prefixes (e.g., `docker.io/library/postgres:16` instead of just `postgres:16`).
 
@@ -85,7 +85,7 @@ All container images now use explicit registry prefixes (e.g., `docker.io/librar
 2. **Security**: No ambiguity about image origin
 3. **Reproducibility**: Explicit source prevents surprises
 4. **Compliance**: Easier to audit image sources
-    image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+    image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 
 ## Rate Limits and Authentication
 
@@ -132,7 +132,7 @@ Our CI/CD workflows automatically:
   with:
     context: ./devices/backend
     push: true
-    tags: ghcr.io/${{ github.repository_owner }}/raqeem/devices-backend:latest
+    tags: ghcr.io/${{ github.repository_owner }}/raqeem-devices-backend:latest
     cache-from: type=gha
     cache-to: type=gha,mode=max
 ```
@@ -190,7 +190,7 @@ image: minio/minio:latest
 **After (v0.2.0+)**:
 ```yaml
 # Explicit registry references
-image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
 image: docker.io/library/postgres:16
 image: quay.io/minio/minio:latest
 ```
@@ -209,7 +209,7 @@ Update your Helm values:
 # Application images
 devices-backend:
   image:
-    repository: ghcr.io/mj-nehme/raqeem/devices-backend
+    repository: ghcr.io/mj-nehme/raqeem-devices-backend
     tag: v0.2.0
 
 # Infrastructure images
@@ -229,7 +229,7 @@ minio:
 ```yaml
 services:
   devices-backend:
-    image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
+    image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
   
   postgres:
     image: docker.io/library/postgres:16
@@ -277,7 +277,7 @@ services:
 
 1. **Check image exists**:
    ```bash
-   docker manifest inspect ghcr.io/mj-nehme/raqeem/devices-backend:latest
+   docker manifest inspect ghcr.io/mj-nehme/raqeem-devices-backend:latest
    ```
 
 2. **Login to GHCR** (if private):
@@ -288,10 +288,10 @@ services:
 3. **Use correct registry**:
    ```bash
    # Correct
-   docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
+   docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
    
    # Incorrect (old)
-   docker pull jaafarn/raqeem/devices-backend:latest
+   docker pull jaafarn/raqeem-devices-backend:latest
    ```
 
 ### Rate Limit Exceeded

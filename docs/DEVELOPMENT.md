@@ -159,8 +159,8 @@ The platform uses **local Docker images** for development, eliminating external 
 ```
 
 **Local Images Created**:
-- `raqeem/devices-backend:latest`
-- `raqeem/mentor-backend:latest`
+- `raqeem-devices-backend:latest`
+- `raqeem-mentor-backend:latest`
 
 **Benefits**:
 - No GitHub Container Registry authentication needed
@@ -181,7 +181,7 @@ kubectl delete deployment mentor-backend devices-backend
 ./start.sh
 ```
 
-**Production Note**: For production deployments, use versioned images from GHCR (e.g., `ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0`). See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+**Production Note**: For production deployments, use versioned images from GHCR (e.g., `ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0`). See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
 
 ## Code Structure
 

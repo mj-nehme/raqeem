@@ -95,7 +95,7 @@ kubectl get events -n default | grep <pod-name>
 ping github.com
 
 # Manually pull image
-docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
+docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
 
 # Check if image exists
 docker images | grep raqeem
@@ -911,7 +911,7 @@ docker build --check -t test-image .
 **Solutions**:
 ```bash
 # Check image name
-docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
+docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
 
 # Login to GitHub Container Registry if private
 echo $GITHUB_TOKEN | docker login ghcr.io -u <github-username> --password-stdin

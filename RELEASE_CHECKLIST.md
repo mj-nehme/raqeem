@@ -71,15 +71,15 @@ git push origin v<VERSION>
 ### 4. Docker Images
 ```bash
 # Build and push Docker images to GHCR
-docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:<VERSION> ./devices/backend
-docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:<VERSION> ./mentor/backend
+docker build -t ghcr.io/mj-nehme/raqeem-devices-backend:<VERSION> ./devices/backend
+docker build -t ghcr.io/mj-nehme/raqeem-mentor-backend:<VERSION> ./mentor/backend
 
 # Login to GHCR
 echo $GITHUB_TOKEN | docker login ghcr.io -u <username> --password-stdin
 
 # Push images
-docker push ghcr.io/mj-nehme/raqeem/devices-backend:<VERSION>
-docker push ghcr.io/mj-nehme/raqeem/mentor-backend:<VERSION>
+docker push ghcr.io/mj-nehme/raqeem-devices-backend:<VERSION>
+docker push ghcr.io/mj-nehme/raqeem-mentor-backend:<VERSION>
 
 # Or use the automated script:
 ./scripts/tag-release.sh v<VERSION>

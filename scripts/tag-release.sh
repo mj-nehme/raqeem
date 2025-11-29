@@ -147,15 +147,15 @@ print_info "Building Docker images..."
 echo ""
 
 print_info "  Building Devices Backend..."
-docker build -t ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION} \
-             -t ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT} \
-             -t ghcr.io/mj-nehme/raqeem/devices-backend:latest \
+docker build -t ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION} \
+             -t ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}-${GIT_COMMIT} \
+             -t ghcr.io/mj-nehme/raqeem-devices-backend:latest \
              devices/backend/
 
 print_info "  Building Mentor Backend..."
-docker build -t ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION} \
-             -t ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT} \
-             -t ghcr.io/mj-nehme/raqeem/mentor-backend:latest \
+docker build -t ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION} \
+             -t ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT} \
+             -t ghcr.io/mj-nehme/raqeem-mentor-backend:latest \
              mentor/backend/
 
 print_success "Images built successfully"
@@ -190,12 +190,12 @@ echo ""
 print_warning "Ready to push Docker images to GitHub Container Registry (ghcr.io)"
 echo ""
 echo "This will publish the following images:"
-echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}"
-echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:latest"
-echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}"
-echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:latest"
+echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:latest"
+echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:latest"
 echo ""
 read -p "Continue with push to GHCR? (yes/no): " confirm
 if [[ "$confirm" != "yes" ]]; then
@@ -211,14 +211,14 @@ print_info "Pushing images to GitHub Container Registry..."
 echo ""
 
 print_info "  Pushing Devices Backend images..."
-docker push ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}
-docker push ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT}
-docker push ghcr.io/mj-nehme/raqeem/devices-backend:latest
+docker push ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}
+docker push ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}
+docker push ghcr.io/mj-nehme/raqeem-devices-backend:latest
 
 print_info "  Pushing Mentor Backend images..."
-docker push ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}
-docker push ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT}
-docker push ghcr.io/mj-nehme/raqeem/mentor-backend:latest
+docker push ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}
+docker push ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}
+docker push ghcr.io/mj-nehme/raqeem-mentor-backend:latest
 
 print_success "Images pushed successfully"
 echo ""
@@ -259,8 +259,8 @@ git commit -m "chore: release ${VERSION}
 git tag -a "${VERSION}" -m "Release ${VERSION}
 
 Docker Images:
-- ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}
-- ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}
+- ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}
+- ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}
 
 Git Commit: ${GIT_COMMIT}
 "
@@ -274,13 +274,13 @@ print_success "Release ${VERSION} created successfully!"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
 echo "📦 Docker Images Tagged:"
-echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}"
-echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • ghcr.io/mj-nehme/raqeem/devices-backend:latest"
+echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:latest"
 echo ""
-echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}"
-echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • ghcr.io/mj-nehme/raqeem/mentor-backend:latest"
+echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}"
+echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}"
+echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:latest"
 echo ""
 echo "📝 Changes Committed:"
 echo "  • Helm charts updated to use ${VERSION}"
