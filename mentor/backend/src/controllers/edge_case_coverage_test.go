@@ -320,8 +320,8 @@ func TestGetDeviceCommandsEdgeCases(t *testing.T) {
 	})
 }
 
-// TestUpdateCommandStatusEdgeCases tests edge cases in UpdateCommandStatus
-func TestUpdateCommandStatusEdgeCases(t *testing.T) {
+// TestUpdateCommandStatusErrorEdgeCases tests error edge cases in UpdateCommandStatus
+func TestUpdateCommandStatusErrorEdgeCases(t *testing.T) {
 	setupTestDB(t)
 	defer teardownTestDB(t)
 
