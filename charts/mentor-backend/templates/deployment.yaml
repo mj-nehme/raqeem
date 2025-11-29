@@ -67,5 +67,9 @@ spec:
             - name: FRONTEND_ORIGIN_REGEX
               value: {{ .Values.frontendOriginRegex | quote }}
             {{- end }}
+            {{- if .Values.devicesApiUrl }}
+            - name: DEVICES_API_URL
+              value: {{ .Values.devicesApiUrl | quote }}
+            {{- end }}
           resources:
 {{ toYaml .Values.resources | indent 12 }}

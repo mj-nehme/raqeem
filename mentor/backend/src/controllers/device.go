@@ -606,11 +606,19 @@ func GetDeviceCommands(c *gin.Context) {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /commands/status [post]
 func UpdateCommandStatus(c *gin.Context) {
+	// Enforce unified payload: expects 'commandid' (no aliases)
 	var cmd models.DeviceRemoteCommand
 	if err := c.BindJSON(&cmd); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if cmd.CommandID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "commandid required"})
+		return
+	}
+
+	// Diagnostic: log incoming status update
+	log.Printf("[mentor] UpdateCommandStatus: commandid=%s status=%s exit_code=%d", cmd.CommandID, cmd.Status, cmd.ExitCode)
 
 	if cmd.Status == "completed" || cmd.Status == "failed" {
 		cmd.CompletedAt = time.Now()
@@ -626,6 +634,7 @@ func UpdateCommandStatus(c *gin.Context) {
 			"completed_at": cmd.CompletedAt,
 		})
 	if result.Error != nil {
+		log.Printf("[mentor] UpdateCommandStatus DB error for %s: %v", cmd.CommandID, result.Error)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 		return
 	}
@@ -654,6 +663,7 @@ func UpdateCommandStatus(c *gin.Context) {
 						"completed_at": cmd.CompletedAt,
 					})
 				if result.Error != nil {
+					log.Printf("[mentor] Fallback update DB error for device %s: %v", deviceID, result.Error)
 					c.JSON(http.StatusInternalServerError, gin.H{"error": result.Error.Error()})
 					return
 				}

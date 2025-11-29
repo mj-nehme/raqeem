@@ -46,6 +46,10 @@ frontendOrigin: "http://localhost:5000,http://localhost:5001,http://localhost:50
 # This allows dynamic ports within a limited range, solving CORS issues with port discovery
 frontendOriginRegex: ""
 
+# Optional: Devices API URL for forwarding commands/results to devices backend
+# Example (dev): http://localhost:30080/api/v1
+devicesApiUrl: ""
+
 nodeSelector: {}
 
 tolerations: []

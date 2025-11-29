@@ -2,8 +2,46 @@ import { test, expect, vi, describe, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react'
 import DeviceDashboard from './DeviceDashboard'
 
-// Mock fetch
-global.fetch = vi.fn()
+// Robust fetch mock: respond based on requested path instead of call order
+global.fetch = vi.fn((input, init) => {
+    const url = typeof input === 'string' ? input : (input?.url || '')
+    const ok = true
+    // Normalize relative URLs
+    const u = url.startsWith('/') ? `/api${url.replace(/^\//, '/')}` : url
+    // Devices list
+    if (u.includes('/api/devices') && !u.match(/\/api\/devices\/.+\//)) {
+        return Promise.resolve({ ok, json: async () => mockDevices })
+    }
+    // Device-scoped endpoints
+    if (u.includes('/api/devices/') && u.endsWith('/metrics')) {
+        return Promise.resolve({ ok, json: async () => mockMetrics })
+    }
+    if (u.includes('/api/devices/') && u.endsWith('/processes')) {
+        return Promise.resolve({ ok, json: async () => [] })
+    }
+    if (u.includes('/api/devices/') && u.endsWith('/activities')) {
+        return Promise.resolve({ ok, json: async () => mockActivities })
+    }
+    if (u.includes('/api/devices/') && u.endsWith('/alerts')) {
+        return Promise.resolve({ ok, json: async () => [] })
+    }
+    if (u.includes('/api/devices/') && u.endsWith('/screenshots')) {
+        return Promise.resolve({ ok, json: async () => mockScreenshots })
+    }
+    // Commands pending
+    if (u.match(/\/api\/devices\/.+\/commands\/pending$/)) {
+        return Promise.resolve({ ok, json: async () => [] })
+    }
+    // Commands list and create
+    if (u.includes('/api/devices/') && u.endsWith('/commands')) {
+        if (init?.method === 'POST') {
+            return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
+        }
+        return Promise.resolve({ ok, json: async () => mockCommands })
+    }
+    // Default empty
+    return Promise.resolve({ ok, json: async () => [] })
+})
 
 // Mock environment variable
 vi.mock('import.meta', () => ({
@@ -236,36 +274,6 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('displays screenshots tab with screenshots', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockScreenshots
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-
         render(<DeviceDashboard />)
 
         await waitFor(() => {
