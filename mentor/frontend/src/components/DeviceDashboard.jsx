@@ -100,11 +100,17 @@ export default function DeviceDashboard() {
         };
     }, []);
 
+    // Track if this is the first load for the selected device
+    const [isInitialLoad, setIsInitialLoad] = useState(true);
+
     // Fetch selected device details
-    const fetchDeviceDetails = async () => {
+    const fetchDeviceDetails = async (forceLoading = false) => {
         if (!selectedDevice) return;
         setRefreshing(true);
-        setLoading(true);
+        // Only show loading spinner on initial load, not during periodic refreshes
+        if (forceLoading || isInitialLoad) {
+            setLoading(true);
+        }
         try {
             const [metricsRes, processesRes, activitiesRes, alertsRes, screenshotsRes, commandsRes] = await Promise.all([
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/metrics`),
@@ -128,6 +134,10 @@ export default function DeviceDashboard() {
             setAlerts(Array.isArray(alertsData) ? alertsData : []);
             setScreenshots(Array.isArray(screenshotsData) ? screenshotsData : []);
             setCommands(Array.isArray(commandsData) ? commandsData : []);
+            // Mark initial load as complete after first successful fetch
+            if (isInitialLoad) {
+                setIsInitialLoad(false);
+            }
         } catch (err) {
             console.error('Failed to fetch device details:', err);
         } finally {
@@ -138,8 +148,10 @@ export default function DeviceDashboard() {
 
     useEffect(() => {
         if (!selectedDevice) return;
-        fetchDeviceDetails();
-        const interval = setInterval(fetchDeviceDetails, 10000);
+        // Reset initial load state when switching devices
+        setIsInitialLoad(true);
+        fetchDeviceDetails(true);
+        const interval = setInterval(() => fetchDeviceDetails(false), 10000);
         return () => clearInterval(interval);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid]);
