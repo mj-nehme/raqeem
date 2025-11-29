@@ -339,18 +339,20 @@ func TestUpdateCommandStatusErrorEdgeCases(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, w.Code)
 	})
 
-	t.Run("returns 404 for nonexistent command", func(t *testing.T) {
-		payload := `{"status":"completed","output":"test output"}`
+	t.Run("returns 200 for nonexistent command (idempotent)", func(t *testing.T) {
+		// UpdateCommandStatus returns 200 even if command doesn't exist (idempotent behavior)
+		nonExistentID := uuid.New()
+		payload := fmt.Sprintf(`{"commandid":"%s","status":"completed","result":"test output"}`, nonExistentID.String())
 
 		w := httptest.NewRecorder()
 		c, _ := gin.CreateTestContext(w)
-		c.Request = httptest.NewRequest("POST", "/commands/99999/result", strings.NewReader(payload))
+		c.Request = httptest.NewRequest("POST", "/commands/"+nonExistentID.String()+"/result", strings.NewReader(payload))
 		c.Request.Header.Set("Content-Type", "application/json")
-		c.Params = gin.Params{{Key: "command_id", Value: "99999"}}
+		c.Params = gin.Params{{Key: "command_id", Value: nonExistentID.String()}}
 
 		controllers.UpdateCommandStatus(c)
 
-		assert.Equal(t, http.StatusNotFound, w.Code)
+		assert.Equal(t, http.StatusOK, w.Code)
 	})
 }
 
