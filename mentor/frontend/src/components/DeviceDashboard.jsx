@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, memo } from 'react';
 import {
     Box,
     Container,
@@ -102,18 +102,24 @@ export default function DeviceDashboard() {
     }, []);
 
     // Segment-specific fetchers (allow staggered polling instead of full dashboard refresh)
-    const fetchMetricsProcesses = async () => {
+    const fetchMetrics = async () => {
         if (!selectedDevice) return;
         try {
-            const [metricsRes, processesRes] = await Promise.all([
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/metrics`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/processes`),
-            ]);
-            const [metricsData, processesData] = await Promise.all([metricsRes.json(), processesRes.json()]);
-            setMetrics(Array.isArray(metricsData) ? metricsData.slice(-50) : []);
-            setProcesses(Array.isArray(processesData) ? processesData : []);
+            const res = await fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/metrics`);
+            const data = await res.json();
+            setMetrics(Array.isArray(data) ? data.slice(-50) : []);
         } catch (err) {
-            console.error('Failed to fetch metrics/processes:', err);
+            console.error('Failed to fetch metrics:', err);
+        }
+    };
+    const fetchProcesses = async () => {
+        if (!selectedDevice) return;
+        try {
+            const res = await fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/processes`);
+            const data = await res.json();
+            setProcesses(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to fetch processes:', err);
         }
     };
     const fetchActivitiesAlerts = async () => {
@@ -155,7 +161,8 @@ export default function DeviceDashboard() {
         if (!selectedDevice) return;
         setRefreshing(true);
         Promise.all([
-            fetchMetricsProcesses(),
+            fetchMetrics(),
+            fetchProcesses(),
             fetchActivitiesAlerts(),
             fetchScreenshots(),
             fetchCommands(),
@@ -163,47 +170,118 @@ export default function DeviceDashboard() {
     };
 
     // Initial load & segmented polling when a device is selected
+    // Initial load for selected device
     useEffect(() => {
         if (!selectedDevice) return;
         setLoading(true);
         Promise.all([
-            fetchMetricsProcesses(),
+            fetchMetrics(),
+            fetchProcesses(),
             fetchActivitiesAlerts(),
             fetchScreenshots(),
             fetchCommands(),
         ]).finally(() => setLoading(false));
-
-        const metricsInterval = setInterval(fetchMetricsProcesses, 10000); // 10s
-        const activitiesInterval = setInterval(fetchActivitiesAlerts, 20000); // 20s
-        const commandsInterval = setInterval(fetchCommands, 10000); // 10s
-        const screenshotsInterval = setInterval(fetchScreenshots, 30000); // 30s (heavier)
-        return () => {
-            clearInterval(metricsInterval);
-            clearInterval(activitiesInterval);
-            clearInterval(commandsInterval);
-            clearInterval(screenshotsInterval);
-        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid]);
 
+    // Metrics always (stats always visible)
+    useEffect(() => {
+        if (!selectedDevice) return;
+        fetchMetrics();
+        const id = setInterval(fetchMetrics, 10000);
+        return () => clearInterval(id);
+    }, [selectedDevice?.deviceid]);
+
+    // Processes only when tab 0
+    useEffect(() => {
+        if (!selectedDevice || tabValue !== 0) return;
+        fetchProcesses();
+        const id = setInterval(fetchProcesses, 10000);
+        return () => clearInterval(id);
+    }, [selectedDevice?.deviceid, tabValue]);
+
+    // Activities only when tab 1
+    useEffect(() => {
+        if (!selectedDevice || tabValue !== 1) return;
+        fetchActivitiesAlerts(); // includes alerts but that's okay for initial load
+        const id = setInterval(fetchActivitiesAlerts, 20000);
+        return () => clearInterval(id);
+    }, [selectedDevice?.deviceid, tabValue]);
+
+    // Alerts only when tab 2 (reuse activitiesAlerts but filter frequency)
+    useEffect(() => {
+        if (!selectedDevice || tabValue !== 2) return;
+        fetchActivitiesAlerts();
+        const id = setInterval(fetchActivitiesAlerts, 30000);
+        return () => clearInterval(id);
+    }, [selectedDevice?.deviceid, tabValue]);
+
+    // Screenshots only when tab 3
+    useEffect(() => {
+        if (!selectedDevice || tabValue !== 3) return;
+        fetchScreenshots();
+        const id = setInterval(fetchScreenshots, 30000);
+        return () => clearInterval(id);
+    }, [selectedDevice?.deviceid, tabValue]);
+
+    // Commands only when tab 4
+    useEffect(() => {
+        if (!selectedDevice || tabValue !== 4) return;
+        fetchCommands();
+        const id = setInterval(fetchCommands, 10000);
+        return () => clearInterval(id);
+    }, [selectedDevice?.deviceid, tabValue]);
+
     const latestMetrics = metrics.length ? metrics[metrics.length - 1] : null;
-    const chartData = useMemo(
-        () =>
-            metrics.map((m, idx) => ({
-                name: idx,
-                cpu: Number(m.cpu_usage || 0),
-                memory: m.memory_total ? Number(((m.memory_used / m.memory_total) * 100).toFixed(1)) : 0,
-            })),
-        [metrics]
-    );
-    const processChartData = useMemo(
-        () =>
-            processes.slice(0, 5).map((p) => ({
-                name: String(p.process_name || '').substring(0, 15),
-                cpu: Number(p.cpu || 0),
-            })),
-        [processes]
-    );
+    const chartData = useMemo(() => metrics.map((m, idx) => ({
+        name: idx,
+        cpu: Number(m.cpu_usage || 0),
+        memory: m.memory_total ? Number(((m.memory_used / m.memory_total) * 100).toFixed(1)) : 0,
+    })), [metrics]);
+    const processChartData = useMemo(() => processes.slice(0, 5).map((p) => ({
+        name: String(p.process_name || '').substring(0, 15),
+        cpu: Number(p.cpu || 0),
+    })), [processes]);
+
+    const PerformanceAreaChart = memo(function PerformanceAreaChart({ data }) {
+        return (
+            <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={data}>
+                    <defs>
+                        <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#1976d2" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#1976d2" stopOpacity={0} />
+                        </linearGradient>
+                        <linearGradient id="colorMemory" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#4caf50" stopOpacity={0.8} />
+                            <stop offset="95%" stopColor="#4caf50" stopOpacity={0} />
+                        </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis domain={[0, 100]} />
+                    <RechartsTooltip />
+                    <Area type="monotone" dataKey="cpu" stroke="#1976d2" fillOpacity={1} fill="url(#colorCpu)" name="CPU %" />
+                    <Area type="monotone" dataKey="memory" stroke="#4caf50" fillOpacity={1} fill="url(#colorMemory)" name="Memory %" />
+                </AreaChart>
+            </ResponsiveContainer>
+        );
+    });
+
+    const TopProcessesPieChart = memo(function TopProcessesPieChart({ data }) {
+        return (
+            <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                    <Pie data={data} cx="50%" cy="50%" labelLine={false} label={(entry) => entry.name} outerRadius={80} fill="#8884d8" dataKey="cpu">
+                        {data.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                    </Pie>
+                    <RechartsTooltip />
+                </PieChart>
+            </ResponsiveContainer>
+        );
+    });
 
     const sendCommand = async () => {
         if (!command.trim() || !selectedDevice) return;
@@ -347,41 +425,13 @@ export default function DeviceDashboard() {
                                             <Grid item xs={12} md={8}>
                                                 <Card><CardContent>
                                                     <Typography variant="h6" gutterBottom>System Performance</Typography>
-                                                    <ResponsiveContainer width="100%" height={300}>
-                                                        <AreaChart data={chartData}>
-                                                            <defs>
-                                                                <linearGradient id="colorCpu" x1="0" y1="0" x2="0" y2="1">
-                                                                    <stop offset="5%" stopColor="#1976d2" stopOpacity={0.8} />
-                                                                    <stop offset="95%" stopColor="#1976d2" stopOpacity={0} />
-                                                                </linearGradient>
-                                                                <linearGradient id="colorMemory" x1="0" y1="0" x2="0" y2="1">
-                                                                    <stop offset="5%" stopColor="#4caf50" stopOpacity={0.8} />
-                                                                    <stop offset="95%" stopColor="#4caf50" stopOpacity={0} />
-                                                                </linearGradient>
-                                                            </defs>
-                                                            <CartesianGrid strokeDasharray="3 3" />
-                                                            <XAxis dataKey="name" />
-                                                            <YAxis domain={[0, 100]} />
-                                                            <RechartsTooltip />
-                                                            <Area type="monotone" dataKey="cpu" stroke="#1976d2" fillOpacity={1} fill="url(#colorCpu)" name="CPU %" />
-                                                            <Area type="monotone" dataKey="memory" stroke="#4caf50" fillOpacity={1} fill="url(#colorMemory)" name="Memory %" />
-                                                        </AreaChart>
-                                                    </ResponsiveContainer>
+                                                    <PerformanceAreaChart data={chartData} />
                                                 </CardContent></Card>
                                             </Grid>
                                             <Grid item xs={12} md={4}>
                                                 <Card><CardContent>
                                                     <Typography variant="h6" gutterBottom>Top Processes (CPU)</Typography>
-                                                    <ResponsiveContainer width="100%" height={300}>
-                                                        <PieChart>
-                                                            <Pie data={processChartData} cx="50%" cy="50%" labelLine={false} label={(entry) => entry.name} outerRadius={80} fill="#8884d8" dataKey="cpu">
-                                                                {processChartData.map((entry, index) => (
-                                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                                                ))}
-                                                            </Pie>
-                                                            <RechartsTooltip />
-                                                        </PieChart>
-                                                    </ResponsiveContainer>
+                                                    <TopProcessesPieChart data={processChartData} />
                                                 </CardContent></Card>
                                             </Grid>
                                         </Grid>
