@@ -53,43 +53,31 @@ ensure_ghcr_login() {
     return 0
   fi
 
-  # Prefer interactive prompt whenever a TTY is available
-  if [[ -t 0 ]]; then
-    print_info "Interactive GHCR login"
-    local USERNAME TOKEN
-    read -rp "GitHub username: " USERNAME
-    read -rsp "GitHub token (with write:packages): " TOKEN
-    echo ""
-    if [[ -n "$USERNAME" && -n "$TOKEN" ]]; then
-      if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
-        print_success "Authenticated to GHCR"
-        return 0
-      else
-        print_error "Docker login to GHCR failed"
-        return 1
-      fi
+  # Non-interactive credential discovery: env vars first, then gh CLI token
+  local USERNAME TOKEN
+  USERNAME="${GHCR_USERNAME:-${GH_USERNAME:-${GITHUB_ACTOR}}}"
+  TOKEN="${GHCR_PAT:-${GH_TOKEN:-${GITHUB_TOKEN}}}"
+
+  if [[ -z "$USERNAME" ]] && command -v gh >/dev/null 2>&1; then
+    USERNAME=$(gh api user -q .login 2>/dev/null || true)
+  fi
+  if [[ -z "$TOKEN" ]] && command -v gh >/dev/null 2>&1; then
+    TOKEN=$(gh auth token 2>/dev/null || true)
+  fi
+
+  if [[ -n "$USERNAME" && -n "$TOKEN" ]]; then
+    print_info "Attempting docker login to ghcr.io as '$USERNAME'..."
+    if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
+      print_success "Authenticated to GHCR"
+      return 0
     else
-      print_error "Username/token not provided"
-      return 1
-    fi
-  else
-    # Non-interactive context (CI): fall back to env vars
-    local USERNAME="${GHCR_USERNAME:-${GH_USERNAME:-${GITHUB_ACTOR}}}"
-    local TOKEN="${GHCR_PAT:-${GH_TOKEN:-${GITHUB_TOKEN}}}"
-    if [[ -n "$USERNAME" && -n "$TOKEN" ]]; then
-      print_info "Attempting non-interactive docker login to ghcr.io as '$USERNAME'..."
-      if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
-        print_success "Authenticated to GHCR"
-        return 0
-      else
-        print_error "Docker login to GHCR failed"
-        return 1
-      fi
-    else
-      print_error "Cannot prompt for credentials (no TTY). Set GHCR_USERNAME and GHCR_PAT env vars."
+      print_error "Docker login to GHCR failed"
       return 1
     fi
   fi
+
+  print_error "No GHCR credentials found. Set GHCR_USERNAME and GHCR_PAT, or login via 'gh auth login' and retry."
+  return 1
 }
 
 # Force interactive GHCR login (replaces any existing login)
@@ -135,19 +123,43 @@ push_image() {
   return 1
 }
 
-# Check if version argument is provided
+# Parse arguments
 if [[ -z "$1" ]]; then
-  print_error "Usage: $0 <version> [--skip-tests]"
+  print_error "Usage: $0 <version> [--skip-tests] [--yes|-y] [--non-interactive]"
   echo ""
   echo "Examples:"
   echo "  $0 v1.0.0"
-  echo "  $0 v1.1.0 --skip-tests"
+  echo "  $0 v1.1.0 --skip-tests --yes --non-interactive"
   echo ""
   exit 1
 fi
 
-VERSION=$1
-SKIP_TESTS=${2:-""}
+VERSION=$1; shift
+
+SKIP_TESTS=""
+AUTO_CONFIRM_PUSH=1
+NON_INTERACTIVE=1
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --skip-tests)
+      SKIP_TESTS="--skip-tests";
+      shift
+      ;;
+    --yes|-y)
+      AUTO_CONFIRM_PUSH=1;
+      NON_INTERACTIVE=1; # imply non-interactive when auto-confirming
+      shift
+      ;;
+    --non-interactive)
+      NON_INTERACTIVE=1;
+      shift
+      ;;
+    *)
+      print_warning "Unknown argument: $1"; shift
+      ;;
+  esac
+done
 
 # Validate version format (vX.Y.Z)
 if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -228,46 +240,12 @@ echo ""
 print_info "Ensuring GitHub Container Registry authentication..."
 if ! ensure_ghcr_login; then
   print_error "Not authenticated with GitHub Container Registry (ghcr.io)"
-  echo ""
-  echo "I couldn't log in automatically. Authenticate using one of these methods:"
-  echo ""
-  echo "1) Non-interactive env vars (recommended):"
-  echo "   export GHCR_USERNAME=your-github-username"
-  echo "   export GHCR_PAT=your-personal-access-token"
-  echo "   # Required scopes: write:packages, read:packages"
-  echo ""
-  echo "   Or in GitHub Actions, prefer GITHUB_TOKEN and the docker/login-action."
-  echo ""
-  echo "2) GitHub CLI:"
-  echo "   gh auth login"
-  echo "   gh auth token | docker login ghcr.io -u \"$USER\" --password-stdin"
-  echo ""
-  echo "3) Manual PAT login:"
-  echo "   echo YOUR_TOKEN | docker login ghcr.io -u your-github-username --password-stdin"
-  echo ""
   exit 1
 fi
 echo ""
 
 # Confirmation prompt before pushing to registry
-print_warning "Ready to push Docker images to GitHub Container Registry (ghcr.io)"
-echo ""
-echo "This will publish the following images:"
-echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}"
-echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • ghcr.io/mj-nehme/raqeem-devices-backend:latest"
-echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}"
-echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}"
-echo "  • ghcr.io/mj-nehme/raqeem-mentor-backend:latest"
-echo ""
-read -p "Continue with push to GHCR? (yes/no): " confirm
-if [[ "$confirm" != "yes" ]]; then
-  print_warning "Push cancelled by user"
-  echo ""
-  echo "Images are built locally and ready for use with 'pullPolicy: Never'"
-  exit 0
-fi
-echo ""
+print_info "Pushing Docker images to GitHub Container Registry (no prompt)"
 
 # Push images to registry
 print_info "Pushing images to GitHub Container Registry..."
@@ -308,18 +286,26 @@ echo "GIT_COMMIT=${GIT_COMMIT}" >> .deploy/tag.env
 print_success "Version persisted to .deploy/tag.env"
 echo ""
 
-# Create git tag
-print_info "Creating git tag..."
-git add charts/devices-backend/values.yaml charts/mentor-backend/values.yaml
-git commit -m "chore: release ${VERSION}
+# Create commit if there are chart changes, then always create tag
+print_info "Preparing git commit and tag..."
+
+if ! git diff --quiet -- charts/devices-backend/values.yaml charts/mentor-backend/values.yaml; then
+  git add charts/devices-backend/values.yaml charts/mentor-backend/values.yaml
+  git commit -m "chore: release ${VERSION}
 
 - Built and tagged Docker images: ${VERSION}
 - Git commit: ${GIT_COMMIT}
 - Updated Helm charts to use ${VERSION}
 - Images pushed to GitHub Container Registry (GHCR)
 "
+else
+  print_warning "No Helm chart changes to commit"
+fi
 
-git tag -a "${VERSION}" -m "Release ${VERSION}
+if git rev-parse -q --verify "refs/tags/${VERSION}" >/dev/null; then
+  print_warning "Git tag ${VERSION} already exists locally"
+else
+  git tag -a "${VERSION}" -m "Release ${VERSION}
 
 Docker Images:
 - ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}
@@ -327,8 +313,8 @@ Docker Images:
 
 Git Commit: ${GIT_COMMIT}
 "
-
-print_success "Git tag created: ${VERSION}"
+  print_success "Git tag created: ${VERSION}"
+fi
 echo ""
 
 # Automatically push commit and tag to origin (no prompt)
