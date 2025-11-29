@@ -615,51 +615,64 @@ export default function DeviceDashboard() {
                                                         </Typography>
                                                     ) : (
                                                         <List>
-                                                            {commands.map((cmd) => (
-                                                                <ListItem key={cmd.commandid} divider>
-                                                                    <ListItemIcon>
-                                                                        {cmd.status === 'completed' ? (
-                                                                            <Info color="success" />
-                                                                        ) : cmd.status === 'failed' ? (
-                                                                            <Error color="error" />
-                                                                        ) : cmd.status === 'pending' ? (
-                                                                            <CircularProgress size={20} />
-                                                                        ) : (
-                                                                            <History />
-                                                                        )}
-                                                                    </ListItemIcon>
-                                                                    <ListItemText
-                                                                        primary={cmd.command_text}
-                                                                        secondary={
-                                                                            <>
-                                                                                <Typography component="span" variant="body2" color="text.primary">
-                                                                                    Status: {cmd.status}
-                                                                                </Typography>
-                                                                                {' • '}
-                                                                                {new Date(cmd.created_at).toLocaleString()}
-                                                                                {cmd.result && cmd.status === 'completed' && (
-                                                                                    <>
-                                                                                        <br />
-                                                                                        <Typography component="span" variant="caption" color="text.secondary" sx={{ fontFamily: 'monospace' }}>
-                                                                                            Result: {String(cmd.result).substring(0, 100)}
-                                                                                            {String(cmd.result).length > 100 ? '...' : ''}
-                                                                                        </Typography>
-                                                                                    </>
-                                                                                )}
-                                                                            </>
-                                                                        }
-                                                                    />
-                                                                    <Chip
-                                                                        label={cmd.status}
-                                                                        size="small"
-                                                                        color={
-                                                                            cmd.status === 'completed' ? 'success' :
-                                                                                cmd.status === 'failed' ? 'error' :
-                                                                                    cmd.status === 'pending' ? 'warning' : 'default'
-                                                                        }
-                                                                    />
-                                                                </ListItem>
-                                                            ))}
+                                                            {commands.map((cmd) => {
+                                                                // Attempt pretty print of JSON result
+                                                                let fullResult = '';
+                                                                if (cmd.result && cmd.status === 'completed') {
+                                                                    const raw = String(cmd.result);
+                                                                    try {
+                                                                        const parsed = JSON.parse(raw);
+                                                                        fullResult = JSON.stringify(parsed, null, 2);
+                                                                    } catch {
+                                                                        fullResult = raw; // not JSON; keep as-is (may contain newlines)
+                                                                    }
+                                                                }
+                                                                return (
+                                                                    <ListItem key={cmd.commandid} divider alignItems="flex-start">
+                                                                        <ListItemIcon>
+                                                                            {cmd.status === 'completed' ? (
+                                                                                <Info color="success" />
+                                                                            ) : cmd.status === 'failed' ? (
+                                                                                <Error color="error" />
+                                                                            ) : cmd.status === 'pending' ? (
+                                                                                <CircularProgress size={20} />
+                                                                            ) : (
+                                                                                <History />
+                                                                            )}
+                                                                        </ListItemIcon>
+                                                                        <ListItemText
+                                                                            primary={cmd.command_text}
+                                                                            secondary={
+                                                                                <>
+                                                                                    <Typography component="span" variant="body2" color="text.primary">
+                                                                                        Status: {cmd.status}
+                                                                                    </Typography>
+                                                                                    {' • '}
+                                                                                    {new Date(cmd.created_at).toLocaleString()}
+                                                                                    {fullResult && (
+                                                                                        <>
+                                                                                            <br />
+                                                                                            <Typography component="span" variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                                                                                                Full Result:
+                                                                                            </Typography>
+                                                                                            <pre style={{ whiteSpace: 'pre-wrap', margin: 0, fontSize: '12px', lineHeight: 1.4, fontFamily: 'monospace', background: '#111', color: '#ddd', padding: '8px', borderRadius: '4px', maxHeight: '240px', overflowY: 'auto' }}>{fullResult}</pre>
+                                                                                        </>
+                                                                                    )}
+                                                                                </>
+                                                                            }
+                                                                        />
+                                                                        <Chip
+                                                                            label={cmd.status}
+                                                                            size="small"
+                                                                            color={
+                                                                                cmd.status === 'completed' ? 'success' :
+                                                                                    cmd.status === 'failed' ? 'error' :
+                                                                                        cmd.status === 'pending' ? 'warning' : 'default'
+                                                                            }
+                                                                        />
+                                                                    </ListItem>
+                                                                )
+                                                            })}
                                                         </List>
                                                     )}
                                                 </Box>

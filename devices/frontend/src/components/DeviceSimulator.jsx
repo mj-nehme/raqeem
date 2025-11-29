@@ -287,31 +287,49 @@ function DeviceSimulator() {
                     result = `Command executed: ${cmd.command_text}`;
             }
 
+            // Resolve command id supporting both commandid and id
+            const commandId = cmd.commandid ?? cmd.id;
+
             // Submit result back to backend
-            const submitResponse = await fetch(`${API_BASE_URL}/commands/${cmd.commandid}/result`, {
+            // Correct endpoint: router mounted under /devices; result path is /devices/commands/{id}/result
+            const submitResponse = await fetch(`${API_BASE_URL}/devices/commands/${commandId}/result`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     status: 'completed',
                     result: result,
                     exit_code: exitCode,
+                    device_id: deviceId,
+                    command_text: cmd.command_text,
                 }),
             });
 
             if (submitResponse.ok) {
-                addLog(`✓ Command completed: ${cmd.command_text}`, 'success');
+                // Pretty-print result if JSON
+                let pretty = result;
+                try {
+                    // If result is JSON string representing object/array
+                    const parsed = JSON.parse(result);
+                    pretty = JSON.stringify(parsed, null, 2);
+                } catch {
+                    // Not JSON; keep original (may contain newlines)
+                }
+                addLog(`✓ Command completed: ${cmd.command_text}\n--- Result Start ---\n${pretty}\n--- Result End ---`, 'success');
             }
         } catch (error) {
             addLog(`✗ Command error: ${error.message}`, 'error');
             // Try to report failure
             try {
-                await fetch(`${API_BASE_URL}/commands/${cmd.id}/result`, {
+                const commandId = cmd.commandid ?? cmd.id;
+                await fetch(`${API_BASE_URL}/devices/commands/${commandId}/result`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         status: 'failed',
                         result: error.message,
                         exit_code: 1,
+                        device_id: deviceId,
+                        command_text: cmd.command_text,
                     }),
                 });
             } catch {
@@ -640,7 +658,7 @@ function DeviceSimulator() {
                             logs.map((log, idx) => (
                                 <div key={idx} className={`log-entry log-${log.type}`}>
                                     <span className="log-time">{log.timestamp}</span>
-                                    <span className="log-message">{log.message}</span>
+                                    <pre className="log-message" style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{log.message}</pre>
                                 </div>
                             ))
                         )}
