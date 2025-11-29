@@ -183,11 +183,19 @@ act -j build-and-test
 ```
 
 ## Test Coverage
-Coverage collection is integrated into CI (Codecov flags per component). Local comprehensive run:
+Coverage collection is integrated into CI (Codecov flags per component). For local runs:
 ```bash
-./scripts/collect-comprehensive-coverage.sh
+# Go backend (mentor)
+cd mentor/backend/src && go test -cover ./... && cd -
+
+# Python backend (devices)
+pytest --maxfail=1 --disable-warnings --cov=devices/backend/src devices/backend/src
+
+# Frontends (run in each frontend folder)
+cd devices/frontend && npm test -- --coverage && cd -
+cd mentor/frontend && npm test -- --coverage && cd -
 ```
-Frontend coverage even on failures (Vitest `reportOnFailure`). Target baseline threshold 70–90% depending on component criticality (models/schemas aim 100%).
+Frontend coverage reports even on failures (Vitest `reportOnFailure`). Target baseline threshold 70–90% depending on component criticality (models/schemas aim 100%).
 
 ### Devices Backend (Python/FastAPI)
 

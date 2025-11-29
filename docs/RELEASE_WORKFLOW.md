@@ -31,16 +31,12 @@ open http://localhost:14000
 
 **Automated checks:**
 ```bash
-# Run automated tests
-./scripts/health-check.sh
+# Quick health checks
+./scripts/discover.sh health
+kubectl get pods -n default
 ```
 
-This will verify:
-- ✅ All pods running
-- ✅ Backends responding
-- ✅ Frontends accessible
-- ✅ Environment variables set
-- ✅ Service discovery working
+This verifies pods running and services responding.
 
 ---
 
@@ -81,7 +77,7 @@ ghcr.io/mj-nehme/raqeem/mentor-backend:latest
 ---
 
 ### Step 4: Push to GitHub
-If you accepted the push prompt inside the release script this step may be done.
+The release script pushes commit and tag automatically. If needed:
 ```bash
 git push
 git push origin v1.0.0
