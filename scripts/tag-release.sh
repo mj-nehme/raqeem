@@ -331,25 +331,22 @@ Git Commit: ${GIT_COMMIT}
 print_success "Git tag created: ${VERSION}"
 echo ""
 
-# Optionally push commit and tag to origin
-print_warning "Ready to push commit and tag to GitHub (origin)"
-echo ""
-echo "This will execute: git push origin HEAD && git push origin ${VERSION}"
-read -p "Push commit and tag to origin now? (yes/no): " push_confirm
-if [[ "$push_confirm" == "yes" ]]; then
-  # Safety check: ensure tag not already on remote
-  if git ls-remote --tags origin | grep -q "refs/tags/${VERSION}$"; then
-    print_error "Tag ${VERSION} already exists on remote origin. Aborting push."
-  else
-    print_info "Pushing commit..."
-    git push origin HEAD || { print_error "Failed to push commit"; exit 1; }
-    print_info "Pushing tag ${VERSION}..."
-    git push origin "${VERSION}" || { print_error "Failed to push tag"; exit 1; }
-    print_success "Commit and tag pushed to origin"
-  fi
+# Automatically push commit and tag to origin (no prompt)
+print_info "Pushing commit and tag to GitHub (origin)"
+
+# Safety check: ensure tag not already on remote
+if git ls-remote --tags origin | grep -q "refs/tags/${VERSION}$"; then
+  print_warning "Tag ${VERSION} already exists on remote origin. Skipping tag push."
+  print_info "Pushing commit..."
+  git push origin HEAD || { print_error "Failed to push commit"; exit 1; }
 else
-  print_warning "Skipping remote push. Remember to run: git push && git push origin ${VERSION}"
+  print_info "Pushing commit..."
+  git push origin HEAD || { print_error "Failed to push commit"; exit 1; }
+  print_info "Pushing tag ${VERSION}..."
+  git push origin "${VERSION}" || { print_error "Failed to push tag"; exit 1; }
 fi
+
+print_success "Remote push step completed"
 
 # Summary
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
