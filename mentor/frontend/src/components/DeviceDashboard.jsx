@@ -79,6 +79,7 @@ export default function DeviceDashboard() {
     const [tabValue, setTabValue] = useState(0);
     const [commandError, setCommandError] = useState('');
     const [commandSuccess, setCommandSuccess] = useState(false);
+    const [brokenScreenshots, setBrokenScreenshots] = useState(new Set()); // track failed images
 
     // Poll devices list
     useEffect(() => {
@@ -100,47 +101,88 @@ export default function DeviceDashboard() {
         };
     }, []);
 
-    // Fetch selected device details
-    const fetchDeviceDetails = async () => {
+    // Segment-specific fetchers (allow staggered polling instead of full dashboard refresh)
+    const fetchMetricsProcesses = async () => {
         if (!selectedDevice) return;
-        setRefreshing(true);
-        setLoading(true);
         try {
-            const [metricsRes, processesRes, activitiesRes, alertsRes, screenshotsRes, commandsRes] = await Promise.all([
+            const [metricsRes, processesRes] = await Promise.all([
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/metrics`),
                 fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/processes`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/activities`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/alerts`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/screenshots`),
-                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/commands`),
             ]);
-            const [metricsData, processesData, activitiesData, alertsData, screenshotsData, commandsData] = await Promise.all([
-                metricsRes.json(),
-                processesRes.json(),
-                activitiesRes.json(),
-                alertsRes.json(),
-                screenshotsRes.json(),
-                commandsRes.json(),
-            ]);
+            const [metricsData, processesData] = await Promise.all([metricsRes.json(), processesRes.json()]);
             setMetrics(Array.isArray(metricsData) ? metricsData.slice(-50) : []);
             setProcesses(Array.isArray(processesData) ? processesData : []);
+        } catch (err) {
+            console.error('Failed to fetch metrics/processes:', err);
+        }
+    };
+    const fetchActivitiesAlerts = async () => {
+        if (!selectedDevice) return;
+        try {
+            const [activitiesRes, alertsRes] = await Promise.all([
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/activities`),
+                fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/alerts`),
+            ]);
+            const [activitiesData, alertsData] = await Promise.all([activitiesRes.json(), alertsRes.json()]);
             setActivities(Array.isArray(activitiesData) ? activitiesData : []);
             setAlerts(Array.isArray(alertsData) ? alertsData : []);
-            setScreenshots(Array.isArray(screenshotsData) ? screenshotsData : []);
-            setCommands(Array.isArray(commandsData) ? commandsData : []);
         } catch (err) {
-            console.error('Failed to fetch device details:', err);
-        } finally {
-            setRefreshing(false);
-            setLoading(false);
+            console.error('Failed to fetch activities/alerts:', err);
+        }
+    };
+    const fetchScreenshots = async () => {
+        if (!selectedDevice) return;
+        try {
+            const res = await fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/screenshots`);
+            const data = await res.json();
+            setScreenshots(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to fetch screenshots:', err);
+        }
+    };
+    const fetchCommands = async () => {
+        if (!selectedDevice) return;
+        try {
+            const res = await fetch(`${BACKEND_URL}/devices/${selectedDevice.deviceid}/commands`);
+            const data = await res.json();
+            setCommands(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to fetch commands:', err);
         }
     };
 
+    const fetchDeviceDetails = () => {
+        if (!selectedDevice) return;
+        setRefreshing(true);
+        Promise.all([
+            fetchMetricsProcesses(),
+            fetchActivitiesAlerts(),
+            fetchScreenshots(),
+            fetchCommands(),
+        ]).finally(() => setTimeout(() => setRefreshing(false), 300));
+    };
+
+    // Initial load & segmented polling when a device is selected
     useEffect(() => {
         if (!selectedDevice) return;
-        fetchDeviceDetails();
-        const interval = setInterval(fetchDeviceDetails, 10000);
-        return () => clearInterval(interval);
+        setLoading(true);
+        Promise.all([
+            fetchMetricsProcesses(),
+            fetchActivitiesAlerts(),
+            fetchScreenshots(),
+            fetchCommands(),
+        ]).finally(() => setLoading(false));
+
+        const metricsInterval = setInterval(fetchMetricsProcesses, 10000); // 10s
+        const activitiesInterval = setInterval(fetchActivitiesAlerts, 20000); // 20s
+        const commandsInterval = setInterval(fetchCommands, 10000); // 10s
+        const screenshotsInterval = setInterval(fetchScreenshots, 30000); // 30s (heavier)
+        return () => {
+            clearInterval(metricsInterval);
+            clearInterval(activitiesInterval);
+            clearInterval(commandsInterval);
+            clearInterval(screenshotsInterval);
+        };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid]);
 
@@ -453,12 +495,19 @@ export default function DeviceDashboard() {
                                                                                 window.open(target, '_blank');
                                                                             }}
                                                                             onError={(e) => {
-                                                                                // Hide broken image but keep card
-                                                                                e.target.style.display = 'none';
+                                                                                // Mark screenshot as broken and show fallback placeholder
+                                                                                e.target.onerror = null;
+                                                                                setBrokenScreenshots((prev) => new Set([...prev, screenshot.screenshotid]));
                                                                             }}
                                                                         />
                                                                         <CardContent>
-                                                                            <Typography variant="caption" color="text.secondary">{new Date(screenshot.timestamp || screenshot.created_at).toLocaleString()}</Typography>
+                                                                            {brokenScreenshots.has(screenshot.screenshotid) ? (
+                                                                                <Alert severity="error" variant="outlined" sx={{ py: 0.5 }}>
+                                                                                    Image unavailable
+                                                                                </Alert>
+                                                                            ) : (
+                                                                                <Typography variant="caption" color="text.secondary">{new Date(screenshot.timestamp || screenshot.created_at).toLocaleString()}</Typography>
+                                                                            )}
                                                                         </CardContent>
                                                                     </Card>
                                                                 </Grid>
