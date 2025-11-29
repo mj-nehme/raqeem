@@ -750,11 +750,14 @@ func StoreScreenshot(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /screenshots/{filename} [get]
 func GetScreenshotFile(c *gin.Context) {
-	filename := c.Param("filename")
-	if strings.TrimSpace(filename) == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "filename required"})
+	// Wildcard param includes leading '/' if present
+	rawPath := c.Param("objectPath")
+	if strings.TrimSpace(rawPath) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "object path required"})
 		return
 	}
+	// Normalize: remove leading slash to form object key
+	objectKey := strings.TrimPrefix(rawPath, "/")
 
 	client := s3.GetClient()
 	if client == nil {
@@ -763,15 +766,15 @@ func GetScreenshotFile(c *gin.Context) {
 	}
 
 	bucket := s3.GetBucketName()
-	obj, err := client.GetObject(c, bucket, filename, minio.GetObjectOptions{})
+	obj, err := client.GetObject(c, bucket, objectKey, minio.GetObjectOptions{})
 	if err != nil {
-		log.Printf("GetObject failed for '%s': %v", filename, err)
+		log.Printf("GetObject failed for '%s' (bucket=%s): %v", objectKey, bucket, err)
 		c.JSON(http.StatusNotFound, gin.H{"error": "screenshot not found"})
 		return
 	}
 	defer func() {
 		if closeErr := obj.Close(); closeErr != nil {
-			log.Printf("Failed to close S3 object '%s': %v", filename, closeErr)
+			log.Printf("Failed to close S3 object '%s': %v", objectKey, closeErr)
 		}
 	}()
 
@@ -796,7 +799,7 @@ func GetScreenshotFile(c *gin.Context) {
 	// Write the bytes we already read
 	if n > 0 {
 		if _, writeErr := c.Writer.Write(buf[:n]); writeErr != nil {
-			log.Printf("Failed to write initial bytes for '%s': %v", filename, writeErr)
+			log.Printf("Failed to write initial bytes for '%s': %v", objectKey, writeErr)
 			return
 		}
 	}

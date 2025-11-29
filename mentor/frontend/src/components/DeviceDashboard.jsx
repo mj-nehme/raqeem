@@ -531,22 +531,24 @@ export default function DeviceDashboard() {
                                                                     <Card>
                                                                         <Box
                                                                             component="img"
-                                                                            src={
-                                                                                screenshot.screenshot_url && screenshot.screenshot_url.trim() !== ''
-                                                                                    ? screenshot.screenshot_url
-                                                                                    : `/screenshots/${screenshot.path}`
-                                                                            }
+                                                                            src={(function(){
+                                                                                // Prefer presigned URL when present
+                                                                                if (screenshot.screenshot_url && screenshot.screenshot_url.trim() !== '') return screenshot.screenshot_url;
+                                                                                // Encode path segments for wildcard streaming endpoint
+                                                                                const safePath = String(screenshot.path || '').split('/').map(encodeURIComponent).join('/');
+                                                                                return `/screenshots/${safePath}`;
+                                                                            })()}
                                                                             alt={`Screenshot ${screenshot.screenshotid}`}
                                                                             sx={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }}
                                                                             onClick={() => {
-                                                                                const target = screenshot.screenshot_url && screenshot.screenshot_url.trim() !== ''
+                                                                                const baseTarget = screenshot.screenshot_url && screenshot.screenshot_url.trim() !== ''
                                                                                     ? screenshot.screenshot_url
-                                                                                    : `/screenshots/${screenshot.path}`;
-                                                                                window.open(target, '_blank');
+                                                                                    : `/screenshots/${String(screenshot.path || '').split('/').map(encodeURIComponent).join('/')}`;
+                                                                                window.open(baseTarget, '_blank');
                                                                             }}
                                                                             onError={(e) => {
-                                                                                // Mark screenshot as broken and show fallback placeholder
                                                                                 e.target.onerror = null;
+                                                                                console.warn('Screenshot load failed', { id: screenshot.screenshotid, path: screenshot.path, attemptedSrc: e.target.src });
                                                                                 setBrokenScreenshots((prev) => new Set([...prev, screenshot.screenshotid]));
                                                                             }}
                                                                         />
