@@ -2,22 +2,22 @@
 
 ## Overview
 
-As of v0.2.0, Raqeem uses a multi-registry strategy to eliminate dependencies on DockerHub while maintaining security, reliability, and transparency. This document outlines our container registry usage and rationale.
+Raqeem uses a multi-registry strategy to eliminate dependencies on DockerHub while maintaining security, reliability, and transparency. This document outlines our container registry usage and rationale.
 
 ## Registry Usage by Image Type
 
 ### Application Images (Raqeem Services)
 
-image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
 
 All Raqeem application images are published to GHCR:
 
 ```yaml
 # Devices Backend
-image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
 
 # Mentor Backend  
-image: ghcr.io/mj-nehme/raqeem-mentor-backend:v0.2.0
+image: ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0
 ```
 
 **Benefits**:
@@ -34,7 +34,7 @@ image: ghcr.io/mj-nehme/raqeem-mentor-backend:v0.2.0
 ```dockerfile
 # Go applications
 FROM docker.io/library/golang:1.25-alpine
-    tags: ghcr.io/${{ github.repository_owner }}/raqeem-devices-backend:latest
+    tags: ghcr.io/${{ github.repository_owner }}/raqeem/devices-backend:latest
 # Python applications
 FROM docker.io/library/python:3.10-slim
 ```
@@ -49,7 +49,7 @@ FROM docker.io/library/python:3.10-slim
 ### Third-Party Services
 
 #### PostgreSQL
-   docker manifest inspect ghcr.io/mj-nehme/raqeem-devices-backend:latest
+  docker manifest inspect ghcr.io/mj-nehme/raqeem/devices-backend:latest
 **Registry**: Docker Official Images - `docker.io/library/`
 
 ```yaml
@@ -60,7 +60,7 @@ image: docker.io/library/postgres:16
 - ✅ Directly maintained by PostgreSQL team via Docker
 - ✅ Regular security patches
 - ✅ Most widely used and tested
-   docker pull ghcr.io/mj-nehme/raqeem-devices-backend:latest
+  docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
 
 #### MinIO
 
@@ -76,7 +76,7 @@ image: quay.io/minio/minio:latest
 - ✅ No rate limits
 - ✅ Better performance than DockerHub
 
-    repository: ghcr.io/mj-nehme/raqeem-devices-backend
+    repository: ghcr.io/mj-nehme/raqeem/devices-backend
 
 All container images now use explicit registry prefixes (e.g., `docker.io/library/postgres:16` instead of just `postgres:16`).
 
@@ -85,7 +85,7 @@ All container images now use explicit registry prefixes (e.g., `docker.io/librar
 2. **Security**: No ambiguity about image origin
 3. **Reproducibility**: Explicit source prevents surprises
 4. **Compliance**: Easier to audit image sources
-    image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
+    image: ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
 
 ## Rate Limits and Authentication
 
@@ -180,24 +180,17 @@ Our strategy ensures:
 
 ### What Changed
 
-**Before (v0.1.x)**:
+<!-- Historical comparison removed; v1.0.0 is baseline. All images must use explicit fully qualified repository references. -->
 ```yaml
-# Implicit registry references (DockerHub)
-image: postgres:16
-image: minio/minio:latest
-```
-
-**After (v0.2.0+)**:
-```yaml
-# Explicit registry references
-image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
+# Explicit, baseline references (application + third-party)
+image: ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
 image: docker.io/library/postgres:16
 image: quay.io/minio/minio:latest
 ```
 
 ### Migration Guide
 
-See [GHCR_MIGRATION.md](./GHCR_MIGRATION.md) for detailed migration instructions.
+Migration history removed; v1.0.0 is the baseline. No separate migration guide.
 
 ## Production Deployment
 
@@ -209,8 +202,8 @@ Update your Helm values:
 # Application images
 devices-backend:
   image:
-    repository: ghcr.io/mj-nehme/raqeem-devices-backend
-    tag: v0.2.0
+    repository: ghcr.io/mj-nehme/raqeem/devices-backend
+    tag: v1.0.0
 
 # Infrastructure images
 postgres:
@@ -229,7 +222,7 @@ minio:
 ```yaml
 services:
   devices-backend:
-    image: ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0
+    image: ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
   
   postgres:
     image: docker.io/library/postgres:16
@@ -243,8 +236,8 @@ services:
 ### Tagging Strategy
 
 **Application Images**:
-- `v0.2.0` - Specific release
-- `v0.2` - Minor version tracking
+- `v1.0.0` - Specific release
+- `v1.0` - Minor version tracking
 - `latest` - Latest release
 - `main` - Latest from main branch
 - `main-abc1234` - Specific commit
@@ -373,10 +366,10 @@ kubectl patch serviceaccount default \
 
 ## Related Documentation
 
-- [GHCR Migration Guide](./GHCR_MIGRATION.md) - Migration from DockerHub
+<!-- Migration guide removed: initial public release baseline is v1.0.0 -->
 - [Deployment Guide](./DEPLOYMENT.md) - Production deployment
 - [Development Guide](./DEVELOPMENT.md) - Local development setup
-- [CI/CD Documentation](./CI_CD_TESTING.md) - Build pipeline
+See `.github/workflows/ci.yml` for CI configuration. Testing details consolidated in `docs/TESTING.md`.
 
 ## Support
 
@@ -388,9 +381,4 @@ For registry-related issues:
 
 ## Changelog
 
-### v0.2.0
-- ✅ Migrated from DockerHub to GHCR for application images
-- ✅ Added explicit registry prefixes for all images
-- ✅ Updated documentation with registry strategy
-- ✅ Configured automated GHCR publishing in CI/CD
-- ✅ Implemented image vulnerability scanning
+<!-- Previous changelog entries removed: treating v1.0.0 as initial release baseline -->

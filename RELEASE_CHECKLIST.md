@@ -1,6 +1,6 @@
 # Release Checklist Template
 
-> **Note**: As of v0.2.0, container images are hosted on GitHub Container Registry (GHCR). See [GHCR Migration Guide](docs/GHCR_MIGRATION.md) for details.
+> Containers are published to GHCR. This checklist assumes baseline release v1.0.0.
 
 This is a template checklist for creating new releases. Copy and customize for each release.
 

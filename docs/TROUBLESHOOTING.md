@@ -1019,7 +1019,7 @@ EOF
 
 ### Resources
 
-- [First Time Setup](FIRST_TIME_SETUP.md)
+See first-time setup summary in `DEVELOPMENT.md`.
 - [Development Guide](DEVELOPMENT.md)
 - [Architecture Documentation](ARCHITECTURE.md)
 - [Testing Guide](TESTING.md)

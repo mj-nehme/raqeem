@@ -1,3 +1,41 @@
+## First-Time Setup (Summary)
+Prerequisites: Docker (with optional Kubernetes), kubectl, Helm, Node.js 20+, Python 3.11+, Go 1.25+.
+
+Initial steps:
+1. Clone repo: `git clone <repo> && cd raqeem`
+2. Verify cluster (optional): `kubectl cluster-info`
+3. Start stack: `./start.sh` (auto-detects ports, deploys Postgres, MinIO, backends, frontends)
+4. Access services:
+  - Devices Backend API docs: `http://localhost:30080/docs`
+  - Mentor Backend health: `http://localhost:30090/health`
+  - Mentor Dashboard: printed by start script
+  - Device Simulator: printed by start script
+
+Stop stack: `./stop.sh` (keeps volumes). Full reset: `./stop.sh && kubectl delete pvc --all -n default`.
+
+Troubleshooting quick checks:
+- Ports busy: `lsof -i :<port>` then kill PID.
+- Pod issues: `kubectl get pods -n default` / `kubectl logs <pod> -n default`.
+- Frontend reinstall: remove `node_modules` then `npm install`.
+
+## Local CI (Summary)
+Use `act` to simulate GitHub Actions locally for validation of workflow logic.
+Install: `brew install act`. Run main workflow jobs: `act -j build-and-test`.
+Selective component tests via flags in workflow or by invoking native commands:
+```bash
+cd mentor/backend/src && go test ./... -v
+cd devices/backend/src && pytest -v
+cd mentor/frontend && npm test
+cd devices/frontend && npm test
+```
+Prefer native commands for speed; reserve `act` for debugging CI-specific failures.
+
+## Error Handling (Summary)
+Backends return structured JSON errors with HTTP status codes (400/404/409/422/500/503). Log levels: error (unexpected), warning (recoverable), info (expected misses). Python uses FastAPI `HTTPException`; Go uses Gin JSON responses and GORM error checks. Frontends surface user-friendly messages and optionally wrap components in React error boundaries.
+
+## Data Forwarding (Summary)
+Set `MENTOR_API_URL` in devices backend to enable forwarding of registration, metrics, activities, processes, alerts, screenshots to mentor backend. Forwarding is async fire-and-forget with limited retries; local persistence succeeds even if forwarding fails.
+
 # 🛠️ Development Guide
 
 ## Overview
@@ -51,7 +89,7 @@ This guide covers local development workflows, coding standards, testing practic
    kubectl get pods -n default
    ```
 
-See [First Time Setup Guide](FIRST_TIME_SETUP.md) for detailed instructions.
+First-time setup summarized above; detailed steps now consolidated here.
 
 ## Development Workflow
 
@@ -181,7 +219,7 @@ kubectl delete deployment mentor-backend devices-backend
 ./start.sh
 ```
 
-**Production Note**: For production deployments, use versioned images from GHCR (e.g., `ghcr.io/mj-nehme/raqeem-devices-backend:v0.2.0`). See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
+**Production Note**: Use pinned semantic tags (e.g., `ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0`). See [DEPLOYMENT.md](DEPLOYMENT.md) for details.
 
 ## Code Structure
 
@@ -731,7 +769,7 @@ Format: `MAJOR.MINOR.PATCH` (e.g., `v1.2.3`)
    ./start.sh
    ```
 
-See [Version Management](VERSION_MANAGEMENT.md) and [Release Workflow](RELEASE_WORKFLOW.md) for details.
+See `RELEASE_WORKFLOW.md` for release steps; version management is simplified to v1.0.0 baseline.
 
 ### Pre-Release Checklist
 

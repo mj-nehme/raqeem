@@ -23,7 +23,7 @@ This guide covers deploying Raqeem to production environments, including Kuberne
 - **Use Case**: Development, testing
 - **Complexity**: Low
 - **Setup Time**: <5 minutes
-- **See**: [FIRST_TIME_SETUP.md](FIRST_TIME_SETUP.md)
+See first-time setup summary in `DEVELOPMENT.md`.
 
 ### 2. Self-Hosted Kubernetes
 - **Use Case**: On-premise deployment

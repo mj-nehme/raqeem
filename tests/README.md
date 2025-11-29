@@ -297,5 +297,5 @@ act -j build-and-test
 ## See Also
 
 - [TESTING.md](../docs/TESTING.md) - Complete testing guide
-- [LOCAL_CI.md](../docs/LOCAL_CI.md) - Running GitHub Actions locally
+Local CI notes: use `act -j build-and-test` if needed; otherwise prefer native test commands.
 - [README.md](../README.md) - Project overview

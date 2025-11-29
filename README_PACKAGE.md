@@ -1,4 +1,4 @@
-# Raqeem v0.2.0 - Package Release
+# Raqeem v1.0.0 - Package Release
 
 ## Quick Summary
 
@@ -105,6 +105,6 @@ MIT License - See [LICENSE](LICENSE) file
 
 ---
 
-**Version**: 0.2.0  
-**Release Date**: 2025-11-16  
+**Version**: 1.0.0  
+**Release Date**: 2025-11-29  
 **Status**: Stable

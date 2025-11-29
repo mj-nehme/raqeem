@@ -20,7 +20,7 @@
 
 **Prerequisites**: Docker Desktop with Kubernetes, kubectl, helm, node/npm
 
-First time? → [Setup Guide](docs/FIRST_TIME_SETUP.md)
+First time? See `docs/DEVELOPMENT.md` (First-Time Setup summary).
 
 ## What It Does
 
@@ -45,7 +45,7 @@ After `./start.sh`, services auto-discover ports:
 ## Documentation
 
 ### Getting Started
-- [First Time Setup](docs/FIRST_TIME_SETUP.md) — Complete installation guide
+// Setup merged into Development Guide
 - [Architecture](docs/ARCHITECTURE.md) — System design and data flow
 - [API Documentation](docs/API.md) — REST endpoints and examples
 
@@ -58,10 +58,7 @@ After `./start.sh`, services auto-discover ports:
 ### Operations
 - [Deployment Guide](docs/DEPLOYMENT.md) — Production Kubernetes deployment
 - [Container Registry Strategy](docs/CONTAINER_REGISTRY_STRATEGY.md) — Image registry usage and security
-- [GHCR Migration Guide](docs/GHCR_MIGRATION.md) — Migrating from DockerHub to GHCR
-- [Version Management](docs/VERSION_MANAGEMENT.md) — Release workflow
-- [Local CI](docs/LOCAL_CI.md) — Run GitHub Actions locally
-- [Branch Cleanup](docs/BRANCH_CLEANUP.md) — Managing and cleaning up branches
+// Legacy/extra docs removed for v1.0.0 baseline
 
 ## Glossary
 

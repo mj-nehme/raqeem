@@ -325,13 +325,12 @@ Both APIs can be tested directly from Swagger UI:
 - [Swagger CLI](https://github.com/APIDevTools/swagger-cli)
 
 ### Raqeem Docs
-- API Integration Guide: `docs/API_INTEGRATION_GUIDE.md`
-- API Quick Reference: `docs/API_QUICK_REFERENCE.md`
+Integration and quick reference merged into `API.md`. Use the OpenAPI files and this document as the source of truth.
 - Development Guide: `docs/DEVELOPMENT.md`
 - Testing Guide: `docs/TESTING.md`
 
 ---
 
-**Last Updated**: 2025-11-16  
+**Last Updated**: 2025-11-29  
 **Status**: Complete ✅  
-**Version**: v0.2.0
+**Version**: v1.0.0

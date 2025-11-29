@@ -1,4 +1,4 @@
-# Battle Testing Suite for v0.2.0
+# Battle Testing Suite for v1.0.0
 
 This directory contains comprehensive end-to-end battle testing for the Raqeem IoT platform, designed to ensure production-readiness through stress, load, and chaos testing.
 

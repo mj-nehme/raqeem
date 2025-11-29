@@ -257,7 +257,7 @@ t.Run("handles database error", func(t *testing.T) {
 - [codecov.yml](./codecov.yml) - Codecov configuration
 - [.github/workflows/ci.yml](./.github/workflows/ci.yml) - CI pipeline configuration
 - [docs/TESTING.md](./docs/TESTING.md) - Testing guide
-- [docs/TEST_COVERAGE_REPORT.md](./docs/TEST_COVERAGE_REPORT.md) - Coverage report
+Coverage reports are available via Codecov and local HTML outputs (`pytest --cov-report=html`, `go tool cover -html`, frontend `coverage/`). See `docs/TESTING.md` for consolidated guidance.
 
 ## Next Steps
 

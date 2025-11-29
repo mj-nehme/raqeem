@@ -144,7 +144,7 @@ npm test
 
 ## Release Process
 
-See [VERSION_MANAGEMENT.md](docs/VERSION_MANAGEMENT.md) for release procedures.
+Release procedures are captured in `docs/RELEASE_WORKFLOW.md` for the v1.0.0 baseline.
 
 ## Questions?
 

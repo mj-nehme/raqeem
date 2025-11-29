@@ -268,6 +268,26 @@ Git Commit: ${GIT_COMMIT}
 print_success "Git tag created: ${VERSION}"
 echo ""
 
+# Optionally push commit and tag to origin
+print_warning "Ready to push commit and tag to GitHub (origin)"
+echo ""
+echo "This will execute: git push origin HEAD && git push origin ${VERSION}"
+read -p "Push commit and tag to origin now? (yes/no): " push_confirm
+if [[ "$push_confirm" == "yes" ]]; then
+  # Safety check: ensure tag not already on remote
+  if git ls-remote --tags origin | grep -q "refs/tags/${VERSION}$"; then
+    print_error "Tag ${VERSION} already exists on remote origin. Aborting push."
+  else
+    print_info "Pushing commit..."
+    git push origin HEAD || { print_error "Failed to push commit"; exit 1; }
+    print_info "Pushing tag ${VERSION}..."
+    git push origin "${VERSION}" || { print_error "Failed to push tag"; exit 1; }
+    print_success "Commit and tag pushed to origin"
+  fi
+else
+  print_warning "Skipping remote push. Remember to run: git push && git push origin ${VERSION}"
+fi
+
 # Summary
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 print_success "Release ${VERSION} created successfully!"
@@ -289,9 +309,8 @@ echo ""
 echo "🏷️  Git Tag: ${VERSION}"
 echo ""
 echo "📌 Next Steps:"
-echo "  1. Push the tag: git push origin ${VERSION}"
-echo "  2. Push the commit: git push"
-echo "  3. Deploy with: ./start.sh (will use ${VERSION} automatically)"
+echo "  1. Deploy with: ./start.sh (uses ${VERSION})"
+echo "  2. (If not auto-pushed) Run: git push && git push origin ${VERSION}"
 echo ""
 echo "🔄 To rollback to a specific version:"
 echo "  • Update .deploy/tag.env with desired version"

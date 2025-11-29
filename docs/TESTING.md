@@ -2,6 +2,9 @@
 
 Complete guide to testing the Raqeem monitoring system for reliability and correctness.
 
+## Scope
+This consolidated guide replaces separate best-practices, execution, manual testing, and coverage setup documents. All essential testing instructions live here.
+
 ## Test Pyramid
 
 ```
@@ -180,6 +183,11 @@ act -j build-and-test
 ```
 
 ## Test Coverage
+Coverage collection is integrated into CI (Codecov flags per component). Local comprehensive run:
+```bash
+./scripts/collect-comprehensive-coverage.sh
+```
+Frontend coverage even on failures (Vitest `reportOnFailure`). Target baseline threshold 70–90% depending on component criticality (models/schemas aim 100%).
 
 ### Devices Backend (Python/FastAPI)
 
@@ -288,6 +296,31 @@ healthcheck:
 - **Frontends**: Gracefully handle API failures with user feedback
 
 ## Troubleshooting
+### Manual Dashboard & Forwarding Verification
+1. Ensure both backends running and `MENTOR_API_URL` set for devices backend.
+2. Register device then send metrics, activities, alerts, processes, screenshot via device simulator or curl.
+3. Verify mentor dashboard tabs populate (no "Load failed").
+4. Screenshots should display presigned URLs.
+
+### Best Practices Summary
+- Isolate tests (no order dependence).
+- Use transactions/fixtures for DB cleanup.
+- Mock external dependencies; avoid real network calls in unit tests.
+- Increase timeouts only for genuinely slow async operations.
+- Prioritize coverage on business logic and error paths, not entry points.
+- Keep battle tests out of normal PR pipeline (run pre-release only).
+
+### Common Coverage Gaps
+- Entry points (`main.go`, `app.main`) intentionally excluded.
+- Retry/backoff wrappers: add targeted tests with forced failure scenarios.
+- Frontend async flows: use `waitFor` with explicit expectations.
+
+## Future Improvements
+1. Add mutation testing (quality of assertions).
+2. Add Playwright/Cypress E2E UI flows.
+3. Performance baselines integrated into CI (optional nightly job).
+4. Visual regression with storybook snapshots.
+5. Flaky test detector & auto quarantine tagging.
 
 ### Unit Tests Fail
 
@@ -583,14 +616,11 @@ test('renders correctly', () => {
 
 ## Related Documentation
 
-- **[Error Handling Guide](ERROR_HANDLING.md)** - Error handling patterns and best practices
-- **[CI/CD Testing](CI_CD_TESTING.md)** - Automated testing pipeline documentation
-- **[Test Coverage Report](TEST_COVERAGE_REPORT.md)** - Current coverage status and goals
-- **[Test Execution Guide](TEST_EXECUTION_GUIDE.md)** - Detailed execution instructions
+Testing docs consolidated here; see also `docs/DEVELOPMENT.md` (error handling summary) and `.github/workflows/ci.yml`.
 - **[Battle Testing](../tests/battle/README.md)** - Stress, load, and chaos testing
 
 ---
 
-**Last Updated**: 2025-11-18  
-**Version**: v0.2.0
+**Last Updated**: 2025-11-29  
+**Version**: v1.0.0
 
