@@ -162,14 +162,14 @@ jobs:
           context: ./devices/backend
           push: false
           load: false
-          tags: local/raqeem-devices-backend:ci
+          tags: local/raqeem/devices-backend:ci
       - name: Build mentor backend image (no push)
         uses: docker/build-push-action@v5
         with:
           context: ./mentor/backend
           push: false
           load: false
-          tags: local/raqeem-mentor-backend:ci
+          tags: local/raqeem/mentor-backend:ci
 
   publish-images:
     name: Publish Images to GHCR
@@ -199,7 +199,7 @@ jobs:
         id: meta-devices
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/raqeem-devices-backend
+          images: ghcr.io/${{ github.repository_owner }}/raqeem/devices-backend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
@@ -211,7 +211,7 @@ jobs:
         id: meta-mentor
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/raqeem-mentor-backend
+          images: ghcr.io/${{ github.repository_owner }}/raqeem/mentor-backend
           tags: |
             type=ref,event=branch
             type=ref,event=pr
