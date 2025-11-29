@@ -174,8 +174,8 @@ func (r *Router) setupDeviceRoutes() {
 	r.engine.GET("/devices/:id/activities", controllers.GetDeviceActivity)
 	r.engine.GET("/devices/:id/alerts", controllers.GetDeviceAlert)
 	r.engine.GET("/devices/:id/screenshots", controllers.GetDeviceScreenshot)
-	// Allow nested paths in screenshot object keys (wildcard)
-	r.engine.GET("/screenshots/*objectPath", controllers.GetScreenshotFile)
+	// Screenshot streaming endpoint with flat filename key
+	r.engine.GET("/screenshots/:filename", controllers.GetScreenshotFile)
 	r.engine.GET("/devices/:id/commands/pending", controllers.GetPendingCommands)
 	r.engine.GET("/devices/:id/commands", controllers.GetDeviceCommands)
 

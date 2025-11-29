@@ -741,7 +741,7 @@ func StoreScreenshot(c *gin.Context) {
 
 // GetScreenshotFile streams a screenshot image directly from MinIO via backend to avoid CORS/signature issues
 // @Summary Get screenshot file
-// @Description Stream a screenshot image by filename
+// @Description Stream a screenshot image by flat filename key stored in the database
 // @Tags devices
 // @Produce image/png
 // @Param filename path string true "Screenshot filename"
@@ -750,14 +750,12 @@ func StoreScreenshot(c *gin.Context) {
 // @Failure 500 {object} map[string]string
 // @Router /screenshots/{filename} [get]
 func GetScreenshotFile(c *gin.Context) {
-	// Wildcard param includes leading '/' if present
-	rawPath := c.Param("objectPath")
-	if strings.TrimSpace(rawPath) == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "object path required"})
+	filename := c.Param("filename")
+	if strings.TrimSpace(filename) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "filename required"})
 		return
 	}
-	// Normalize: remove leading slash to form object key
-	objectKey := strings.TrimPrefix(rawPath, "/")
+	objectKey := filename
 
 	client := s3.GetClient()
 	if client == nil {
@@ -783,7 +781,7 @@ func GetScreenshotFile(c *gin.Context) {
 	n, _ := obj.Read(buf)
 	contentType := http.DetectContentType(buf[:n])
 	if contentType == "application/octet-stream" {
-		ext := filepath.Ext(filename)
+		ext := filepath.Ext(objectKey)
 		if mt := mime.TypeByExtension(ext); mt != "" {
 			contentType = mt
 		} else if strings.EqualFold(ext, ".png") {
@@ -806,7 +804,7 @@ func GetScreenshotFile(c *gin.Context) {
 	// Stream rest
 	_, copyErr := io.Copy(c.Writer, obj)
 	if copyErr != nil {
-		log.Printf("Streaming remainder failed for '%s': %v", filename, copyErr)
+		log.Printf("Streaming remainder failed for '%s': %v", objectKey, copyErr)
 	}
 }
 

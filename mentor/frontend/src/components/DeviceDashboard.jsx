@@ -531,19 +531,20 @@ export default function DeviceDashboard() {
                                                                     <Card>
                                                                         <Box
                                                                             component="img"
-                                                                            src={(function(){
+                                                                            src={(function () {
                                                                                 // Prefer presigned URL when present
                                                                                 if (screenshot.screenshot_url && screenshot.screenshot_url.trim() !== '') return screenshot.screenshot_url;
                                                                                 // Encode path segments for wildcard streaming endpoint
-                                                                                const safePath = String(screenshot.path || '').split('/').map(encodeURIComponent).join('/');
-                                                                                return `/screenshots/${safePath}`;
+                                                                                const safeFilename = encodeURIComponent(String(screenshot.path || ''));
+                                                                                // Flat filename route /screenshots/:filename
+                                                                                return `/screenshots/${safeFilename}`;
                                                                             })()}
                                                                             alt={`Screenshot ${screenshot.screenshotid}`}
                                                                             sx={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }}
                                                                             onClick={() => {
                                                                                 const baseTarget = screenshot.screenshot_url && screenshot.screenshot_url.trim() !== ''
                                                                                     ? screenshot.screenshot_url
-                                                                                    : `/screenshots/${String(screenshot.path || '').split('/').map(encodeURIComponent).join('/')}`;
+                                                                                    : `/screenshots/${encodeURIComponent(String(screenshot.path || ''))}`; // flat filename route
                                                                                 window.open(baseTarget, '_blank');
                                                                             }}
                                                                             onError={(e) => {
