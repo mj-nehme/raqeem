@@ -315,7 +315,7 @@ describe('DeviceDashboard Extended Tests', () => {
             // Match commands endpoint: /api/devices/{id}/commands
             if (url.endsWith('/commands')) {
                 if (init?.method === 'POST') {
-                    return Promise.resolve({ ok: true, json: async () => ({ success: true }) })
+                    return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
                 }
                 return Promise.resolve({
                     ok: true,
@@ -389,7 +389,7 @@ describe('DeviceDashboard Extended Tests', () => {
             // Match commands endpoint: /api/devices/{id}/commands or /api/devices/commands
             if (url.endsWith('/commands')) {
                 if (init?.method === 'POST') {
-                    return Promise.resolve({ ok: true, json: async () => ({ success: true }) })
+                    return Promise.resolve({ ok: true, json: async () => ({ status: 'ok' }) })
                 }
                 return Promise.resolve({
                     ok: true,
