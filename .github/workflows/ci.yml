@@ -375,7 +375,7 @@ jobs:
           POSTGRES_DB: monitoring_db
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: "5432"
-        run: go test ./... -v -race -coverprofile=coverage.out
+        run: go test ./... -v -race -p 1 -coverprofile=coverage.out
       - name: Upload Go coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
