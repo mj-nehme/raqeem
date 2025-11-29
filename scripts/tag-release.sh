@@ -53,26 +53,85 @@ ensure_ghcr_login() {
     return 0
   fi
 
-  # Try to login using provided credentials
-  local USERNAME="${GHCR_USERNAME:-${GH_USERNAME:-${GITHUB_ACTOR}}}"
-  local TOKEN="${GHCR_PAT:-${GH_TOKEN:-${GITHUB_TOKEN}}}"
-
-  if [[ -n "$TOKEN" ]]; then
-    if [[ -z "$USERNAME" ]]; then
-      print_warning "GHCR username not provided. Set GHCR_USERNAME or GH_USERNAME (fallbacks to GITHUB_ACTOR in CI)."
+  # Prefer interactive prompt whenever a TTY is available
+  if [[ -t 0 ]]; then
+    print_info "Interactive GHCR login"
+    local USERNAME TOKEN
+    read -rp "GitHub username: " USERNAME
+    read -rsp "GitHub token (with write:packages): " TOKEN
+    echo ""
+    if [[ -n "$USERNAME" && -n "$TOKEN" ]]; then
+      if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
+        print_success "Authenticated to GHCR"
+        return 0
+      else
+        print_error "Docker login to GHCR failed"
+        return 1
+      fi
+    else
+      print_error "Username/token not provided"
       return 1
     fi
-    print_info "Attempting non-interactive docker login to ghcr.io as '$USERNAME'..."
-    if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
-      print_success "Authenticated to GHCR"
-      return 0
+  else
+    # Non-interactive context (CI): fall back to env vars
+    local USERNAME="${GHCR_USERNAME:-${GH_USERNAME:-${GITHUB_ACTOR}}}"
+    local TOKEN="${GHCR_PAT:-${GH_TOKEN:-${GITHUB_TOKEN}}}"
+    if [[ -n "$USERNAME" && -n "$TOKEN" ]]; then
+      print_info "Attempting non-interactive docker login to ghcr.io as '$USERNAME'..."
+      if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
+        print_success "Authenticated to GHCR"
+        return 0
+      else
+        print_error "Docker login to GHCR failed"
+        return 1
+      fi
     else
-      print_error "Docker login to GHCR failed"
+      print_error "Cannot prompt for credentials (no TTY). Set GHCR_USERNAME and GHCR_PAT env vars."
       return 1
     fi
   fi
+}
 
-  # No token available; require manual login
+# Force interactive GHCR login (replaces any existing login)
+prompt_ghcr_login() {
+  print_info "Re-authenticating with GHCR (requires write:packages scope)"
+  docker logout ghcr.io >/dev/null 2>&1 || true
+  if [[ -t 0 ]]; then
+    local USERNAME TOKEN
+    read -rp "GitHub username: " USERNAME
+    read -rsp "GitHub token (write:packages): " TOKEN
+    echo ""
+    if [[ -n "$USERNAME" && -n "$TOKEN" ]]; then
+      if echo "$TOKEN" | docker login ghcr.io -u "$USERNAME" --password-stdin; then
+        print_success "Authenticated to GHCR"
+        return 0
+      else
+        print_error "Docker login to GHCR failed"
+        return 1
+      fi
+    else
+      print_error "Username/token not provided"
+      return 1
+    fi
+  else
+    print_error "Cannot prompt for credentials (no TTY). Set GHCR_PAT and GHCR_USERNAME env vars."
+    return 1
+  fi
+}
+
+# Push with retry on authentication scope errors
+push_image() {
+  local IMAGE="$1"
+  if docker push "$IMAGE"; then
+    return 0
+  fi
+  print_warning "Push failed for $IMAGE. Attempting to re-authenticate to GHCR..."
+  if prompt_ghcr_login; then
+    if docker push "$IMAGE"; then
+      return 0
+    fi
+  fi
+  print_error "Failed to push $IMAGE after re-authentication"
   return 1
 }
 
@@ -128,15 +187,19 @@ if [[ "$SKIP_TESTS" != "--skip-tests" ]]; then
     exit 1
   fi
   
-  # Test Helm charts
-  print_info "  Validating Helm charts..."
-  for chart in charts/*/; do
-    chart_name=$(basename "$chart")
-    if ! helm lint "$chart" > /dev/null 2>&1; then
-      print_error "Helm chart validation failed: $chart_name"
-      exit 1
+    # Test Helm charts (if Helm is installed)
+    if command -v helm >/dev/null 2>&1; then
+      print_info "  Validating Helm charts..."
+      for chart in charts/*/; do
+        chart_name=$(basename "$chart")
+        if ! helm lint "$chart" > /dev/null 2>&1; then
+          print_error "Helm chart validation failed: $chart_name"
+          exit 1
+        fi
+      done
+    else
+      print_warning "Helm not found; skipping 'helm lint' validation"
     fi
-  done
   
   print_success "All validation tests passed"
   echo ""
@@ -211,14 +274,14 @@ print_info "Pushing images to GitHub Container Registry..."
 echo ""
 
 print_info "  Pushing Devices Backend images..."
-docker push ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}
-docker push ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}
-docker push ghcr.io/mj-nehme/raqeem-devices-backend:latest
+push_image ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}
+push_image ghcr.io/mj-nehme/raqeem-devices-backend:${VERSION}-${GIT_COMMIT}
+push_image ghcr.io/mj-nehme/raqeem-devices-backend:latest
 
 print_info "  Pushing Mentor Backend images..."
-docker push ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}
-docker push ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}
-docker push ghcr.io/mj-nehme/raqeem-mentor-backend:latest
+push_image ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}
+push_image ghcr.io/mj-nehme/raqeem-mentor-backend:${VERSION}-${GIT_COMMIT}
+push_image ghcr.io/mj-nehme/raqeem-mentor-backend:latest
 
 print_success "Images pushed successfully"
 echo ""
