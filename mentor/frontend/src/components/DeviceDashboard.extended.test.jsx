@@ -169,35 +169,35 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('displays processes tab with process list', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockProcesses
-            })
-            .mockResolvedValueOnce({
+        // Use URL-based mock to handle parallel fetch calls in any order
+        fetch.mockImplementation((url) => {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockDevices
+                })
+            }
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockMetrics
+                })
+            }
+            // Match processes endpoint: /api/devices/{id}/processes
+            if (url.endsWith('/processes')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockProcesses
+                })
+            }
+            // Default response for other endpoints
+            return Promise.resolve({
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
+        })
 
         render(<DeviceDashboard />)
 
@@ -222,35 +222,35 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('displays activity tab with activity list', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
+        // Use URL-based mock to handle parallel fetch calls in any order
+        fetch.mockImplementation((url) => {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockDevices
+                })
+            }
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockMetrics
+                })
+            }
+            // Match activities endpoint: /api/devices/{id}/activities
+            if (url.endsWith('/activities')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockActivities
+                })
+            }
+            // Default response for other endpoints
+            return Promise.resolve({
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockActivities
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
+        })
 
         render(<DeviceDashboard />)
 
@@ -296,39 +296,38 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('displays commands tab and allows sending commands', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
+        // Use URL-based mock to handle parallel fetch calls in any order
+        fetch.mockImplementation((url, init) => {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockDevices
+                })
+            }
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockMetrics
+                })
+            }
+            // Match commands endpoint: /api/devices/{id}/commands
+            if (url.endsWith('/commands')) {
+                if (init?.method === 'POST') {
+                    return Promise.resolve({ ok: true, json: async () => ({ success: true }) })
+                }
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockCommands
+                })
+            }
+            // Default response for other endpoints
+            return Promise.resolve({
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockCommands
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ success: true })
-            })
+        })
 
         render(<DeviceDashboard />)
 
@@ -371,39 +370,38 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('sends command on Enter key press', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
+        // Use URL-based mock to handle parallel fetch calls in any order
+        fetch.mockImplementation((url, init) => {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockDevices
+                })
+            }
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockMetrics
+                })
+            }
+            // Match commands endpoint: /api/devices/{id}/commands or /api/devices/commands
+            if (url.endsWith('/commands')) {
+                if (init?.method === 'POST') {
+                    return Promise.resolve({ ok: true, json: async () => ({ success: true }) })
+                }
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => []
+                })
+            }
+            // Default response for other endpoints
+            return Promise.resolve({
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ success: true })
-            })
+        })
 
         render(<DeviceDashboard />)
 
@@ -434,39 +432,28 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('displays no screenshots message when screenshots array is empty', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
+        // Use URL-based mock to handle parallel fetch calls in any order
+        fetch.mockImplementation((url) => {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockDevices
+                })
+            }
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockMetrics
+                })
+            }
+            // All other endpoints return empty arrays (including screenshots)
+            return Promise.resolve({
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValue({
-                ok: true,
-                json: async () => []
-            })
+        })
 
         render(<DeviceDashboard />)
 
@@ -488,39 +475,28 @@ describe('DeviceDashboard Extended Tests', () => {
     })
 
     test('displays no commands message when commands array is empty', async () => {
-        fetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockDevices
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => mockMetrics
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
+        // Use URL-based mock to handle parallel fetch calls in any order
+        fetch.mockImplementation((url) => {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockDevices
+                })
+            }
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
+                return Promise.resolve({
+                    ok: true,
+                    json: async () => mockMetrics
+                })
+            }
+            // All other endpoints return empty arrays (including commands)
+            return Promise.resolve({
                 ok: true,
                 json: async () => []
             })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => []
-            })
+        })
 
         render(<DeviceDashboard />)
 
