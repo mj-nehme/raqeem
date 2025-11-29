@@ -535,20 +535,24 @@ describe('DeviceDashboard Extended Tests', () => {
 
     test('refresh button triggers data refresh', async () => {
         // Use URL-based mock to handle parallel fetch calls in any order
+        // Pattern matching is based on the actual API endpoints used by the component
         fetch.mockImplementation((url) => {
-            if (url.includes('/devices') && !url.includes('/devices/')) {
+            // Match device list endpoint: /api/devices
+            if (url.endsWith('/devices')) {
                 return Promise.resolve({
                     ok: true,
                     json: async () => mockDevices
                 })
             }
-            if (url.includes('/metrics')) {
+            // Match metrics endpoint: /api/devices/{id}/metrics
+            if (url.endsWith('/metrics')) {
                 return Promise.resolve({
                     ok: true,
                     json: async () => mockMetrics
                 })
             }
-            // Default response for other endpoints (processes, activities, alerts, screenshots, commands)
+            // Default response for other device detail endpoints
+            // (processes, activities, alerts, screenshots, commands)
             return Promise.resolve({
                 ok: true,
                 json: async () => []
