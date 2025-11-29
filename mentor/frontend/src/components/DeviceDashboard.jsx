@@ -536,15 +536,15 @@ export default function DeviceDashboard() {
                                                                                 if (screenshot.screenshot_url && screenshot.screenshot_url.trim() !== '') return screenshot.screenshot_url;
                                                                                 // Encode path segments for wildcard streaming endpoint
                                                                                 const safeFilename = encodeURIComponent(String(screenshot.path || ''));
-                                                                                // Flat filename route /screenshots/:filename
-                                                                                return `/screenshots/${safeFilename}`;
+                                                                                // Flat filename route proxied via Vite (/api -> backend) so prefix with BACKEND_URL
+                                                                                return `${BACKEND_URL}/screenshots/${safeFilename}`;
                                                                             })()}
                                                                             alt={`Screenshot ${screenshot.screenshotid}`}
                                                                             sx={{ width: '100%', height: 200, objectFit: 'cover', cursor: 'pointer' }}
                                                                             onClick={() => {
                                                                                 const baseTarget = screenshot.screenshot_url && screenshot.screenshot_url.trim() !== ''
                                                                                     ? screenshot.screenshot_url
-                                                                                    : `/screenshots/${encodeURIComponent(String(screenshot.path || ''))}`; // flat filename route
+                                                                                    : `${BACKEND_URL}/screenshots/${encodeURIComponent(String(screenshot.path || ''))}`; // flat filename route proxied
                                                                                 window.open(baseTarget, '_blank');
                                                                             }}
                                                                             onError={(e) => {
