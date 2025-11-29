@@ -67,21 +67,20 @@ This will verify:
 **What happens:**
 ```
 📦 Docker Images Tagged:
-  • ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
-  • ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44
+ghcr.io/mj-nehme/raqeem/devices-backend:86e6e44    # Git commit SHA
+ghcr.io/mj-nehme/raqeem/devices-backend:latest     # Latest tag
   • ghcr.io/mj-nehme/raqeem/devices-backend:latest
 
   • ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0
   • ghcr.io/mj-nehme/raqeem/mentor-backend:v1.0.0-86e6e44
-  • ghcr.io/mj-nehme/raqeem/mentor-backend:latest
-
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44
 🏷️  Git Tag: v1.0.0
 ```
 
 ---
 
 ### Step 4: Push to GitHub
-
 ```bash
 # Push the commit and tag
 git push origin v1.0.0
@@ -89,9 +88,9 @@ git push
 ```
 
 ---
-
-### Step 5: Test the Release
-
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0           # Semantic version
+ghcr.io/mj-nehme/raqeem/devices-backend:v1.0.0-86e6e44   # Version + git SHA
+ghcr.io/mj-nehme/raqeem/devices-backend:latest           # Latest tag
 ```bash
 # Deploy using the versioned release
 echo "IMAGE_TAG=v1.0.0" > .deploy/tag.env

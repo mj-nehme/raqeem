@@ -8,7 +8,7 @@ As of v0.2.0, Raqeem uses a multi-registry strategy to eliminate dependencies on
 
 ### Application Images (Raqeem Services)
 
-**Registry**: GitHub Container Registry (GHCR) - `ghcr.io`
+image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
 
 All Raqeem application images are published to GHCR:
 
@@ -24,19 +24,17 @@ image: ghcr.io/mj-nehme/raqeem/mentor-backend:v0.2.0
 - ✅ Native GitHub integration
 - ✅ Built-in vulnerability scanning
 - ✅ No rate limits
-- ✅ Free for public repositories
 - ✅ Automatic CI/CD publishing
 
 ### Base Images (Build Dependencies)
 
 **Registry**: Docker Official Images - `docker.io/library/`
 
-Base images for building our applications use explicit registry prefixes:
 
 ```dockerfile
 # Go applications
 FROM docker.io/library/golang:1.25-alpine
-
+    tags: ghcr.io/${{ github.repository_owner }}/raqeem/devices-backend:latest
 # Python applications
 FROM docker.io/library/python:3.10-slim
 ```
@@ -51,7 +49,7 @@ FROM docker.io/library/python:3.10-slim
 ### Third-Party Services
 
 #### PostgreSQL
-
+   docker manifest inspect ghcr.io/mj-nehme/raqeem/devices-backend:latest
 **Registry**: Docker Official Images - `docker.io/library/`
 
 ```yaml
@@ -62,7 +60,7 @@ image: docker.io/library/postgres:16
 - ✅ Directly maintained by PostgreSQL team via Docker
 - ✅ Regular security patches
 - ✅ Most widely used and tested
-- ✅ Compatible with all deployment tools
+   docker pull ghcr.io/mj-nehme/raqeem/devices-backend:latest
 
 #### MinIO
 
@@ -78,7 +76,7 @@ image: quay.io/minio/minio:latest
 - ✅ No rate limits
 - ✅ Better performance than DockerHub
 
-## Why We Use Explicit Registry Prefixes
+    repository: ghcr.io/mj-nehme/raqeem/devices-backend
 
 All container images now use explicit registry prefixes (e.g., `docker.io/library/postgres:16` instead of just `postgres:16`).
 
@@ -87,7 +85,7 @@ All container images now use explicit registry prefixes (e.g., `docker.io/librar
 2. **Security**: No ambiguity about image origin
 3. **Reproducibility**: Explicit source prevents surprises
 4. **Compliance**: Easier to audit image sources
-5. **Documentation**: Self-documenting in manifests
+    image: ghcr.io/mj-nehme/raqeem/devices-backend:v0.2.0
 
 ## Rate Limits and Authentication
 
