@@ -1,10 +1,10 @@
 name: Cleanup Merged Branches
 
 on:
-  workflow_dispatch:  # Allow manual trigger
+  workflow_dispatch: # Allow manual trigger
   schedule:
     # Run weekly on Sunday at 00:00 UTC
-    - cron: '0 0 * * 0'
+    - cron: "0 0 * * 0"
 
 jobs:
   cleanup:
@@ -14,10 +14,16 @@ jobs:
       contents: write
 
     steps:
+      # Default branch is master for this repository
+      - name: Set target branch to master
+        id: repo_meta
+        run: |
+          echo "default_branch=master" >> "$GITHUB_OUTPUT"
+          echo "Default branch: master"
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Fetch all history for all branches
+          fetch-depth: 0 # Fetch all history for all branches
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Fetch all branches
@@ -28,9 +34,10 @@ jobs:
       - name: List merged branches
         id: list_merged
         run: |
-          echo "🔍 Finding branches merged into master..."
+          TARGET_BRANCH="${{ steps.repo_meta.outputs.default_branch }}"
+          echo "🔍 Finding branches merged into ${TARGET_BRANCH}..."
           # Get all remote branches that have been merged into master
-          merged_branches=$(git branch -r --merged origin/master | \
+          merged_branches=$(git branch -r --merged origin/${TARGET_BRANCH} | \
             grep -v "origin/master" | \
             grep -v "origin/HEAD" | \
             grep "origin/" | \
@@ -42,6 +49,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
           # Count and display
+          # Exclude protected/common branches (do NOT treat 'main' as protected here)
+          merged_branches=$(echo "$merged_branches" | grep -Ev '^(master|develop|release|gh-pages)$' || true)
+
           branch_count=$(echo "$merged_branches" | grep -c ^ || echo "0")
           echo "📊 Found $branch_count merged branches"
 

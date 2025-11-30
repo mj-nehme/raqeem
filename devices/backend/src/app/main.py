@@ -33,6 +33,7 @@ except Exception:
     pass
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from app.api.routes import api_router
 from app.api.v1.endpoints import health
@@ -196,15 +197,15 @@ app.include_router(api_router, prefix="/api/v1")
 app.include_router(health.router, tags=["Health Check"])
 
 
-# Keep backward compatibility with old health check endpoint
-@app.get("/health", tags=["Health Check"], summary="Health check endpoint")
-async def health_check_legacy():
-    """
-    Health check endpoint for monitoring and load balancer probes.
+SERVICE_NAME = "devices-backend"
+SERVICE_VERSION = app.version
 
-    **Deprecated**: Use `/health/live` for liveness checks or `/health/ready` for readiness checks instead.
+@app.get("/health", tags=["Health Check"], summary="Unified health status")
+async def health_check():
+    """Unified health endpoint returning consistent structure across backends."""
+    return {"status": "ok", "service": SERVICE_NAME, "version": SERVICE_VERSION}
 
-    Returns service status and name for verification.
-    """
-    logger.warning("Legacy /health endpoint accessed - consider using /health/live or /health/ready")
-    return {"status": "ok", "service": "devices-backend"}
+@app.get("/", include_in_schema=False)
+async def root_redirect():
+    """Redirect root to interactive API docs for consistency."""
+    return RedirectResponse(url="/docs")

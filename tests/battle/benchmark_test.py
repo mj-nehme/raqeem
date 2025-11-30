@@ -20,13 +20,15 @@ import json
 import random
 import sys
 import time
+import uuid
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 import requests
 
 # Configuration
-DEVICES_BACKEND_URL = "http://localhost:8081"
-MENTOR_BACKEND_URL = "http://localhost:8080"
+DEVICES_BACKEND_URL = "http://localhost:30080"
+MENTOR_BACKEND_URL = "http://localhost:30090"
 
 
 class BenchmarkRunner:
@@ -65,7 +67,7 @@ class BenchmarkRunner:
         failures = 0
 
         for i in range(samples):
-            device_id = f"bench-reg-{int(time.time())}-{i}"
+            device_id = str(uuid.uuid4())
             device_name = f"Benchmark {i}"
 
             def register(device_id=device_id, device_name=device_name):
@@ -85,6 +87,10 @@ class BenchmarkRunner:
             latencies.append(latency)
             if not success:
                 failures += 1
+            
+            # Progress indicator for long-running tests
+            if samples > 10 and (i + 1) % 10 == 0:
+                self.log(f"  Progress: {i + 1}/{samples} samples completed", "DEBUG")
 
         result = {
             "operation": "device_registration",
@@ -107,7 +113,7 @@ class BenchmarkRunner:
         latencies = []
         failures = 0
 
-        for _ in range(samples):
+        for i in range(samples):
 
             def submit():
                 response = requests.post(
@@ -131,6 +137,10 @@ class BenchmarkRunner:
             latencies.append(latency)
             if not success:
                 failures += 1
+            
+            # Progress indicator for long-running tests
+            if samples > 10 and (i + 1) % 10 == 0:
+                self.log(f"  Progress: {i + 1}/{samples} samples completed", "DEBUG")
 
         result = {
             "operation": "telemetry_ingestion",
@@ -196,7 +206,7 @@ class BenchmarkRunner:
         for _ in range(samples):
 
             def query():
-                response = requests.get(f"{self.mentor_url}/devices", timeout=10)
+                response = requests.get(f"{self.mentor_url}/api/v1/devices", timeout=10)
                 response.raise_for_status()
 
             success, latency = self.measure_operation(query)
@@ -226,7 +236,7 @@ class BenchmarkRunner:
         for _ in range(samples):
 
             def query():
-                response = requests.get(f"{self.mentor_url}/devices/{device_id}/metrics?limit=100", timeout=10)
+                response = requests.get(f"{self.mentor_url}/api/v1/devices/{device_id}/metrics?limit=100", timeout=10)
                 response.raise_for_status()
 
             success, latency = self.measure_operation(query)
@@ -259,13 +269,18 @@ class BenchmarkRunner:
 
             def upload(filename=filename, fake_image=fake_image):
                 files = {"file": (filename, io.BytesIO(fake_image), "image/png")}
-                response = requests.post(f"{self.devices_url}/api/v1/devices/{device_id}/screenshot", files=files, timeout=30)
+                data = {"device_id": device_id}
+                response = requests.post(f"{self.devices_url}/api/v1/screenshots", files=files, data=data, timeout=30)
                 response.raise_for_status()
 
             success, latency = self.measure_operation(upload)
             latencies.append(latency)
             if not success:
                 failures += 1
+            
+            # Progress indicator for long-running tests
+            if samples > 10 and (i + 1) % 10 == 0:
+                self.log(f"  Progress: {i + 1}/{samples} samples completed", "DEBUG")
 
         result = {
             "operation": "screenshot_upload",
@@ -281,19 +296,26 @@ class BenchmarkRunner:
         self.log(f"  p50: {result['latency_p50_ms']:.2f}ms, p95: {result['latency_p95_ms']:.2f}ms, p99: {result['latency_p99_ms']:.2f}ms")
         return result
 
-    def benchmark_concurrent_operations(self, concurrent: int, operations_per_worker: int) -> dict:
+    def benchmark_concurrent_operations(self, num_workers: int, operations_per_worker: int) -> dict:
         """Benchmark concurrent operation performance."""
-        self.log(f"Benchmarking concurrent operations ({concurrent} workers, {operations_per_worker} ops each)...")
+        self.log(f"Benchmarking concurrent operations ({num_workers} workers, {operations_per_worker} ops each)...")
 
         def worker(worker_id: int):
-            device_id = f"bench-concurrent-{int(time.time())}-{worker_id}"
+            device_id = str(uuid.uuid4())
             latencies = []
 
             # Register device
             def register():
                 response = requests.post(
                     f"{self.devices_url}/api/v1/devices/register",
-                    json={"deviceid": device_id, "device_name": f"Concurrent {worker_id}", "device_type": "laptop", "os": "Test OS"},
+                    json={
+                        "deviceid": device_id,
+                        "device_name": f"Concurrent {worker_id}",
+                        "device_type": "laptop",
+                        "os": "Test OS",
+                        "current_user": "benchmark",
+                        "device_location": "Benchmark Lab",
+                    },
                     timeout=10,
                 )
                 response.raise_for_status()
@@ -328,19 +350,19 @@ class BenchmarkRunner:
             return latencies
 
         start_time = time.time()
-        with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent) as executor:
-            futures = [executor.submit(worker, i) for i in range(concurrent)]
+        with ThreadPoolExecutor(max_workers=num_workers) as executor:
+            futures = [executor.submit(worker, i) for i in range(num_workers)]
             all_latencies = []
-            for future in concurrent.futures.as_completed(futures):
+            for future in as_completed(futures):
                 all_latencies.extend(future.result())
         elapsed = time.time() - start_time
 
-        total_ops = concurrent * (1 + operations_per_worker)
+        total_ops = num_workers * (1 + operations_per_worker)
         throughput = total_ops / elapsed if elapsed > 0 else 0
 
         result = {
             "operation": "concurrent_operations",
-            "concurrent_workers": concurrent,
+            "concurrent_workers": num_workers,
             "operations_per_worker": operations_per_worker,
             "total_operations": total_ops,
             "duration_sec": round(elapsed, 2),
@@ -395,12 +417,21 @@ def main():
     print()
 
     # Setup: Register a test device for reuse
-    test_device_id = f"bench-device-{int(time.time())}"
+    test_device_id = str(uuid.uuid4())
     runner.log("Setting up test device...")
     try:
         requests.post(
             f"{args.devices_url}/api/v1/devices/register",
-            json={"deviceid": test_device_id, "device_name": "Benchmark Device", "device_type": "laptop", "os": "Test OS"},
+            json={
+                "deviceid": test_device_id,
+                "device_name": "Benchmark Device",
+                "device_type": "laptop",
+                "os": "Test OS",
+                "current_user": "benchmark",
+                "device_location": "Test Lab",
+                "ip_address": "127.0.0.1",
+                "mac_address": "00:00:00:00:00:00",
+            },
             timeout=10,
         ).raise_for_status()
         runner.log("Test device registered", "SUCCESS")

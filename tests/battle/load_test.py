@@ -15,19 +15,21 @@ Usage:
 """
 
 import argparse
-import concurrent.futures
+import os
+import concurrent.futures  # ensure available for thread pools
 import json
 import random
 import sys
 import time
+import uuid
 from collections import defaultdict
 from datetime import datetime
 
 import requests
 
-# Configuration
-DEVICES_BACKEND_URL = "http://localhost:8081"
-MENTOR_BACKEND_URL = "http://localhost:8080"
+# Configuration (default to NodePorts used locally; can be overridden via flags)
+DEVICES_BACKEND_URL = "http://localhost:30080"
+MENTOR_BACKEND_URL = "http://localhost:30090"
 
 
 class LoadTestRunner:
@@ -67,6 +69,8 @@ class LoadTestRunner:
                     "device_name": f"Load Test {device_id}",
                     "device_type": "laptop",
                     "os": "Test OS",
+                    "current_user": "load",
+                    "device_location": "Load Lab",
                 },
                 timeout=10,
             )
@@ -79,7 +83,7 @@ class LoadTestRunner:
 
         # Continuous operations
         while time.time() < end_time:
-            operation = random.choice(["metrics", "metrics", "metrics", "alert", "query"])  # Weight towards metrics
+            operation = random.choice(["metrics", "metrics", "metrics", "alerts", "queries"])  # Weight towards metrics
 
             try:
                 op_start = time.perf_counter()
@@ -100,13 +104,13 @@ class LoadTestRunner:
                         },
                         timeout=10,
                     )
-                elif operation == "alert":
+                elif operation == "alerts":
                     response = requests.post(
                         f"{self.devices_url}/api/v1/devices/{device_id}/alerts",
                         json=[
                             {
                                 "level": random.choice(["info", "warning", "critical"]),
-                                "alert_type": random.choice(["cpu_high", "memory_high", "disk_full"]),
+                                "alert_type": random.choice(["cpu_high", "memory_high", "disk_full", "security_warning"]),
                                 "message": f"Load test alert from {device_id}",
                                 "value": random.uniform(70, 100),
                                 "threshold": 80,
@@ -114,8 +118,16 @@ class LoadTestRunner:
                         ],
                         timeout=10,
                     )
-                elif operation == "query":
-                    response = requests.get(f"{self.mentor_url}/devices", timeout=10)
+                elif operation == "queries":
+                    # Optionally skip mentor queries during quick runs
+                    if os.environ.get("BATTLE_SKIP_MENTOR_QUERIES", "false").lower() == "true":
+                        class _Dummy:
+                            status_code = 200
+                            def raise_for_status(self):
+                                return None
+                        response = _Dummy()
+                    else:
+                        response = requests.get(f"{self.mentor_url}/devices", timeout=10)
 
                 op_latency = (time.perf_counter() - op_start) * 1000
                 response.raise_for_status()
@@ -146,14 +158,14 @@ class LoadTestRunner:
                 op_start = time.perf_counter()
 
                 if operation == "device_list":
-                    response = requests.get(f"{self.mentor_url}/devices", timeout=10)
+                    response = requests.get(f"{self.mentor_url}/api/v1/devices", timeout=10)
                 elif operation == "metrics":
                     # Query random device metrics
-                    device_id = f"load-device-{random.randint(0, 100)}"
+                    device_id = str(uuid.uuid4())
                     response = requests.get(f"{self.mentor_url}/devices/{device_id}/metrics?limit=100", timeout=10)
                 elif operation == "alerts":
                     # Query random device alerts
-                    device_id = f"load-device-{random.randint(0, 100)}"
+                    device_id = str(uuid.uuid4())
                     response = requests.get(f"{self.mentor_url}/devices/{device_id}/alerts", timeout=10)
 
                 op_latency = (time.perf_counter() - op_start) * 1000
@@ -244,7 +256,7 @@ def main():
 
     # Test 1: Device simulation load
     runner.log(f"Starting device simulation load test ({args.concurrent_users} devices for {args.duration}s)...")
-    device_ids = [f"load-device-{int(time.time())}-{i}" for i in range(args.concurrent_users)]
+    device_ids = [str(uuid.uuid4()) for _ in range(args.concurrent_users)]
 
     start_time = time.time()
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.concurrent_users) as executor:

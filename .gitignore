@@ -8,6 +8,7 @@ venv/
 *.log
 */*.log
 portforward.log
+logs/
 
 # OS files
 .DS_Store

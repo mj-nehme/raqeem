@@ -15,12 +15,14 @@ Usage:
 """
 
 import argparse
+import os
 import concurrent.futures
 import io
 import json
 import random
 import sys
 import time
+import uuid
 from collections import defaultdict
 from datetime import datetime
 from typing import Any
@@ -28,8 +30,8 @@ from typing import Any
 import requests
 
 # Configuration
-DEVICES_BACKEND_URL = "http://localhost:8081"
-MENTOR_BACKEND_URL = "http://localhost:8080"
+DEVICES_BACKEND_URL = "http://localhost:30080"
+MENTOR_BACKEND_URL = "http://localhost:30090"
 
 
 class StressTestRunner:
@@ -111,7 +113,7 @@ class StressTestRunner:
 
     def submit_alert(self, device_id: str) -> tuple[bool, float]:
         """Submit alert for a device."""
-        alert_types = ["cpu_high", "memory_high", "disk_full", "network_slow"]
+        alert_types = ["cpu_high", "memory_high", "disk_full", "security_warning"]
         levels = ["info", "warning", "critical"]
 
         payload = [
@@ -140,7 +142,7 @@ class StressTestRunner:
 
         def _upload():
             response = requests.post(
-                f"{self.devices_url}/api/v1/devices/{device_id}/screenshot", files=files, timeout=30
+                f"{self.devices_url}/api/v1/screenshots", files=files, data={"device_id": device_id}, timeout=30
             )
             response.raise_for_status()
             return response.json()
@@ -159,17 +161,17 @@ class StressTestRunner:
         _, latency, success = self.measure_latency(_query)
         return success, latency
 
-    def run_device_registration_test(self, num_devices: int, concurrent: int = 50) -> dict:
+    def run_device_registration_test(self, num_devices: int, worker_count: int = 50) -> dict:
         """Test device registration at scale."""
-        self.log(f"Starting device registration stress test: {num_devices} devices, {concurrent} concurrent")
+        self.log(f"Starting device registration stress test: {num_devices} devices, {worker_count} concurrent")
 
-        device_ids = [f"stress-device-{int(time.time())}-{i}" for i in range(num_devices)]
+        device_ids = [str(uuid.uuid4()) for _ in range(num_devices)]
         latencies = []
         failures = 0
 
         start_time = time.time()
 
-        with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent) as executor:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=worker_count) as executor:
             futures = {executor.submit(self.register_device, device_id): device_id for device_id in device_ids}
 
             for future in concurrent.futures.as_completed(futures):
@@ -191,6 +193,7 @@ class StressTestRunner:
             "latency_p95_ms": round(self._percentile(latencies, 95), 2),
             "latency_p99_ms": round(self._percentile(latencies, 99), 2),
             "latency_max_ms": round(max(latencies), 2) if latencies else 0,
+            "device_ids": device_ids,
         }
 
         self.log(f"Device registration: {result['successful']}/{result['total']} successful", "SUCCESS")
@@ -416,7 +419,9 @@ def main():
 
     # 1. Device registration stress
     results["device_registration"] = runner.run_device_registration_test(args.devices)
-    device_ids = [f"stress-device-{int(time.time())}-{i}" for i in range(min(args.devices, 100))]
+    # Reuse registered device IDs for subsequent tests (avoid 400s)
+    registered_ids = results["device_registration"].get("device_ids", [])
+    device_ids = registered_ids[: min(len(registered_ids), 100)]
     print()
 
     # 2. Telemetry stress (use subset of devices)
@@ -431,9 +436,12 @@ def main():
     results["screenshots"] = runner.run_screenshot_stress_test(device_ids[:10], screenshots_per_device=3)
     print()
 
-    # 5. Query stress
-    results["queries"] = runner.run_query_stress_test(queries=500)
-    print()
+    # 5. Query stress (optional)
+    # Allow runner to scale query volume via env var for quick runs
+    query_limit = int(os.environ.get("BATTLE_QUERY_LIMIT", "500"))
+    if os.environ.get("BATTLE_SKIP_MENTOR_QUERIES", "false").lower() != "true":
+        results["queries"] = runner.run_query_stress_test(queries=query_limit)
+        print()
 
     # Print summary
     print("=" * 80)
