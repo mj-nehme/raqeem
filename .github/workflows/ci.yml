@@ -203,7 +203,7 @@ jobs:
             if curl -sf http://localhost:8080/health > /dev/null 2>&1; then echo "✅ mentor-backend healthy"; break; fi
             echo "mentor-backend pending ($i/40)"; sleep 3;
           done
-          curl -sf http://localhost:8081/health || (echo "❌ devices-backend failed to become healthy" && docker compose -f .github/docker-compose.test.yml logs devices-backend && exit 1)
+          curl -sf http://localhost:8081/health || (echo "❌ devices-backend failed to become healthy" && docker compose -f .github/docker-compose.test.yml logs devices-backend postgres minio && exit 1)
           curl -sf http://localhost:8080/health || (echo "❌ mentor-backend failed to become healthy" && docker compose -f .github/docker-compose.test.yml logs mentor-backend && exit 1)
       - name: Run battle tests (quick)
         env:
