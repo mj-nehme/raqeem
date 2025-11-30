@@ -70,11 +70,14 @@ services:
       context: ../mentor/backend
       dockerfile: Dockerfile
     environment:
-      DB_HOST: "postgres"
-      DB_PORT: "5432"
-      DB_USER: "monitor"
-      DB_PASSWORD: "monitorpw"
-      DB_NAME: "monitoring_db"
+      # Align with app's expected env var names (POSTGRES_*)
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: "monitor"
+      POSTGRES_PASSWORD: "monitorpw"
+      POSTGRES_DB: "monitoring_db"
+      # Explicitly set PORT to match container exposure
+      PORT: "8080"
       MINIO_ENDPOINT: "minio:9000"
       MINIO_ACCESS_KEY: "minioadmin"
       MINIO_SECRET_KEY: "minioadmin"
