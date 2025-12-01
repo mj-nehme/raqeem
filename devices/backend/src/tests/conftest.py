@@ -57,6 +57,7 @@ _NO_DB_REQUIRED_FILES = [
     "test_minio_service.py",
     "test_http_retry.py",
     "test_logging_config.py",
+    "test_full_coverage.py",  # Has its own mocks for full coverage
 ]
 
 # List of test files/classes that definitely need database
