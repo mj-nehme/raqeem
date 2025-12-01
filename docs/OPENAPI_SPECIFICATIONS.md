@@ -113,9 +113,9 @@ This document provides a summary of the OpenAPI specifications for both Raqeem b
 ## Mentor Backend API (Go)
 
 ### Specification Details
-- **Format**: Swagger 2.0 (OpenAPI 2.0)
+- **Format**: OpenAPI 3.0.3
 - **Title**: Raqeem Mentor Backend API
-- **Version**: 1.0
+- **Version**: 1.0.0
 - **License**: MIT
 - **Base URL**: `/`
 
@@ -126,8 +126,8 @@ This document provides a summary of the OpenAPI specifications for both Raqeem b
 
 ### Statistics
 - **Total Paths**: 16
-- **Total Definitions**: 8
-- **Total Tags**: 3
+- **Total Schemas**: 8
+- **Total Tags**: 4
 
 ### Endpoints by Category
 
@@ -155,17 +155,17 @@ This document provides a summary of the OpenAPI specifications for both Raqeem b
 - `GET /devices/{id}/screenshots` - Get screenshots with presigned URLs
 
 ### Data Models
-- `models.Device` - Device information
-- `models.DeviceMetric` - Device metrics
-- `models.DeviceProcess` - Process information
-- `models.DeviceActivity` - Activity information
-- `models.DeviceAlert` - Alert information
-- `models.DeviceRemoteCommand` - Remote command
-- `models.DeviceScreenshot` - Screenshot metadata
-- `models.User` - User information
+- `Device` - Device information
+- `DeviceMetric` - Device metrics
+- `DeviceProcess` - Process information
+- `DeviceActivity` - Activity information
+- `DeviceAlert` - Alert information
+- `DeviceRemoteCommand` - Remote command
+- `DeviceScreenshot` - Screenshot metadata
+- `User` - User information
 
 ### Features
-- ✅ Comprehensive Swagger annotations
+- ✅ Comprehensive OpenAPI 3.0.3 specification
 - ✅ All parameters documented
 - ✅ Request/response models defined
 - ✅ Error responses documented
@@ -188,7 +188,7 @@ This document provides a summary of the OpenAPI specifications for both Raqeem b
 | Feature | Devices Backend | Mentor Backend |
 |---------|----------------|----------------|
 | Framework | FastAPI (Python) | Gin (Go) |
-| OpenAPI Version | 3.1.0 | 2.0 |
+| OpenAPI Version | 3.1.0 | 3.0.3 |
 | Base Path | `/api/v1` | `/` |
 | Port | 30080 | 30090 |
 | Primary Use | Telemetry ingestion | Dashboard/monitoring |
@@ -304,7 +304,7 @@ Both APIs can be tested directly from Swagger UI:
 - Validate specs regularly
 
 ### Versioning
-- Current version: 1.0.0 (devices), 1.0 (mentor)
+- Current version: 1.0.0 (devices), 1.0.0 (mentor)
 - Version in URL path: `/api/v1`
 - Maintain backward compatibility
 - Document breaking changes
