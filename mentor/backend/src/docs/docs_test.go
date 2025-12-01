@@ -17,17 +17,17 @@ func TestGetDocTemplate(t *testing.T) {
 		t.Error("Expected non-empty template, got empty string")
 	}
 
-	// Check that it contains expected swagger content
-	if !strings.Contains(template, "swagger") {
-		t.Error("Expected template to contain 'swagger'")
+	// Check that it contains expected OpenAPI 3.0 content
+	if !strings.Contains(template, "openapi") {
+		t.Error("Expected template to contain 'openapi'")
 	}
 
-	if !strings.Contains(template, "schemes") {
-		t.Error("Expected template to contain 'schemes'")
+	if !strings.Contains(template, "servers") {
+		t.Error("Expected template to contain 'servers'")
 	}
 
-	if !strings.Contains(template, "definitions") {
-		t.Error("Expected template to contain 'definitions'")
+	if !strings.Contains(template, "components") {
+		t.Error("Expected template to contain 'components'")
 	}
 }
 
@@ -73,8 +73,8 @@ func TestTemplateContainsExpectedModels(t *testing.T) {
 
 	template := SwaggerInfo.SwaggerTemplate
 
-	// Check for expected model definitions
-	expectedModels := []string{"models.Device", "models.DeviceAlert", "models.DeviceMetric"}
+	// Check for expected model definitions (OpenAPI 3.0 uses components/schemas without models. prefix)
+	expectedModels := []string{"Device", "DeviceAlert", "DeviceMetric"}
 
 	for _, model := range expectedModels {
 		if !strings.Contains(template, model) {
