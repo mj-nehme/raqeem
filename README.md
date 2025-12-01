@@ -45,7 +45,6 @@ After `./start.sh`, services auto-discover ports:
 ## Documentation
 
 ### Getting Started
-// Setup merged into Development Guide
 - [Architecture](docs/ARCHITECTURE.md) — System design and data flow
 - [API Documentation](docs/API.md) — REST endpoints and examples
  - [Backend API Summary](docs/BACKEND_API_TABLE.md) — Quick table of key endpoints
@@ -59,7 +58,6 @@ After `./start.sh`, services auto-discover ports:
 ### Operations
 - [Deployment Guide](docs/DEPLOYMENT.md) — Production Kubernetes deployment
 - [Container Registry Strategy](docs/CONTAINER_REGISTRY_STRATEGY.md) — Image registry usage and security
-// Legacy/extra docs removed for v1.0.0 baseline
 
 ## Glossary
 
