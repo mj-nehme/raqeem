@@ -2,6 +2,7 @@
 
 import os
 import socket
+from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -29,10 +30,9 @@ for key, value in TEST_ENV_VARS.items():
 def is_postgres_available(host: str = "127.0.0.1", port: int = 5432, timeout: float = 1.0) -> bool:
     """Check if PostgreSQL is available by attempting to connect to the port."""
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(timeout)
-        result = sock.connect_ex((host, port))
-        sock.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(timeout)
+            result = sock.connect_ex((host, port))
     except Exception:
         return False
     else:
@@ -76,8 +76,8 @@ def pytest_collection_modifyitems(config, items):
     skip_db = pytest.mark.skip(reason="PostgreSQL is not available - skipping integration test")
 
     for item in items:
-        # Get the test file name
-        test_file = item.fspath.basename if hasattr(item.fspath, 'basename') else str(item.fspath).split('/')[-1]
+        # Get the test file name using pathlib for consistent path handling
+        test_file = Path(item.fspath).name
         test_nodeid = item.nodeid
 
         # Check if this test file is known to NOT require database

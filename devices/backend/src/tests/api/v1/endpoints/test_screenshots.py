@@ -1,4 +1,5 @@
 import io
+from contextlib import contextmanager
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
@@ -35,6 +36,19 @@ def mock_db_session():
     return mock_session
 
 
+@contextmanager
+def override_db_dependency(mock_session):
+    """Context manager to override database dependency and ensure cleanup."""
+    async def override_get_db():
+        yield mock_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        yield
+    finally:
+        app.dependency_overrides.clear()
+
+
 @pytest.mark.asyncio
 async def test_create_screenshot_file_upload(mock_minio, mock_db_session):
     """Test uploading screenshot file."""
@@ -45,30 +59,21 @@ async def test_create_screenshot_file_upload(mock_minio, mock_db_session):
     # Use a valid UUID for device_id
     device_id = "a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d"
 
-    # Override the database dependency
-    async def override_get_db():
-        yield mock_db_session
-
-    app.dependency_overrides[get_db] = override_get_db
-
-    try:
+    with override_db_dependency(mock_db_session):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.post(
                 "/api/v1/screenshots/",
                 data={"device_id": device_id},
                 files={"file": ("screenshot.png", fake_image, "image/png")},
             )
-        assert response.status_code == 201
-        data = response.json()
-        assert data["status"] == "success"
-        assert "id" in data
-        assert "image_url" in data
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "success"
+    assert "id" in data
+    assert "image_url" in data
 
-        # Verify MinIO upload was called
-        mock_minio.upload_file.assert_called_once()
-    finally:
-        # Clean up dependency override
-        app.dependency_overrides.clear()
+    # Verify MinIO upload was called
+    mock_minio.upload_file.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -80,23 +85,14 @@ async def test_create_screenshot_file_upload_jpg(mock_minio, mock_db_session):
     # Use a valid UUID for device_id
     device_id = "b2c3d4e5-f6a7-4b5c-8d7e-9f0a1b2c3d4e"
 
-    # Override the database dependency
-    async def override_get_db():
-        yield mock_db_session
-
-    app.dependency_overrides[get_db] = override_get_db
-
-    try:
+    with override_db_dependency(mock_db_session):
         async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
             response = await ac.post(
                 "/api/v1/screenshots/",
                 data={"device_id": device_id},
                 files={"file": ("screenshot.jpg", fake_image, "image/jpeg")},
             )
-        assert response.status_code == 201
+    assert response.status_code == 201
 
-        # Verify MinIO upload was called
-        mock_minio.upload_file.assert_called_once()
-    finally:
-        # Clean up dependency override
-        app.dependency_overrides.clear()
+    # Verify MinIO upload was called
+    mock_minio.upload_file.assert_called_once()
