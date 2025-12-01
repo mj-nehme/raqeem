@@ -184,8 +184,8 @@ describe('DeviceDashboard Coverage Tests', () => {
                 })
             }
             if (url.endsWith('/commands') && init?.method === 'POST') {
-                // Simulate a network error instead
-                return Promise.reject(new Error('Server returned 400'))
+                // Simulate network connection failure
+                return Promise.reject(new Error('Network connection failed'))
             }
             return Promise.resolve({
                 ok: true,
@@ -238,8 +238,8 @@ describe('DeviceDashboard Coverage Tests', () => {
                 })
             }
             if (url.endsWith('/commands') && init?.method === 'POST') {
-                // Simulate network error
-                return Promise.reject(new Error('Internal Server Error'))
+                // Simulate network connection failure
+                return Promise.reject(new Error('Network connection failed'))
             }
             return Promise.resolve({
                 ok: true,
@@ -531,7 +531,7 @@ describe('DeviceDashboard Coverage Tests', () => {
     })
 
     test('sendCommand does nothing when command is empty', async () => {
-        global.fetch = vi.fn((url, init) => {
+        global.fetch = vi.fn((url) => {
             if (url.endsWith('/devices')) {
                 return Promise.resolve({
                     ok: true,
