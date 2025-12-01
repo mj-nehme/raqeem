@@ -8,15 +8,14 @@ import os
 from contextlib import contextmanager
 from unittest.mock import patch
 
-import pytest
-
 
 @contextmanager
 def skip_minio_connection():
     """Context manager to test MinIO service with MINIO_SKIP_CONNECT enabled."""
     with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
-        from app.services import minio_service
         import importlib
+
+        from app.services import minio_service
         importlib.reload(minio_service)
         try:
             yield minio_service
@@ -69,7 +68,7 @@ class TestMinioServiceExceptions:
     def test_minio_service_error_is_exception(self):
         """Test MinioServiceError is a proper exception."""
         from app.services.minio_service import MinioServiceError
-        
+
         error = MinioServiceError("Test error")
         assert str(error) == "Test error"
         assert isinstance(error, Exception)
@@ -77,7 +76,7 @@ class TestMinioServiceExceptions:
     def test_minio_upload_error_is_exception(self):
         """Test MinioUploadError is a proper exception."""
         from app.services.minio_service import MinioUploadError
-        
+
         error = MinioUploadError("Upload failed")
         assert str(error) == "Upload failed"
         assert isinstance(error, Exception)
@@ -85,7 +84,7 @@ class TestMinioServiceExceptions:
     def test_minio_delete_error_is_exception(self):
         """Test MinioDeleteError is a proper exception."""
         from app.services.minio_service import MinioDeleteError
-        
+
         error = MinioDeleteError("Delete failed")
         assert str(error) == "Delete failed"
         assert isinstance(error, Exception)
@@ -93,7 +92,7 @@ class TestMinioServiceExceptions:
     def test_minio_url_error_is_exception(self):
         """Test MinioURLError is a proper exception."""
         from app.services.minio_service import MinioURLError
-        
+
         error = MinioURLError("URL generation failed")
         assert str(error) == "URL generation failed"
         assert isinstance(error, Exception)
@@ -105,7 +104,7 @@ class TestMinioServiceConstants:
     def test_default_url_expiration(self):
         """Test default URL expiration constant."""
         from app.services.minio_service import DEFAULT_URL_EXPIRATION
-        
+
         assert DEFAULT_URL_EXPIRATION == 3600  # 1 hour in seconds
 
     def test_skip_minio_env_var_parsing(self):
@@ -113,12 +112,12 @@ class TestMinioServiceConstants:
         # Test when not set
         with patch.dict(os.environ, {}, clear=False):
             os.environ.pop("MINIO_SKIP_CONNECT", None)
-            from app.services import minio_service
-            
             import importlib
+
+            from app.services import minio_service
             importlib.reload(minio_service)
-            
+
             # When env var is not set or not "1", SKIP_MINIO should be False
             # But we can't easily test this without affecting global state
-            
+
             importlib.reload(minio_service)

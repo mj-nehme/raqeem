@@ -6,9 +6,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-
-from app.core.logging_config import LoggingSettings, configure_logging, get_logger, LogContext
+from app.core.logging_config import LogContext, LoggingSettings, configure_logging, get_logger
 
 
 class TestLoggingSettings:
@@ -61,16 +59,16 @@ class TestConfigureLogging:
         """Test logging configuration with file output."""
         with tempfile.NamedTemporaryFile(suffix=".log", delete=False) as f:
             log_file = f.name
-        
+
         try:
             with patch.dict(os.environ, {"LOG_FILE": log_file}):
                 settings = LoggingSettings()
                 configure_logging(settings)
-                
+
                 # Log something
                 logger = logging.getLogger("test_file")
                 logger.info("Test message to file")
-                
+
                 # Verify file exists
                 assert Path(log_file).exists()
         finally:
@@ -80,7 +78,7 @@ class TestConfigureLogging:
     def test_third_party_loggers_suppressed(self):
         """Test that noisy third-party loggers are suppressed."""
         configure_logging()
-        
+
         # These loggers should be set to WARNING level
         assert logging.getLogger("urllib3").level == logging.WARNING
         assert logging.getLogger("httpx").level == logging.WARNING
@@ -123,10 +121,10 @@ class TestLogContext:
     def test_log_context_restores_factory(self):
         """Test that LogContext restores original factory on exit."""
         original_factory = logging.getLogRecordFactory()
-        
+
         with LogContext(test_attr="value"):
             pass
-        
+
         # Factory should be restored
         assert logging.getLogRecordFactory() == original_factory
 

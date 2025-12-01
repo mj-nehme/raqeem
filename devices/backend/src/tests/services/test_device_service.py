@@ -2,12 +2,10 @@
 
 from datetime import datetime, timedelta, timezone
 
-import pytest
-
 from app.services.device_service import (
-    DeviceService,
     DEVICE_ONLINE_THRESHOLD_MINUTES,
     VALID_DEVICE_TYPES,
+    DeviceService,
 )
 
 
@@ -21,7 +19,7 @@ class TestDeviceServiceConstants:
     def test_valid_device_types(self):
         """Test valid device types constant."""
         expected_types = {"laptop", "desktop", "server", "mobile", "tablet"}
-        assert VALID_DEVICE_TYPES == expected_types
+        assert expected_types == VALID_DEVICE_TYPES
 
 
 class TestDeviceServiceValidateDeviceData:
