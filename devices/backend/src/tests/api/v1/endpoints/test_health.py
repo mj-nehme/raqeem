@@ -50,7 +50,11 @@ async def test_unified_health_has_timestamp():
         assert response.status_code == 200
         data = response.json()
         assert "timestamp" in data
-        # Verify timestamp is in ISO format
+        # Validate ISO 8601 format by parsing
+        from datetime import datetime
         timestamp = data.get("timestamp", "")
-        assert "T" in timestamp  # ISO format includes T separator
-        assert len(timestamp) > 10  # Should be longer than just a date
+        # ISO 8601 format should be parseable
+        try:
+            datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        except ValueError:
+            pytest.fail(f"Timestamp '{timestamp}' is not in valid ISO 8601 format")

@@ -47,7 +47,8 @@ async def test_root_redirect():
     """Test root endpoint redirects to docs."""
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test", follow_redirects=False) as ac:
         response = await ac.get("/")
-    assert response.status_code in (301, 302, 307, 308)
+    # RedirectResponse uses 307 by default
+    assert response.status_code == 307
     assert response.headers.get("location") == "/docs"
 
 

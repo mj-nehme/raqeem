@@ -5,9 +5,23 @@ requiring an actual MinIO server connection.
 """
 
 import os
-from unittest.mock import MagicMock, patch
+from contextlib import contextmanager
+from unittest.mock import patch
 
 import pytest
+
+
+@contextmanager
+def skip_minio_connection():
+    """Context manager to test MinIO service with MINIO_SKIP_CONNECT enabled."""
+    with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
+        from app.services import minio_service
+        import importlib
+        importlib.reload(minio_service)
+        try:
+            yield minio_service
+        finally:
+            importlib.reload(minio_service)
 
 
 class TestMinioService:
@@ -15,77 +29,38 @@ class TestMinioService:
 
     def test_minio_service_skip_connect(self):
         """Test that MinIO service skips connection when MINIO_SKIP_CONNECT is set."""
-        with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
-            # Need to reimport to get the updated env var
-            from app.services import minio_service
-            
-            # Reload the module to pick up env changes
-            import importlib
-            importlib.reload(minio_service)
-            
-            # Create service - should skip actual MinIO connection
+        with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             assert service.client is None
             assert service.bucket_name == "raqeem-screenshots"
-            
-            # Clean up - restore original module state
-            importlib.reload(minio_service)
 
     def test_minio_service_upload_file_skip_connect(self):
         """Test upload_file when MINIO_SKIP_CONNECT is enabled."""
-        with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
-            from app.services import minio_service
-            
-            import importlib
-            importlib.reload(minio_service)
-            
+        with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             result = service.upload_file("/tmp/test.png", "device123/test.png")
             assert result == "device123/test.png"
-            
-            importlib.reload(minio_service)
 
     def test_minio_service_remove_file_skip_connect(self):
         """Test remove_file when MINIO_SKIP_CONNECT is enabled."""
-        with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
-            from app.services import minio_service
-            
-            import importlib
-            importlib.reload(minio_service)
-            
+        with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             # Should not raise
             service.remove_file("device123/test.png")
-            
-            importlib.reload(minio_service)
 
     def test_minio_service_get_presigned_url_skip_connect(self):
         """Test get_presigned_url when MINIO_SKIP_CONNECT is enabled."""
-        with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
-            from app.services import minio_service
-            
-            import importlib
-            importlib.reload(minio_service)
-            
+        with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             url = service.get_presigned_url("device123/test.png")
             assert url == "http://localhost/minio/device123/test.png"
-            
-            importlib.reload(minio_service)
 
     def test_minio_service_ensure_bucket_skip_connect(self):
         """Test _ensure_bucket when MINIO_SKIP_CONNECT is enabled."""
-        with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
-            from app.services import minio_service
-            
-            import importlib
-            importlib.reload(minio_service)
-            
+        with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             # Should not raise and not attempt connection
             service._ensure_bucket()
-            
-            importlib.reload(minio_service)
 
 
 class TestMinioServiceExceptions:
