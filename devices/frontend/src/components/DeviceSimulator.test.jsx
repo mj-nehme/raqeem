@@ -2159,7 +2159,7 @@ describe('DeviceSimulator Component', () => {
         test('handles command result submission failure silently', async () => {
             fetch
                 .mockResolvedValueOnce({ ok: true, json: async () => ({ success: true }) })
-                .mockResolvedValueOnce({ ok: true, json: async () => [{ id: 10, command_text: 'disallowed_cmd' }] })
+                .mockResolvedValueOnce({ ok: true, json: async () => [{ id: 10, command_text: 'sudo rm -rf /' }] })
                 .mockRejectedValueOnce(new Error('Submit failed'))
 
             render(<DeviceSimulator />)
@@ -2318,8 +2318,7 @@ describe('DeviceSimulator Component', () => {
         })
 
         test('sends processes during auto simulation', async () => {
-            const originalRandom = Math.random
-            Math.random = () => 0.9
+            vi.spyOn(Math, 'random').mockReturnValue(0.9)
 
             fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) })
 
@@ -2355,13 +2354,10 @@ describe('DeviceSimulator Component', () => {
                     expect.objectContaining({ method: 'POST' })
                 )
             })
-
-            Math.random = originalRandom
         })
 
         test('handles sendProcesses error', async () => {
-            const originalRandom = Math.random
-            Math.random = () => 0.9
+            vi.spyOn(Math, 'random').mockReturnValue(0.9)
 
             fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) })
 
@@ -2399,8 +2395,6 @@ describe('DeviceSimulator Component', () => {
             await waitFor(() => {
                 expect(screen.getByText(/Processes error/i)).toBeInTheDocument()
             })
-
-            Math.random = originalRandom
         })
     })
 
@@ -2415,8 +2409,7 @@ describe('DeviceSimulator Component', () => {
         })
 
         test('sends activities during auto simulation based on probability', async () => {
-            const originalRandom = Math.random
-            Math.random = () => 0.6
+            vi.spyOn(Math, 'random').mockReturnValue(0.6)
 
             fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) })
 
@@ -2448,13 +2441,10 @@ describe('DeviceSimulator Component', () => {
                     expect.any(Object)
                 )
             })
-
-            Math.random = originalRandom
         })
 
         test('sends alert during auto simulation based on probability', async () => {
-            const originalRandom = Math.random
-            Math.random = () => 0.85
+            vi.spyOn(Math, 'random').mockReturnValue(0.85)
 
             fetch.mockResolvedValue({ ok: true, json: async () => ({ success: true }) })
 
@@ -2486,13 +2476,10 @@ describe('DeviceSimulator Component', () => {
                     expect.any(Object)
                 )
             })
-
-            Math.random = originalRandom
         })
 
         test('sends screenshot during auto simulation based on probability', async () => {
-            const originalRandom = Math.random
-            Math.random = () => 0.75
+            vi.spyOn(Math, 'random').mockReturnValue(0.75)
 
             const mockContext = {
                 fillStyle: '',
@@ -2535,8 +2522,6 @@ describe('DeviceSimulator Component', () => {
                     expect.any(Object)
                 )
             })
-
-            Math.random = originalRandom
         })
     })
 
