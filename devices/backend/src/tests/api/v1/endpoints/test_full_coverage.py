@@ -8,15 +8,13 @@ complete code path coverage without requiring external services.
 import io
 from contextlib import contextmanager
 from datetime import datetime, timezone
-from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
-from uuid import UUID, uuid4
+from uuid import uuid4
 
 import pytest
 from app.db.session import get_db
 from app.main import app
 from httpx import ASGITransport, AsyncClient
-
 
 # ==============================================================================
 # Helper fixtures and context managers
@@ -767,7 +765,7 @@ class TestReadinessCheckFullCoverage:
         with override_db_dependency(mock_session):
             with patch("app.api.v1.endpoints.health.settings") as mock_settings:
                 # Make accessing database_url raise an exception
-                type(mock_settings).database_url = property(fget=lambda self: (_ for _ in ()).throw(Exception("Config error")))
+                type(mock_settings).database_url = property(fget=lambda _self: (_ for _ in ()).throw(Exception("Config error")))
                 async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
                     response = await ac.get("/health/ready")
 
