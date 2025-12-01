@@ -39,8 +39,8 @@ updates:
     open-pull-requests-limit: 0 # Only suggest, don't create PRs
 
   # npm for mentor frontend
-  - package-ecosystem: "npm"
-    directory: "/mentor/frontend"
+    - package-ecosystem: "npm"
+      directory: "/mentor/dashboard"
     schedule:
       interval: "daily"
       time: "03:40"

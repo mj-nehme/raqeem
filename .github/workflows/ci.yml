@@ -121,8 +121,8 @@ jobs:
           args: --timeout=5m
           skip-cache: true
 
-  lint-devices-frontend:
-    name: Lint Devices Frontend (ESLint)
+  lint-devices-web-simulator:
+    name: Lint Devices Web Simulator (ESLint)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -152,7 +152,7 @@ jobs:
       - lint-python
       - typecheck-python
       - lint-go
-      - lint-devices-frontend
+      - lint-devices-web-simulator
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -231,8 +231,8 @@ jobs:
       - build-artifacts
       - test-devices-backend
       - test-mentor-backend
-      - test-devices-frontend
-      - test-mentor-frontend
+      - test-devices-web-simulator
+      - test-dashboard
     permissions:
       contents: read
       packages: write
@@ -437,8 +437,8 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
-  test-mentor-frontend:
-    name: Test Mentor Frontend (React)
+  test-dashboard:
+    name: Test Dashboard (React)
     runs-on: ubuntu-latest
     needs:
       - check-services
@@ -454,37 +454,37 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-mentor-${{ hashFiles('mentor/frontend/package-lock.json') }}
+          key: ${{ runner.os }}-npm-mentor-${{ hashFiles('mentor/dashboard/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-mentor-
             ${{ runner.os }}-npm-
       - name: Cache node_modules
         uses: actions/cache@v4
         with:
-          path: mentor/frontend/node_modules
-          key: ${{ runner.os }}-node-modules-mentor-${{ hashFiles('mentor/frontend/package-lock.json') }}
+          path: mentor/dashboard/node_modules
+          key: ${{ runner.os }}-node-modules-mentor-${{ hashFiles('mentor/dashboard/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-modules-mentor-
       - name: Install dependencies
-        working-directory: mentor/frontend
+        working-directory: mentor/dashboard
         run: npm ci --prefer-offline --no-audit
       - name: Run tests with coverage
-        working-directory: mentor/frontend
+        working-directory: mentor/dashboard
         env:
           VITE_MENTOR_API_URL: http://127.0.0.1:8080
         run: npm run test:coverage -- --run
 
-      - name: Upload Mentor Frontend coverage to Codecov
+      - name: Upload Dashboard coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: mentor/frontend/coverage/lcov.info
-          flags: mentor-frontend
-          name: mentor-frontend
+          files: mentor/dashboard/coverage/lcov.info
+          flags: dashboard
+          name: dashboard
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
-  test-devices-frontend:
-    name: Test Devices Frontend (React)
+  test-devices-web-simulator:
+    name: Test Devices Web Simulator (React)
     runs-on: ubuntu-latest
     needs:
       - check-services
@@ -519,11 +519,11 @@ jobs:
         env:
           VITE_DEVICES_API_URL: http://127.0.0.1:8000
         run: npm run test:coverage -- --run
-      - name: Upload Devices Frontend coverage to Codecov
+      - name: Upload Devices Web Simulator coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
           files: devices/web-simulator/coverage/lcov.info
-          flags: devices-frontend
-          name: devices-frontend
+          flags: devices-web-simulator
+          name: devices-web-simulator
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true

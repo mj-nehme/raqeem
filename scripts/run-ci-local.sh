@@ -13,7 +13,7 @@ set -euo pipefail
 #   ./scripts/run-ci-local.sh root test-devices-backend
 #   ./scripts/run-ci-local.sh root test-mentor-backend
 #   ./scripts/run-ci-local.sh root test-devices-frontend
-#   ./scripts/run-ci-local.sh root test-mentor-frontend
+#   ./scripts/run-ci-local.sh root test-dashboard
 #   ./scripts/run-ci-local.sh devices test         # run devices/backend workflow job 'test'
 #   ./scripts/run-ci-local.sh devices              # list jobs for devices workflow
 #   ./scripts/run-ci-local.sh preset prepush       # lint + typecheck + all tests
@@ -125,12 +125,12 @@ run_preset_prepush() {
     typecheck-python
     # lint-go can fail offline due to schema fetch; allow skipping locally via RUN_SKIP_GO_LINT=1
     ${RUN_SKIP_GO_LINT:+}
-    lint-devices-frontend
+    lint-devices-web-simulator
     build-artifacts
     test-devices-backend
     test-mentor-backend
-    test-devices-frontend
-    test-mentor-frontend
+    test-devices-web-simulator
+    test-dashboard
   )
   for j in "${jobs[@]}"; do
     # Skip empty entries (when RUN_SKIP_GO_LINT=1 removes lint-go)
@@ -148,12 +148,12 @@ run_preset_full() {
     lint-python
     typecheck-python
     lint-go
-    lint-devices-frontend
+    lint-devices-web-simulator
     build-artifacts
     test-devices-backend
     test-mentor-backend
-    test-devices-frontend
-    test-mentor-frontend
+    test-devices-web-simulator
+    test-dashboard
   )
   for j in "${jobs[@]}"; do
     log "act job: $j"

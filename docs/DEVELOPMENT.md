@@ -25,7 +25,7 @@ Selective component tests via flags in workflow or by invoking native commands:
 ```bash
 cd mentor/backend/src && go test ./... -v
 cd devices/backend/src && pytest -v
-cd mentor/frontend && npm test
+cd mentor/dashboard && npm test
 cd devices/web-simulator && npm test
 ```
 Prefer native commands for speed; reserve `act` for debugging CI-specific failures.
@@ -152,7 +152,7 @@ go run main.go
 
 # 5. Run frontends locally
 # Terminal 3: Mentor Frontend
-cd mentor/frontend
+cd mentor/dashboard
 npm install
 npm run dev
 
@@ -175,7 +175,7 @@ Best for:
 # 2. Stop frontend dev servers (Ctrl+C on start.sh output)
 
 # 3. Run frontends manually with custom ports
-cd mentor/frontend
+cd mentor/dashboard
 VITE_API_URL=http://localhost:30090 npm run dev -- --port 5173
 
 cd devices/web-simulator
@@ -254,7 +254,7 @@ raqeem/
 │   │   │   └── main.go           # Application entry point
 │   │   ├── go.mod
 │   │   └── Dockerfile
-│   └── frontend/          # React frontend (dashboard)
+  │   └── dashboard/         # React frontend (dashboard)
 │       ├── src/
 │       │   ├── components/       # React components
 │       │   ├── App.jsx
@@ -566,7 +566,7 @@ func TestGetDeviceMetric(t *testing.T) {
 
 **Running Tests**:
 ```bash
-cd mentor/frontend  # or devices/web-simulator
+cd mentor/dashboard  # or devices/web-simulator
 
 # Run tests
 npm test

@@ -1,4 +1,4 @@
-# Mentor Frontend
+# Dashboard
 
 A Vite + React app for monitoring devices via the Mentor backend.
 
@@ -23,7 +23,7 @@ cp .env.example .env
 Or run just the frontend:
 
 ```bash
-cd mentor/frontend
+cd mentor/dashboard
 npm install
 # The dev server reads VITE_MENTOR_FRONTEND_PORT from the environment
 # Example: set to any available port (e.g., 5000, 3000, 8080)

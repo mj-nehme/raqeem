@@ -505,7 +505,7 @@ curl http://localhost:30080/health
 **If frontend using wrong URL**:
 ```bash
 # Check frontend environment variables
-cd mentor/frontend
+cd mentor/dashboard
 cat .env* 
 
 # Should be:
@@ -564,7 +564,7 @@ lsof -i :5001  # or your frontend port
 
 **If build errors**:
 ```bash
-cd mentor/frontend  # or devices/web-simulator
+cd mentor/dashboard  # or devices/web-simulator
 
 # Clear and reinstall
 rm -rf node_modules package-lock.json dist

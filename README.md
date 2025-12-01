@@ -76,7 +76,7 @@ After `./start.sh`, services auto-discover ports:
 
 ```
 ┌──────────────────────┐     ┌──────────────────────┐
-│  Mentor Frontend     │     │  Devices Frontend    │
+        │  Dashboard           │     │  Devices Web Simulator│
 │  (React/Vite)        │     │  (React/Vite)        │
 │  - Device Dashboard  │     │  - Device Simulator  │
 │  - Metrics & Charts  │     │  - Auto-simulation   │
@@ -112,7 +112,7 @@ After `./start.sh`, services auto-discover ports:
 |-----------|-----------|---------|
 | **Devices Backend** | FastAPI (Python) | High-throughput telemetry ingestion |
 | **Mentor Backend** | Go + Gin | Device management & analytics |
-| **Mentor Frontend** | React + Vite | Monitoring dashboard |
+| **Dashboard** | React + Vite | Monitoring dashboard |
 | **Devices Frontend** | React + Vite | Interactive device simulator |
 | **PostgreSQL** | Database | Persistent storage for all data |
 | **MinIO** | Object Storage | S3-compatible screenshot storage |
@@ -122,8 +122,8 @@ After `./start.sh`, services auto-discover ports:
 1. **Device Registration** → Device Simulator → Devices Backend → PostgreSQL
 2. **Telemetry Ingestion** → Device Simulator → Devices Backend → PostgreSQL
 3. **Alert Forwarding** → Devices Backend → Mentor Backend → PostgreSQL
-4. **Screenshot Upload** → Device Simulator → Devices Backend → MinIO
-5. **Dashboard Display** → Mentor Frontend → Mentor Backend → PostgreSQL + MinIO
+ 4. **Screenshot Upload** → Device Simulator → Devices Backend → MinIO
+ 5. **Dashboard Display** → Dashboard → Mentor Backend → PostgreSQL + MinIO
 
 ## Contributing
 

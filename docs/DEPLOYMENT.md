@@ -412,7 +412,7 @@ For production, build and serve static files:
 
 ```bash
 # Build frontends
-cd mentor/frontend
+cd mentor/dashboard
 npm install
 npm run build  # Creates dist/ folder
 
@@ -427,7 +427,7 @@ kubectl create configmap frontend-nginx-config \
 
 # Option 2: Use S3 + CloudFront (recommended)
 # Upload dist/ folders to S3 bucket
-aws s3 sync mentor/frontend/dist s3://raqeem-dashboard/
+aws s3 sync mentor/dashboard/dist s3://raqeem-dashboard/
 aws s3 sync devices/web-simulator/dist s3://raqeem-simulator/
 ```
 

@@ -29,11 +29,11 @@ flags:
     paths:
       - devices/backend/src/
     carryforward: true
-  mentor-frontend:
+  dashboard:
     paths:
-      - mentor/frontend/src/
+      - mentor/dashboard/src/
     carryforward: true
-  devices-frontend:
+  devices-web-simulator:
     paths:
       - devices/web-simulator/src/
     carryforward: true

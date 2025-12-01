@@ -23,7 +23,7 @@ This is a template checklist for creating new releases. Copy and customize for e
 ### Version Consistency
 - [ ] VERSION file updated to new version
 - [ ] devices/web-simulator/package.json version updated
-- [ ] mentor/frontend/package.json version updated
+- [ ] mentor/dashboard/package.json version updated
 - [ ] All Helm charts version updated
 - [ ] CHANGELOG.md dated correctly
 

@@ -54,13 +54,13 @@ Be respectful, inclusive, and professional in all interactions.
    cd devices/backend/src && pytest
    cd mentor/backend/src && go test ./...
    cd devices/web-simulator && npm test
-   cd mentor/frontend && npm test
+   cd mentor/dashboard && npm test
    
    # Check linting
    cd devices/backend/src && ruff check .
    cd mentor/backend/src && golangci-lint run
    cd devices/web-simulator && npm run lint
-   cd mentor/frontend && npm run lint
+   cd mentor/dashboard && npm run lint
    ```
 
 5. **Commit Changes**

@@ -15,13 +15,13 @@ Stabilize and fix CI jobs that run linters and typecheckers across backends and 
   - `lint-python` (ruff on Devices backend)
   - `typecheck-python` (mypy on Devices backend)
   - `lint-go` (golangci-lint on Mentor backend)
-  - `lint-devices-frontend` (ESLint on Devices frontend)
+  - `lint-devices-web-simulator` (ESLint on Devices Web Simulator)
 
 ## Affected Jobs (check all that apply)
 - [ ] lint-python (ruff)
 - [ ] typecheck-python (mypy)
 - [ ] lint-go (golangci-lint)
-- [ ] lint-devices-frontend (eslint)
+- [ ] lint-devices-web-simulator (eslint)
 
 ## Reproduction
 1. Open the latest failing run for the job above in GitHub Actions.
@@ -57,7 +57,7 @@ golangci-lint run --timeout=5m
 docker run --rm -v "$PWD":/app -w /app golangci/golangci-lint:v1.61.0 golangci-lint run --timeout=5m
 ```
 
-JavaScript (Devices frontend)
+JavaScript (Devices Web Simulator)
 ```bash
 cd devices/web-simulator
 npm ci --prefer-offline --no-audit

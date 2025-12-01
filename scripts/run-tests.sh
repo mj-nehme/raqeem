@@ -39,7 +39,7 @@ Suites:
   devices-backend | devices-be | be-devices | dbe | db
   mentor-backend  | mentor-be  | be-mentor  | mbe | mb
   devices-frontend| devices-fe | fe-devices | dfe | df
-  mentor-frontend | mentor-fe  | fe-mentor  | mfe | mf
+    mentor-frontend | mentor-fe  | fe-mentor  | mfe | mf | dashboard
   all | ci-prepush | ci-full | ci-battle | quit
 
 Notes:
@@ -161,15 +161,15 @@ run_devices_frontend() {
 }
 
 run_mentor_frontend() {
-  log "Mentor frontend tests"
-  pushd "$ROOT_DIR/mentor/frontend" >/dev/null
+  log "Dashboard tests"
+  pushd "$ROOT_DIR/mentor/dashboard" >/dev/null
   if ! has_cmd npm; then err "npm not found (Node >=18 required)."; popd >/dev/null; return 1; fi
   npm test -- --coverage || npm test || { popd >/dev/null; return 1; }
   popd >/dev/null
 }
 
 run_all() {
-  local order=(mentor-backend devices-backend devices-frontend mentor-frontend)
+    local order=(mentor-backend devices-backend devices-frontend mentor-frontend)
   log "Running all suites (summary at end)"
   local names=(); local statuses=(); local failures=0
   for s in "${order[@]}"; do
@@ -230,7 +230,7 @@ case "$suite_lc" in
   devices-backend|devices-be|be-devices|dbe|db) run_devices_backend ;;
   mentor-backend|mentor-be|be-mentor|mbe|mb)   run_mentor_backend ;;
   devices-frontend|devices-fe|fe-devices|dfe|df) run_devices_frontend ;;
-  mentor-frontend|mentor-fe|fe-mentor|mfe|mf) run_mentor_frontend ;;
+  mentor-frontend|mentor-fe|fe-mentor|mfe|mf|dashboard) run_mentor_frontend ;;
   all) run_all ;;
   ci-prepush)
     log "Running CI pre-push preset via act"

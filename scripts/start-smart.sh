@@ -178,13 +178,13 @@ register_service "mentor-backend" "http://localhost:$MENTOR_NODEPORT" "$MENTOR_N
 echo ""
 echo "🌐 Starting frontends with detected ports..."
 
-# Start mentor frontend
-echo "  - Starting Mentor Frontend on port $MENTOR_FRONTEND_PORT..."
-cd mentor/frontend
+# Start dashboard
+echo "  - Starting Dashboard on port $MENTOR_FRONTEND_PORT..."
+cd mentor/dashboard
 npm install --silent
 VITE_MENTOR_FRONTEND_PORT=$MENTOR_FRONTEND_PORT \
 VITE_MENTOR_API_URL="http://localhost:$MENTOR_NODEPORT" \
-nohup npm run dev > ../../.deploy/mentor-frontend.log 2>&1 &
+nohup npm run dev > ../../.deploy/dashboard.log 2>&1 &
 MENTOR_FE_PID=$!
 
 # Start devices frontend
@@ -200,7 +200,7 @@ cd ../..
 
 # Register frontend services
 register_service "devices-frontend" "http://localhost:$DEVICES_FRONTEND_PORT" "$DEVICES_FRONTEND_PORT"
-register_service "mentor-frontend" "http://localhost:$MENTOR_FRONTEND_PORT" "$MENTOR_FRONTEND_PORT"
+register_service "dashboard" "http://localhost:$MENTOR_FRONTEND_PORT" "$MENTOR_FRONTEND_PORT"
 
 # Save PIDs and ports for cleanup
 mkdir -p .deploy
@@ -218,7 +218,7 @@ echo "⏳ Waiting for frontends to initialize..."
 sleep 5
 
 if ! kill -0 $MENTOR_FE_PID 2>/dev/null; then
-  echo "❌ ERROR: Mentor Frontend failed - check .deploy/mentor-frontend.log"
+  echo "❌ ERROR: Dashboard failed - check .deploy/dashboard.log"
   exit 1
 fi
 if ! kill -0 $DEVICES_FE_PID 2>/dev/null; then
@@ -234,7 +234,7 @@ echo "  - Devices Backend Health:  http://localhost:$DEVICES_NODEPORT/health"
 echo "  - Mentor Backend Health:   http://localhost:$MENTOR_NODEPORT/health"
 echo "  - Devices Backend Docs:    http://localhost:$DEVICES_NODEPORT/docs"
 echo "  - Mentor Backend Docs:     http://localhost:$MENTOR_NODEPORT/docs"
-echo "  - Mentor Dashboard:  http://localhost:$MENTOR_FRONTEND_PORT"
+echo "  - Dashboard:         http://localhost:$MENTOR_FRONTEND_PORT"
 echo "  - Device Simulator:  http://localhost:$DEVICES_FRONTEND_PORT"
 echo ""
 echo "🔐 CORS Configuration:"

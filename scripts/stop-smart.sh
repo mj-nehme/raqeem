@@ -8,12 +8,12 @@ NAMESPACE=${NAMESPACE:-default}
 CLEAN_DATA=${1:-""}
 
 # Stop frontend processes
-if [[ -f ".deploy/smart.pids" ]]; then
-  echo "🌐 Stopping frontend processes..."
+  if [[ -f ".deploy/smart.pids" ]]; then
+    echo "🌐 Stopping frontend processes..."
   source .deploy/smart.pids
   
-  if [[ -n "$MENTOR_FE_PID" ]] && kill -0 "$MENTOR_FE_PID" 2>/dev/null; then
-    echo "  - Stopping Mentor Frontend (PID $MENTOR_FE_PID)"
+    if [[ -n "$MENTOR_FE_PID" ]] && kill -0 "$MENTOR_FE_PID" 2>/dev/null; then
+      echo "  - Stopping Dashboard (PID $MENTOR_FE_PID)"
     kill "$MENTOR_FE_PID" 2>/dev/null || true
   fi
   
