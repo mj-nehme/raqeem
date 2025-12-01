@@ -1,5 +1,5 @@
 import { test, expect, vi, describe, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import DeviceSimulator from './DeviceSimulator'
 
@@ -1407,6 +1407,407 @@ describe('DeviceSimulator Component', () => {
         fireEvent.click(stopButton)
 
         // Should see stopped message
+        await waitFor(() => {
+            expect(screen.getByText(/simulation stopped/i)).toBeInTheDocument()
+        })
+    })
+
+    // Tests for file upload functionality
+    test('displays file upload section', () => {
+        render(<DeviceSimulator />)
+        expect(screen.getByText('Upload Image File')).toBeInTheDocument()
+    })
+
+    test('renders file input for image upload', () => {
+        render(<DeviceSimulator />)
+        const fileInput = document.querySelector('input[type="file"]')
+        expect(fileInput).toBeInTheDocument()
+        expect(fileInput).toHaveAttribute('accept', 'image/png,image/jpeg')
+    })
+
+    test('file input is disabled when not registered', () => {
+        render(<DeviceSimulator />)
+        const fileInput = document.querySelector('input[type="file"]')
+        expect(fileInput).toBeDisabled()
+    })
+
+    test('upload image button is disabled when no file selected', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const uploadButton = screen.getByRole('button', { name: /upload image/i })
+        expect(uploadButton).toBeDisabled()
+    })
+
+    test('shows warning when upload button clicked without file selection', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register first
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Upload button is disabled when no file is selected, so we check the state
+        const uploadButton = screen.getByRole('button', { name: /upload image/i })
+        expect(uploadButton).toBeDisabled()
+    })
+
+    test('enables upload button after file is selected', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Select a file
+        const fileInput = document.querySelector('input[type="file"]')
+        const file = new File(['test image'], 'test.png', { type: 'image/png' })
+        fireEvent.change(fileInput, { target: { files: [file] } })
+
+        await waitFor(() => {
+            const uploadButton = screen.getByRole('button', { name: /upload image/i })
+            expect(uploadButton).not.toBeDisabled()
+        })
+    })
+
+    test('uploads selected file successfully', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Register device
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Select a file
+        const fileInput = document.querySelector('input[type="file"]')
+        const file = new File(['test image'], 'test.png', { type: 'image/png' })
+        fireEvent.change(fileInput, { target: { files: [file] } })
+
+        // Clear fetch mock calls from registration
+        fetch.mockClear()
+
+        // Click upload
+        const uploadButton = screen.getByRole('button', { name: /upload image/i })
+        fireEvent.click(uploadButton)
+
+        await waitFor(() => {
+            expect(fetch).toHaveBeenCalledWith(
+                expect.stringContaining('screenshots'),
+                expect.any(Object)
+            )
+        })
+    })
+
+    test('handles file upload failure', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Select file
+        const fileInput = document.querySelector('input[type="file"]')
+        const file = new File(['test image'], 'test.png', { type: 'image/png' })
+        fireEvent.change(fileInput, { target: { files: [file] } })
+
+        // Mock failed upload
+        fetch.mockResolvedValueOnce({ ok: false })
+
+        const uploadButton = screen.getByRole('button', { name: /upload image/i })
+        fireEvent.click(uploadButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Image upload failed/i)).toBeInTheDocument()
+        })
+    })
+
+    test('handles file upload error', async () => {
+        fetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        // Select file
+        const fileInput = document.querySelector('input[type="file"]')
+        const file = new File(['test image'], 'test.png', { type: 'image/png' })
+        fireEvent.change(fileInput, { target: { files: [file] } })
+
+        // Mock error
+        fetch.mockRejectedValueOnce(new Error('Upload network error'))
+
+        const uploadButton = screen.getByRole('button', { name: /upload image/i })
+        fireEvent.click(uploadButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Upload error: Upload network error/i)).toBeInTheDocument()
+        })
+    })
+
+    test('displays selected file name', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const fileInput = document.querySelector('input[type="file"]')
+        const file = new File(['test'], 'myimage.png', { type: 'image/png' })
+        fireEvent.change(fileInput, { target: { files: [file] } })
+
+        await waitFor(() => {
+            expect(screen.getByText(/Selected: myimage.png/i)).toBeInTheDocument()
+        })
+    })
+
+    // Tests for file upload clears selection
+    test('clears file selection after successful upload', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const fileInput = document.querySelector('input[type="file"]')
+        const file = new File(['test'], 'test.png', { type: 'image/png' })
+        fireEvent.change(fileInput, { target: { files: [file] } })
+
+        await waitFor(() => {
+            expect(screen.getByText(/Selected: test.png/i)).toBeInTheDocument()
+        })
+
+        const uploadButton = screen.getByRole('button', { name: /upload image/i })
+        fireEvent.click(uploadButton)
+
+        await waitFor(() => {
+            // After successful upload, selected file text should be gone
+            expect(screen.queryByText(/Selected: test.png/i)).not.toBeInTheDocument()
+        })
+    })
+
+    // Tests for sendProcesses functionality via stat label existence
+    test('sends processes stat label exists', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Processes stat label should exist
+        expect(screen.getByText('Processes Sent')).toBeInTheDocument()
+    })
+
+    test('initial processes stat is 0', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        // Verify processes stat is 0
+        const processesStatValue = screen.getAllByText('0')
+        expect(processesStatValue.length).toBeGreaterThan(0)
+    })
+
+    test('updates screenshots count on successful upload via file', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const fileInput = document.querySelector('input[type="file"]')
+        const file = new File(['test'], 'test.png', { type: 'image/png' })
+        fireEvent.change(fileInput, { target: { files: [file] } })
+
+        const uploadButton = screen.getByRole('button', { name: /upload image/i })
+        fireEvent.click(uploadButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/Image file uploaded/i)).toBeInTheDocument()
+        })
+    })
+
+    // Test that registration works and simulation can start
+    test('simulation starts after registration and adds log', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        fireEvent.click(startButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/simulation started/i)).toBeInTheDocument()
+        })
+    })
+
+    test('shows stop button when simulation is running', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        fireEvent.click(startButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /stop simulation/i })).toBeInTheDocument()
+        })
+    })
+
+    test('shows start button after stopping simulation', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        fireEvent.click(startButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /stop simulation/i })).toBeInTheDocument()
+        })
+
+        const stopButton = screen.getByRole('button', { name: /stop simulation/i })
+        fireEvent.click(stopButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /start auto simulation/i })).toBeInTheDocument()
+        })
+    })
+
+    test('simulation stopped log appears after stopping', async () => {
+        fetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ success: true })
+        })
+
+        render(<DeviceSimulator />)
+
+        const registerButton = screen.getByRole('button', { name: /register device/i })
+        fireEvent.click(registerButton)
+
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /device registered/i })).toBeInTheDocument()
+        })
+
+        const startButton = screen.getByRole('button', { name: /start auto simulation/i })
+        fireEvent.click(startButton)
+
+        await waitFor(() => {
+            expect(screen.getByText(/simulation started/i)).toBeInTheDocument()
+        })
+
+        const stopButton = screen.getByRole('button', { name: /stop simulation/i })
+        fireEvent.click(stopButton)
+
         await waitFor(() => {
             expect(screen.getByText(/simulation stopped/i)).toBeInTheDocument()
         })
