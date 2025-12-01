@@ -5,13 +5,19 @@ info:
     API for device telemetry ingestion, device registration, and data collection.
     This backend receives data from monitored devices and stores it in PostgreSQL and MinIO.
 
+    ## Role Separation
+    - **Devices Backend (this API)**: Write-focused - receives telemetry data from devices
+    - **Mentor Backend**: Read-focused - retrieves device data for dashboards and creates commands
+
     ## Features
-    - Device registration and management
+    - Device registration
     - Real-time metrics ingestion (CPU, memory, disk, network)
     - Activity logging (application usage, file access)
-    - Alert collection with auto-forwarding to Mentor Backend
+    - Alert collection
     - Screenshot upload to S3-compatible storage (MinIO)
     - Process information tracking
+    - Command polling for devices
+    - Command result submission
 
     ## Base URL
     Local: `http://localhost:30080/api/v1`
@@ -53,30 +59,19 @@ tags:
   - name: health
     description: Service health check
   - name: devices
-    description: Device registration and management
+    description: Device registration and data ingestion
   - name: metrics
-    description: Device metrics and performance data
+    description: Device metrics ingestion
   - name: activities
-    description: Device activity logs
+    description: Device activity logging
   - name: alerts
-    description: Device alerts and warnings
+    description: Device alerts submission
   - name: screenshots
-    description: Screenshot upload and management
+    description: Screenshot upload
   - name: processes
-    description: Running processes information
-  - name: users
-    description: User management (legacy)
-
-# Authentication (Future)
-# Currently, no authentication is required for MVP release.
-# For production, consider implementing:
-# - JWT Bearer tokens for user authentication
-# - API keys for device-to-backend communication
-# - Rate limiting per API key or IP address
-#
-# security:
-#   - ApiKeyAuth: []
-#   - BearerAuth: []
+    description: Running processes submission
+  - name: commands
+    description: Command polling and result submission
 
 paths:
   /health:
@@ -140,12 +135,12 @@ paths:
               laptop:
                 summary: Register a laptop
                 value:
-                  id: "device-abc123"
-                  name: "John's MacBook Pro"
-                  type: "laptop"
+                  deviceid: "550e8400-e29b-41d4-a716-446655440000"
+                  device_name: "John's MacBook Pro"
+                  device_type: "laptop"
                   os: "macOS"
                   current_user: "john.doe"
-                  location: "San Francisco Office"
+                  device_location: "San Francisco Office"
                   ip_address: "192.168.1.100"
                   mac_address: "aa:bb:cc:dd:ee:ff"
       responses:
@@ -156,35 +151,18 @@ paths:
               schema:
                 type: object
                 properties:
-                  device_id:
+                  deviceid:
                     type: string
                   created:
                     type: boolean
                   updated:
                     type: boolean
         "400":
-          description: Missing device ID
+          description: Missing device ID or invalid data
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-
-  /devices/:
-    get:
-      tags:
-        - devices
-      summary: List all devices
-      description: Get a list of all registered devices
-      operationId: listDevices
-      responses:
-        "200":
-          description: List of devices
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/Device"
 
   /devices/{device_id}/metrics:
     post:
@@ -199,7 +177,7 @@ paths:
           required: true
           schema:
             type: string
-          description: Unique device identifier
+          description: Unique device identifier (UUID)
       requestBody:
         required: true
         content:
@@ -251,15 +229,15 @@ paths:
                 $ref: "#/components/schemas/Process"
             example:
               - pid: 1234
-                name: "chrome"
+                process_name: "chrome"
                 cpu: 25.5
                 memory: 1024
-                command: "/usr/bin/chrome"
+                command_text: "/usr/bin/chrome"
               - pid: 5678
-                name: "vscode"
+                process_name: "vscode"
                 cpu: 15.2
                 memory: 512
-                command: "/usr/bin/code"
+                command_text: "/usr/bin/code"
       responses:
         "200":
           description: Processes recorded
@@ -293,11 +271,11 @@ paths:
               items:
                 $ref: "#/components/schemas/Activity"
             example:
-              - type: "app_usage"
+              - activity_type: "app_usage"
                 app: "Chrome"
                 description: "Browsing github.com"
                 duration: 300
-              - type: "file_access"
+              - activity_type: "file_access"
                 app: "VSCode"
                 description: "Edited main.py"
                 duration: 120
@@ -335,7 +313,7 @@ paths:
                 $ref: "#/components/schemas/Alert"
             example:
               - level: "warning"
-                type: "cpu_high"
+                alert_type: "cpu_high"
                 message: "CPU usage above threshold"
                 value: 85.5
                 threshold: 80.0
@@ -349,6 +327,102 @@ paths:
                 properties:
                   inserted:
                     type: integer
+
+  /devices/{device_id}/commands/pending:
+    get:
+      tags:
+        - commands
+      summary: Get pending commands for a device
+      description: |
+        Retrieve all pending remote commands for a specific device.
+        Devices should poll this endpoint periodically to check for new commands.
+      operationId: getPendingCommands
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of pending commands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RemoteCommand"
+
+  /devices/commands/{command_id}/result:
+    post:
+      tags:
+        - commands
+      summary: Submit command execution result
+      description: |
+        Submit the result of a remote command execution.
+        Devices should call this after executing commands retrieved from the pending commands endpoint.
+      operationId: submitCommandResult
+      parameters:
+        - name: command_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommandResult"
+      responses:
+        "200":
+          description: Command result submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  commandid:
+                    type: string
+
+  /devices/{device_id}/commands:
+    post:
+      tags:
+        - commands
+      summary: Create a remote command for a device
+      description: |
+        Create a new remote command for a device to execute.
+        Typically called by the mentor backend to send commands to devices.
+      operationId: createCommand
+      parameters:
+        - name: device_id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommandCreate"
+      responses:
+        "200":
+          description: Command created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RemoteCommand"
+        "400":
+          description: Command not allowed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /screenshots:
     post:
@@ -369,75 +443,48 @@ paths:
                 device_id:
                   type: string
                   description: Device ID that captured the screenshot
+                deviceid:
+                  type: string
+                  description: Alternative field name for device ID
                 file:
                   type: string
                   format: binary
                   description: Screenshot image file (PNG, JPG, etc.)
               required:
-                - device_id
                 - file
       responses:
-        "200":
+        "201":
           description: Screenshot uploaded successfully
           content:
             application/json:
               schema:
                 type: object
                 properties:
-                  message:
+                  id:
                     type: string
-                  data:
-                    type: object
-                    properties:
-                      device_id:
-                        type: string
-                      image_path:
-                        type: string
-
-  /users/:
-    post:
-      tags:
-        - users
-      summary: Create user (legacy)
-      operationId: createUser
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserCreate"
-      responses:
-        "200":
-          description: User created
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
+                  image_url:
                     type: string
-                  data:
-                    $ref: "#/components/schemas/UserCreate"
+                  status:
+                    type: string
+                    example: "success"
 
 components:
   schemas:
     DeviceRegistration:
       type: object
       required:
-        - id
+        - deviceid
       properties:
-        id:
+        deviceid:
           type: string
-          description: Unique device identifier
-          example: "device-abc123"
-        device_id:
-          type: string
-          description: Alternative field name for device ID
-        name:
+          format: uuid
+          description: Unique device identifier (UUID)
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        device_name:
           type: string
           description: Human-readable device name
           example: "John's MacBook Pro"
-        type:
+        device_type:
           type: string
           description: Device type
           enum: [laptop, desktop, mobile, tablet, server]
@@ -450,7 +497,7 @@ components:
           type: string
           description: Current logged-in user
           example: "john.doe"
-        location:
+        device_location:
           type: string
           description: Physical location
           example: "San Francisco Office"
@@ -462,34 +509,6 @@ components:
           type: string
           description: Device MAC address
           example: "aa:bb:cc:dd:ee:ff"
-
-    Device:
-      type: object
-      properties:
-        id:
-          type: string
-        name:
-          type: string
-        type:
-          type: string
-        os:
-          type: string
-        last_seen:
-          type: string
-          format: date-time
-        is_online:
-          type: boolean
-        location:
-          type: string
-        ip_address:
-          type: string
-        mac_address:
-          type: string
-        current_user:
-          type: string
-        created_at:
-          type: string
-          format: date-time
 
     DeviceMetric:
       type: object
@@ -539,7 +558,7 @@ components:
         pid:
           type: integer
           description: Process ID
-        name:
+        process_name:
           type: string
           description: Process name
         cpu:
@@ -549,17 +568,17 @@ components:
         memory:
           type: integer
           description: Memory usage in MB
-        command:
+        command_text:
           type: string
           description: Full command line
 
     Activity:
       type: object
       properties:
-        type:
+        activity_type:
           type: string
           description: Activity type
-          enum: [app_usage, file_access, network_activity]
+          enum: [app_usage, file_access, network_activity, app_launch, app_close, web_visit, idle]
         app:
           type: string
           description: Application name
@@ -577,7 +596,7 @@ components:
           type: string
           enum: [info, warning, critical]
           description: Alert severity level
-        type:
+        alert_type:
           type: string
           enum: [cpu_high, memory_high, disk_full, security_warning]
           description: Alert type
@@ -591,13 +610,54 @@ components:
           type: number
           description: Threshold value
 
-    UserCreate:
+    RemoteCommand:
       type: object
       properties:
-        device_id:
+        commandid:
           type: string
-        name:
+          format: uuid
+        deviceid:
           type: string
+          format: uuid
+        command_text:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+        result:
+          type: string
+        exit_code:
+          type: integer
+
+    CommandCreate:
+      type: object
+      required:
+        - command_text
+      properties:
+        command_text:
+          type: string
+          description: Command to execute
+
+    CommandResult:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [completed, failed]
+        result:
+          type: string
+          description: Command output
+        exit_code:
+          type: integer
+          description: Command exit code
 
     Error:
       type: object

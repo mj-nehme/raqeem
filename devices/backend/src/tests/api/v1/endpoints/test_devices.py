@@ -197,38 +197,10 @@ async def test_post_alerts_empty():
     assert data["inserted"] == 0
 
 
-@pytest.mark.asyncio
-async def test_list_devices():
-    """Test listing all devices."""
-    # First register a device
-    payload = {
-        "deviceid": "f3e678cc-0726-5dc5-bfbf-a23da82627d6",
-        "device_name": "Device for Listing",
-        "device_type": "tablet",
-        "os": "iOS",
-    }
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        await ac.post("/api/v1/devices/register", json=payload)
-
-        # Now list devices
-        response = await ac.get("/api/v1/devices/")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    # Check that our device is in the list
-    device_ids = [d["id"] for d in data]
-    assert "f3e678cc-0726-5dc5-bfbf-a23da82627d6" in device_ids
-
-
-@pytest.mark.asyncio
-async def test_list_devices_empty():
-    """Test listing devices when none exist (after cleanup)."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/api/v1/devices/")
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
+# NOTE: Read-only list/get endpoints have been moved to mentor backend.
+# Tests for list_devices, list_devices_empty, get_device_by_id, list_all_processes,
+# list_all_activities, list_all_alerts have been removed as those endpoints
+# are no longer available on the devices backend.
 
 
 @pytest.mark.asyncio
@@ -377,69 +349,9 @@ async def test_submit_command_result_failed_status():
         assert data["status"] == "ok"
 
 
-@pytest.mark.asyncio
-async def test_list_devices_multiple():
-    """Test listing all devices."""
-    # First register a couple of devices
-    devices = [
-        {"deviceid": "e061f400-39c3-51c7-8eb9-7a6672ba4d67", "device_name": "Device 1", "device_type": "laptop"},
-        {"deviceid": "242a9259-3056-55ac-b13e-fc4d05674e90", "device_name": "Device 2", "device_type": "desktop"},
-    ]
-
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        # Register devices
-        for device in devices:
-            await ac.post("/api/v1/devices/register", json=device)
-
-        # List devices
-        response = await ac.get("/api/v1/devices/")
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, list)
-        # At least our 2 devices should be there
-        device_ids = [d["id"] for d in data]
-        assert "e061f400-39c3-51c7-8eb9-7a6672ba4d67" in device_ids
-        assert "242a9259-3056-55ac-b13e-fc4d05674e90" in device_ids
-
-
-@pytest.mark.asyncio
-async def test_list_devices_with_existing():
-    """Test listing devices with existing devices in database."""
-    # This test assumes a fresh database or will get existing devices
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/api/v1/devices/")
-        assert response.status_code == 200
-        data = response.json()
-        assert isinstance(data, list)
-
-
-@pytest.mark.asyncio
-async def test_get_device_by_id():
-    """Test getting a specific device by ID."""
-    device_id = "a600ae88-ccd2-5739-9464-2c26466ac29f"
-    device_payload = {"deviceid": device_id, "device_name": "Test Device", "device_type": "laptop", "os": "Windows 11"}
-
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        # Register device
-        await ac.post("/api/v1/devices/register", json=device_payload)
-
-        # Get device by ID
-        response = await ac.get(f"/api/v1/devices/{device_id}")
-        assert response.status_code == 200
-        data = response.json()
-        assert data["id"] == device_id
-        assert data["name"] == "Test Device"
-        assert data["device_type"] == "laptop"
-        assert data["os"] == "Windows 11"
-
-
-@pytest.mark.asyncio
-async def test_get_device_by_id_not_found():
-    """Test getting non-existent device returns 404."""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.get("/api/v1/devices/nonexistent-device-xyz")
-        assert response.status_code == 404
-        assert "not found" in response.json()["detail"].lower()
+# NOTE: Additional read-only endpoint tests removed (list_devices_multiple,
+# list_devices_with_existing, get_device_by_id, get_device_by_id_not_found)
+# as those endpoints have been moved to mentor backend.
 
 
 @pytest.mark.asyncio
@@ -502,94 +414,5 @@ async def test_post_metrics_forwarding_failure_handled():
             assert response.json()["status"] == "ok"
 
 
-@pytest.mark.asyncio
-async def test_list_all_processes():
-    """Test listing all processes across all devices."""
-    device_id = "36299f7f-4fad-5c02-af2b-908af24438b2"
-
-    # First post some processes
-    processes = [
-        {
-            "pid": 1111,
-            "process_name": "test-process-1",
-            "cpu": 10.5,
-            "memory": 100000000,
-            "command_text": "/usr/bin/test1",
-        },
-        {
-            "pid": 2222,
-            "process_name": "test-process-2",
-            "cpu": 20.5,
-            "memory": 200000000,
-            "command_text": "/usr/bin/test2",
-        },
-    ]
-
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        # Post processes
-        await ac.post(f"/api/v1/devices/{device_id}/processes", json=processes)
-
-        # Now get all processes
-        response = await ac.get("/api/v1/devices/processes")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    # Check that our processes are in the list
-    process_names = [p["name"] for p in data]
-    assert "test-process-1" in process_names
-    assert "test-process-2" in process_names
-
-
-@pytest.mark.asyncio
-async def test_list_all_activities():
-    """Test listing all activities across all devices."""
-    device_id = "d4543bcf-dc0c-5f6b-a49e-7b2cf1abb344"
-
-    # First post some activities
-    activities = [
-        {"activity_type": "test_activity", "description": "Test activity 1", "app": "test-app-1", "duration": 100},
-        {"activity_type": "test_activity", "description": "Test activity 2", "app": "test-app-2", "duration": 200},
-    ]
-
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        # Post activities
-        await ac.post(f"/api/v1/devices/{device_id}/activities", json=activities)
-
-        # Now get all activities
-        response = await ac.get("/api/v1/devices/activities")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    # Check that our activities are in the list
-    activity_apps = [a["app"] for a in data]
-    assert "test-app-1" in activity_apps
-    assert "test-app-2" in activity_apps
-
-
-@pytest.mark.asyncio
-async def test_list_all_alerts():
-    """Test listing all alerts across all devices."""
-    device_id = "6c66c466-af19-54c8-a19f-7de3d3c9f827"
-
-    # First post some alerts
-    alerts = [
-        {"level": "warning", "alert_type": "test_alert", "message": "Test alert 1", "value": 75.0, "threshold": 70.0},
-        {"level": "critical", "alert_type": "test_alert", "message": "Test alert 2", "value": 95.0, "threshold": 90.0},
-    ]
-
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        # Post alerts
-        await ac.post(f"/api/v1/devices/{device_id}/alerts", json=alerts)
-
-        # Now get all alerts
-        response = await ac.get("/api/v1/devices/alerts")
-
-    assert response.status_code == 200
-    data = response.json()
-    assert isinstance(data, list)
-    # Check that our alerts are in the list
-    alert_messages = [a["message"] for a in data]
-    assert "Test alert 1" in alert_messages
-    assert "Test alert 2" in alert_messages
+# NOTE: Tests for list_all_processes, list_all_activities, list_all_alerts
+# have been removed as those endpoints have been moved to mentor backend.

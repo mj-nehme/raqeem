@@ -49,20 +49,8 @@ class TestDeviceEndpoints:
             response = await client.post("/api/v1/devices/register", json=invalid_data)
             assert response.status_code == 400  # Missing device id
 
-    async def test_get_devices_list(self, init_test_db):
-        """Test getting devices list."""
-
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get("/api/v1/devices/")
-            assert response.status_code == 200
-
-    async def test_get_device_by_id(self, init_test_db):
-        """Test getting specific device."""
-
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get(f"/api/v1/devices/{sample_uuid}")
-            # Device might not exist, so 404 is acceptable
-            assert response.status_code in [200, 404]
+    # NOTE: test_get_devices_list, test_get_device_by_id removed as
+    # those read endpoints have been moved to mentor backend.
 
     async def test_update_device_metrics(self, init_test_db):
         """Test updating device metrics."""
@@ -112,12 +100,8 @@ class TestActivityEndpoints:
             response = await client.post(f"/api/v1/devices/{sample_uuid}/activities", json=activity_data)
             assert response.status_code == 200
 
-    async def test_get_device_activities(self, init_test_db):
-        """Test getting device activities."""
-
-        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
-            response = await client.get(f"/api/v1/devices/{sample_uuid}/activities")
-            assert response.status_code == 200
+    # NOTE: test_get_device_activities removed as that read endpoint
+    # has been moved to mentor backend.
 
     async def test_log_activity_invalid_type(self, init_test_db):
         """Test activity logging with invalid type."""
