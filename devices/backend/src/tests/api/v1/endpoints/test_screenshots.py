@@ -1,8 +1,12 @@
 import io
-from unittest.mock import MagicMock, patch
+from contextlib import contextmanager
+from unittest.mock import AsyncMock, MagicMock, patch
+from uuid import uuid4
 
 import pytest
+from app.db.session import get_db
 from app.main import app
+from app.models.devices import DeviceScreenshot
 from httpx import ASGITransport, AsyncClient
 
 
@@ -16,8 +20,37 @@ def mock_minio():
         yield mock_instance
 
 
+@pytest.fixture
+def mock_db_session():
+    """Fixture to mock database session for screenshot tests."""
+    mock_session = AsyncMock()
+    mock_session.add = MagicMock()
+    mock_session.commit = AsyncMock()
+
+    # Mock refresh to set screenshotid on the model
+    async def mock_refresh(obj):
+        if isinstance(obj, DeviceScreenshot):
+            obj.screenshotid = uuid4()
+    mock_session.refresh = mock_refresh
+
+    return mock_session
+
+
+@contextmanager
+def override_db_dependency(mock_session):
+    """Context manager to override database dependency and ensure cleanup."""
+    async def override_get_db():
+        yield mock_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    try:
+        yield
+    finally:
+        app.dependency_overrides.clear()
+
+
 @pytest.mark.asyncio
-async def test_create_screenshot_file_upload(mock_minio):
+async def test_create_screenshot_file_upload(mock_minio, mock_db_session):
     """Test uploading screenshot file."""
     # Create a fake image file
     fake_image = io.BytesIO(b"fake image content")
@@ -26,12 +59,13 @@ async def test_create_screenshot_file_upload(mock_minio):
     # Use a valid UUID for device_id
     device_id = "a1b2c3d4-e5f6-4a5b-8c7d-9e0f1a2b3c4d"
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.post(
-            "/api/v1/screenshots/",
-            data={"device_id": device_id},
-            files={"file": ("screenshot.png", fake_image, "image/png")},
-        )
+    with override_db_dependency(mock_db_session):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/v1/screenshots/",
+                data={"device_id": device_id},
+                files={"file": ("screenshot.png", fake_image, "image/png")},
+            )
     assert response.status_code == 201
     data = response.json()
     assert data["status"] == "success"
@@ -43,7 +77,7 @@ async def test_create_screenshot_file_upload(mock_minio):
 
 
 @pytest.mark.asyncio
-async def test_create_screenshot_file_upload_jpg(mock_minio):
+async def test_create_screenshot_file_upload_jpg(mock_minio, mock_db_session):
     """Test uploading JPG screenshot file."""
     fake_image = io.BytesIO(b"fake jpg content")
     fake_image.name = "test.jpg"
@@ -51,12 +85,13 @@ async def test_create_screenshot_file_upload_jpg(mock_minio):
     # Use a valid UUID for device_id
     device_id = "b2c3d4e5-f6a7-4b5c-8d7e-9f0a1b2c3d4e"
 
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
-        response = await ac.post(
-            "/api/v1/screenshots/",
-            data={"device_id": device_id},
-            files={"file": ("screenshot.jpg", fake_image, "image/jpeg")},
-        )
+    with override_db_dependency(mock_db_session):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/v1/screenshots/",
+                data={"device_id": device_id},
+                files={"file": ("screenshot.jpg", fake_image, "image/jpeg")},
+            )
     assert response.status_code == 201
 
     # Verify MinIO upload was called
