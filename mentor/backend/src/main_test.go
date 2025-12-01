@@ -154,7 +154,14 @@ func TestRouterStructure(t *testing.T) {
 	routes := r.Engine().Routes()
 
 	// Count routes to ensure we have the expected number
-	// Mentor backend is now read-focused with reduced endpoints (~16 routes)
+	// Mentor backend is now read-focused with reduced endpoints (~16 routes):
+	// - Health: /health, /health/ready, /
+	// - Docs: /swagger/*any, /docs
+	// - Activities: /activities
+	// - Devices: /devices, /devices/:id/metrics, /devices/:id/processes,
+	//            /devices/:id/activities, /devices/:id/alerts, /devices/:id/screenshots,
+	//            /screenshots/:filename, /devices/:id/commands/pending, /devices/:id/commands
+	// - Commands: /devices/commands
 	if len(routes) < 12 {
 		t.Errorf("Expected at least 12 routes, got %d", len(routes))
 	}

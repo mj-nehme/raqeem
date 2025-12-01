@@ -359,6 +359,14 @@ func TestRouterIntegration(t *testing.T) {
 	})
 
 	// Verify total route count is reasonable (mentor has fewer routes now - read-focused)
+	// Expected routes (~16):
+	// - Health: /health, /health/ready, /
+	// - Docs: /swagger/*any, /docs
+	// - Activities: /activities
+	// - Devices: /devices, /devices/:id/metrics, /devices/:id/processes,
+	//            /devices/:id/activities, /devices/:id/alerts, /devices/:id/screenshots,
+	//            /screenshots/:filename, /devices/:id/commands/pending, /devices/:id/commands
+	// - Commands: /devices/commands
 	routes := r.engine.Routes()
 	if len(routes) < 12 {
 		t.Errorf("Expected at least 12 routes, got %d", len(routes))
