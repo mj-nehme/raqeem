@@ -53,6 +53,10 @@ _NO_DB_REQUIRED_FILES = [
     "test_legacy_field_rejection.py",
     "test_service_coverage_mvp.py",
     "test_screenshots.py",  # Has its own mocks
+    "test_health.py",
+    "test_minio_service.py",
+    "test_http_retry.py",
+    "test_logging_config.py",
 ]
 
 # List of test files/classes that definitely need database
