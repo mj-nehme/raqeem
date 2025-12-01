@@ -154,7 +154,7 @@ run_mentor_backend() {
 
 run_devices_frontend() {
   log "Devices frontend tests"
-  pushd "$ROOT_DIR/devices/frontend" >/dev/null
+  pushd "$ROOT_DIR/devices/web-simulator" >/dev/null
   if ! has_cmd npm; then err "npm not found (Node >=18 required)."; popd >/dev/null; return 1; fi
   npm test -- --coverage || npm test || { popd >/dev/null; return 1; }
   popd >/dev/null

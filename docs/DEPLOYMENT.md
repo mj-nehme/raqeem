@@ -416,7 +416,7 @@ cd mentor/frontend
 npm install
 npm run build  # Creates dist/ folder
 
-cd ../../devices/frontend
+cd ../../devices/web-simulator
 npm install
 npm run build
 
@@ -428,7 +428,7 @@ kubectl create configmap frontend-nginx-config \
 # Option 2: Use S3 + CloudFront (recommended)
 # Upload dist/ folders to S3 bucket
 aws s3 sync mentor/frontend/dist s3://raqeem-dashboard/
-aws s3 sync devices/frontend/dist s3://raqeem-simulator/
+aws s3 sync devices/web-simulator/dist s3://raqeem-simulator/
 ```
 
 ### Step 6: Configure Ingress (Optional)

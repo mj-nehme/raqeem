@@ -189,7 +189,7 @@ MENTOR_FE_PID=$!
 
 # Start devices frontend
 echo "  - Starting Devices Frontend on port $DEVICES_FRONTEND_PORT..."
-cd ../../devices/frontend
+cd ../../devices/web-simulator
 npm install --silent
 VITE_DEVICES_FRONTEND_PORT=$DEVICES_FRONTEND_PORT \
 VITE_DEVICES_API_URL="http://localhost:$DEVICES_NODEPORT/api/v1" \

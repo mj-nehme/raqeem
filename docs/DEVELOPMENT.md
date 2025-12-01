@@ -26,7 +26,7 @@ Selective component tests via flags in workflow or by invoking native commands:
 cd mentor/backend/src && go test ./... -v
 cd devices/backend/src && pytest -v
 cd mentor/frontend && npm test
-cd devices/frontend && npm test
+cd devices/web-simulator && npm test
 ```
 Prefer native commands for speed; reserve `act` for debugging CI-specific failures.
 
@@ -157,7 +157,7 @@ npm install
 npm run dev
 
 # Terminal 4: Devices Frontend
-cd devices/frontend
+cd devices/web-simulator
 npm install
 npm run dev
 ```
@@ -178,7 +178,7 @@ Best for:
 cd mentor/frontend
 VITE_API_URL=http://localhost:30090 npm run dev -- --port 5173
 
-cd devices/frontend
+cd devices/web-simulator
 VITE_DEVICES_API_URL=http://localhost:30080 npm run dev -- --port 5174
 ```
 
@@ -566,7 +566,7 @@ func TestGetDeviceMetric(t *testing.T) {
 
 **Running Tests**:
 ```bash
-cd mentor/frontend  # or devices/frontend
+cd mentor/frontend  # or devices/web-simulator
 
 # Run tests
 npm test

@@ -35,7 +35,7 @@ flags:
     carryforward: true
   devices-frontend:
     paths:
-      - devices/frontend/src/
+      - devices/web-simulator/src/
     carryforward: true
 
 comment:

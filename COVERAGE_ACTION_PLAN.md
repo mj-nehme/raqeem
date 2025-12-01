@@ -59,7 +59,7 @@
 5. Mock `Math.random()` for deterministic random data tests
 
 **Files to Modify**:
-- `devices/frontend/src/components/DeviceSimulator.test.jsx`
+- `devices/web-simulator/src/components/DeviceSimulator.test.jsx`
 
 ### Python Backend (71% → 90%)
 

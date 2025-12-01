@@ -82,7 +82,7 @@ go test ./... -v -race -coverprofile=coverage.out
 **Frontend (React)**
 ```bash
 # Devices frontend
-cd devices/frontend
+cd devices/web-simulator
 npm run test
 
 # Mentor frontend
@@ -192,7 +192,7 @@ cd mentor/backend/src && go test -cover ./... && cd -
 pytest --maxfail=1 --disable-warnings --cov=devices/backend/src devices/backend/src
 
 # Frontends (run in each frontend folder)
-cd devices/frontend && npm test -- --coverage && cd -
+cd devices/web-simulator && npm test -- --coverage && cd -
 cd mentor/frontend && npm test -- --coverage && cd -
 ```
 Frontend coverage reports even on failures (Vitest `reportOnFailure`). Target baseline threshold 70–90% depending on component criticality (models/schemas aim 100%).
@@ -214,7 +214,7 @@ Frontend coverage reports even on failures (Vitest `reportOnFailure`). Target ba
 
 | Test | What It Validates | File |
 |------|------------------|------|
-| `renders Device Simulator` | Device simulator UI | `devices/frontend/src/components/DeviceSimulator.test.jsx` |
+| `renders Device Simulator` | Device simulator UI | `devices/web-simulator/src/components/DeviceSimulator.test.jsx` |
 | `renders Devices list` | Mentor dashboard UI | `mentor/frontend/src/components/DeviceDashboard.test.jsx` |
 
 ### Integration Tests
@@ -242,7 +242,7 @@ Frontend coverage reports even on failures (Vitest `reportOnFailure`). Target ba
 # 1. Run all unit tests
 cd devices/backend/src && pytest -v
 cd ../../mentor/backend/src && go test ./... -v
-cd ../../devices/frontend && npm run test -- --run
+cd ../../devices/web-simulator && npm run test -- --run
 cd ../mentor/frontend && npm run test -- --run
 
 # 2. Run integration tests
@@ -449,7 +449,7 @@ go tool cover -html=coverage.out  # Opens in browser
 
 #### Devices Frontend (React)
 ```bash
-cd devices/frontend
+cd devices/web-simulator
 npm run test:coverage -- --run
 # Open coverage/index.html to view detailed report
 ```
@@ -465,7 +465,7 @@ npm run test:coverage -- --run
 
 - **Python**: `devices/backend/src/coverage.xml` (XML format for Codecov)
 - **Go**: `mentor/backend/src/coverage.out` (Go coverage format)
-- **Devices Frontend**: `devices/frontend/coverage/lcov.info` (LCOV format)
+- **Devices Web Simulator**: `devices/web-simulator/coverage/lcov.info` (LCOV format)
 - **Mentor Frontend**: `mentor/frontend/coverage/lcov.info` (LCOV format)
 
 ### Viewing Combined Coverage
@@ -508,7 +508,7 @@ To improve coverage for a specific component:
 Example workflow:
 ```bash
 # Check current coverage
-cd devices/frontend
+cd devices/web-simulator
 npm run test:coverage -- --run
 
 # View detailed report

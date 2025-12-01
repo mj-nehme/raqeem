@@ -135,14 +135,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-devices-${{ hashFiles('devices/frontend/package-lock.json') }}
+          key: ${{ runner.os }}-npm-devices-${{ hashFiles('devices/web-simulator/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-devices-
       - name: Install dependencies
-        working-directory: devices/frontend
+        working-directory: devices/web-simulator
         run: npm ci --prefer-offline --no-audit
       - name: Run ESLint
-        working-directory: devices/frontend
+        working-directory: devices/web-simulator
         run: npm run lint --silent
 
   build-artifacts:
@@ -500,29 +500,29 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm
-          key: ${{ runner.os }}-npm-devices-${{ hashFiles('devices/frontend/package-lock.json') }}
+          key: ${{ runner.os }}-npm-devices-${{ hashFiles('devices/web-simulator/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-npm-devices-
             ${{ runner.os }}-npm-
       - name: Cache node_modules
         uses: actions/cache@v4
         with:
-          path: devices/frontend/node_modules
-          key: ${{ runner.os }}-node-modules-devices-${{ hashFiles('devices/frontend/package-lock.json') }}
+          path: devices/web-simulator/node_modules
+          key: ${{ runner.os }}-node-modules-devices-${{ hashFiles('devices/web-simulator/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-modules-devices-
       - name: Install dependencies
-        working-directory: devices/frontend
+        working-directory: devices/web-simulator
         run: npm ci --prefer-offline --no-audit
       - name: Run tests with coverage
-        working-directory: devices/frontend
+        working-directory: devices/web-simulator
         env:
           VITE_DEVICES_API_URL: http://127.0.0.1:8000
         run: npm run test:coverage -- --run
       - name: Upload Devices Frontend coverage to Codecov
         uses: codecov/codecov-action@v5
         with:
-          files: devices/frontend/coverage/lcov.info
+          files: devices/web-simulator/coverage/lcov.info
           flags: devices-frontend
           name: devices-frontend
           token: ${{ secrets.CODECOV_TOKEN }}

@@ -59,7 +59,7 @@ docker run --rm -v "$PWD":/app -w /app golangci/golangci-lint:v1.61.0 golangci-l
 
 JavaScript (Devices frontend)
 ```bash
-cd devices/frontend
+cd devices/web-simulator
 npm ci --prefer-offline --no-audit
 npm run lint --silent
 ```
@@ -75,7 +75,7 @@ npm run lint --silent
   - Ruff: `[tool.ruff]` and `[tool.ruff.lint.*]` in `pyproject.toml`.
   - mypy: `[tool.mypy]` in `pyproject.toml`.
   - Go: `.golangci.yml` or project defaults if absent.
-  - ESLint: `devices/frontend/eslint.config.js`.
+  - ESLint: `devices/web-simulator/eslint.config.js`.
 - [ ] Improve CI determinism/perf (optional): verify caches present and scoped.
 - [ ] Validate locally using the commands above.
 - [ ] Validate in CI via a PR; ensure jobs pass on PR and `master`.
@@ -91,4 +91,4 @@ npm run lint --silent
 - Python config: `pyproject.toml` (`[tool.ruff]`, `[tool.mypy]`)
 - Devices backend deps: `devices/backend/requirements.txt`, `requirements-test.txt`
 - Mentor backend: `mentor/backend/src/go.mod`, `go.sum`
-- Devices frontend: `devices/frontend/eslint.config.js`, `package.json`
+- Devices web-simulator: `devices/web-simulator/eslint.config.js`, `package.json`

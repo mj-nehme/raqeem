@@ -31,7 +31,7 @@ updates:
 
   # npm for devices frontend
   - package-ecosystem: "npm"
-    directory: "/devices/frontend"
+    directory: "/devices/web-simulator"
     schedule:
       interval: "daily"
       time: "03:30"
