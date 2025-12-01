@@ -202,11 +202,6 @@ func TestInitClientWithEndpointStripping(t *testing.T) {
 	assert.NotNil(t, client)
 }
 
-// TestSetPresignClient allows resetting presignClient for tests
-func resetPresignClient() {
-	presignClient = nil
-}
-
 // TestGeneratePresignedURLWithPublicEndpointWithHttpPrefix tests public endpoint with http prefix
 func TestGeneratePresignedURLWithPublicEndpointWithHttpPrefix(t *testing.T) {
 	// Save original values
@@ -507,9 +502,10 @@ func TestGeneratePresignedURLPresignClientCreationError(t *testing.T) {
 	presignClient = nil
 
 	// Set public endpoint to an invalid value that will cause minio.New to fail
-	// Empty string after http:// stripping should cause failure
+	// A single colon (":") fails validation because minio.New expects valid hostname format
+	// Error: "Endpoint: : does not follow ip address or domain name standards."
 	_ = os.Setenv("MINIO_ENDPOINT", "internal:9000")
-	_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", ":") // Invalid: just a colon
+	_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", ":")
 
 	url := GeneratePresignedURL("test.jpg")
 	// Should return empty string due to presign client creation error
@@ -536,9 +532,10 @@ func TestInitClientMinioNewError(t *testing.T) {
 		}
 	}()
 
-	// Set endpoint to an invalid value that will cause minio.New to fail
-	// After stripping http://, an empty string should cause minio.New to fail
-	_ = os.Setenv("MINIO_ENDPOINT", "http://") // After stripping, this becomes empty string
+	// Set endpoint to "http://" which, after stripping the "http://" prefix in InitClient,
+	// becomes an empty string "" that fails minio.New validation with:
+	// "Endpoint:  does not follow ip address or domain name standards."
+	_ = os.Setenv("MINIO_ENDPOINT", "http://")
 	_ = os.Setenv("MINIO_SKIP_CONNECT", "1")
 	client = nil
 
