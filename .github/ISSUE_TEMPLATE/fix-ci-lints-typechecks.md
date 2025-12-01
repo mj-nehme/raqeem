@@ -3,7 +3,7 @@ name: Fix CI Lints & Typechecks
 about: Diagnose and stabilize lint/typecheck jobs in CI
 title: "[CI] Fix lints and typechecks"
 labels: [ci, tooling, lint, typecheck]
-assignees: mj-nehme
+assignees: Copilot
 ---
 
 ## Summary
