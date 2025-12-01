@@ -125,8 +125,6 @@ async def create_screenshot(
             )
 
         return {"id": str(device_screenshot.screenshotid), "image_url": device_screenshot.path, "status": "success"}
-    except HTTPException:
-        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Screenshot upload failed: {e!s}") from e
     finally:
