@@ -64,6 +64,38 @@ ensure_docker() {
   fi
 }
 
+# Pre-pull common images used by CI to show progress and avoid act timeouts
+pre_pull_ci_images() {
+  # Only pre-pull for CI presets unless explicitly requested
+  local enable="${RUN_TESTS_PREPULL:-auto}"
+  if [[ "$enable" == "0" || "$enable" == "false" ]]; then
+    return 0
+  fi
+
+  # Detect Apple Silicon and prefer amd64 images for compatibility with act
+  local platform_flag=""
+  if [[ "$(uname -s)" == "Darwin" && "$(uname -m)" == "arm64" ]]; then
+    platform_flag="--platform=linux/amd64"
+  fi
+
+  # Act runner image and common service images from workflows
+  local images=(
+    "ghcr.io/catthehacker/ubuntu:act-22.04"
+    "docker.io/library/postgres:16"
+    "postgres:15"
+    "minio/minio:latest"
+  )
+
+  log "Pre-pulling CI images to show progress (can skip with RUN_TESTS_PREPULL=0)"
+  for img in "${images[@]}"; do
+    echo "Pulling $img ..."
+    # shellcheck disable=SC2086
+    if ! docker pull $platform_flag "$img"; then
+      warn "Failed to pull $img. act may attempt to pull during run."
+    fi
+  done
+}
+
 prompt_menu() {
   cat <<EOF
 Select test suite to run:
@@ -185,16 +217,19 @@ case "$suite_lc" in
     log "Running CI pre-push preset via act (self-contained)"
     ensure_docker
     ensure_act
+    pre_pull_ci_images
     "$ROOT_DIR/scripts/run-ci-local.sh" preset prepush ;;
   ci-full)
     log "Running CI full preset via act (self-contained)"
     ensure_docker
     ensure_act
+    pre_pull_ci_images
     "$ROOT_DIR/scripts/run-ci-local.sh" preset full ;;
   ci-battle)
     log "Running CI battle-tests via act (self-contained)"
     ensure_docker
     ensure_act
+    pre_pull_ci_images
     "$ROOT_DIR/scripts/run-ci-local.sh" battle ;;
   quit)
     exit 0 ;;

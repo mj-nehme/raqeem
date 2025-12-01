@@ -85,9 +85,30 @@ if [[ "$scope" == "-h" || "$scope" == "--help" ]]; then
   exit 0
 fi
 
+resolve_github_token() {
+  # Try to use GitHub CLI auth token if available; fallback to env; else prompt
+  local token=""
+  if command -v gh >/dev/null 2>&1; then
+    token="$(gh auth token 2>/dev/null || true)"
+  fi
+  if [[ -z "$token" && -n "${GITHUB_TOKEN:-}" ]]; then
+    token="$GITHUB_TOKEN"
+  fi
+  echo "$token"
+}
+
 run_root_job() {
   local job_name="$1"
-  local extra_args=("-s" "CODECOV_TOKEN=dummy" "-s" "GITHUB_TOKEN=dummy")
+  local gh_token
+  gh_token="$(resolve_github_token)"
+  local extra_args=("-s" "CODECOV_TOKEN=dummy")
+  if [[ -n "$gh_token" ]]; then
+    extra_args+=("-s" "GITHUB_TOKEN=$gh_token")
+  else
+    echo "[warn] No GitHub token found. Public actions may fail to fetch."
+    echo "       Tip: run 'gh auth login' or export GITHUB_TOKEN to improve reliability."
+    extra_args+=("-s" "GITHUB_TOKEN=dummy")
+  fi
   act -P "$PLATFORM_MAP" "${ARCH_FLAG[@]}" -W "$ROOT_DIR/.github/workflows/ci.yml" -j "$job_name" "${extra_args[@]}"
 }
 
