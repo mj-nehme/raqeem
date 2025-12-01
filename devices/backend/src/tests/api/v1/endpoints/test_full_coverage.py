@@ -619,7 +619,7 @@ class TestCreateCommandFullCoverage:
         mock_session = create_mock_db_session()
 
         device_id = str(uuid4())
-        payload = {"command_text": "rm -rf /"}
+        payload = {"command_text": "forbidden_action"}
 
         with override_db_dependency(mock_session):
             async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
@@ -766,8 +766,8 @@ class TestReadinessCheckFullCoverage:
 
         with override_db_dependency(mock_session):
             with patch("app.api.v1.endpoints.health.settings") as mock_settings:
-                # First call succeeds (database_url check), second raises exception
-                type(mock_settings).database_url = property(lambda self: (_ for _ in ()).throw(Exception("Config error")))
+                # Make accessing database_url raise an exception
+                type(mock_settings).database_url = property(fget=lambda self: (_ for _ in ()).throw(Exception("Config error")))
                 async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
                     response = await ac.get("/health/ready")
 
