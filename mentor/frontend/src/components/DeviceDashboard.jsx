@@ -190,6 +190,7 @@ export default function DeviceDashboard() {
         fetchMetrics();
         const id = setInterval(fetchMetrics, 10000);
         return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid]);
 
     // Processes only when tab 0
@@ -198,6 +199,7 @@ export default function DeviceDashboard() {
         fetchProcesses();
         const id = setInterval(fetchProcesses, 10000);
         return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid, tabValue]);
 
     // Activities only when tab 1
@@ -206,6 +208,7 @@ export default function DeviceDashboard() {
         fetchActivitiesAlerts(); // includes alerts but that's okay for initial load
         const id = setInterval(fetchActivitiesAlerts, 20000);
         return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid, tabValue]);
 
     // Alerts only when tab 2 (reuse activitiesAlerts but filter frequency)
@@ -214,6 +217,7 @@ export default function DeviceDashboard() {
         fetchActivitiesAlerts();
         const id = setInterval(fetchActivitiesAlerts, 30000);
         return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid, tabValue]);
 
     // Screenshots only when tab 3
@@ -222,6 +226,7 @@ export default function DeviceDashboard() {
         fetchScreenshots();
         const id = setInterval(fetchScreenshots, 30000);
         return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid, tabValue]);
 
     // Commands only when tab 4
@@ -230,6 +235,7 @@ export default function DeviceDashboard() {
         fetchCommands();
         const id = setInterval(fetchCommands, 10000);
         return () => clearInterval(id);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDevice?.deviceid, tabValue]);
 
     const latestMetrics = metrics.length ? metrics[metrics.length - 1] : null;
