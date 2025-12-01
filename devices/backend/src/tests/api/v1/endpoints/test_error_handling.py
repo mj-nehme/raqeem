@@ -1,8 +1,8 @@
 """
 Focused error handling tests for devices endpoints.
 
-Tests error validation and handling without requiring database connectivity.
-Integration tests cover database-dependent scenarios.
+Tests error validation and handling. Tests that require database connectivity
+use async patterns for proper event loop handling.
 """
 
 import uuid
@@ -10,6 +10,7 @@ import uuid
 import pytest
 from app.main import app
 from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 client = TestClient(app)
 
@@ -107,49 +108,51 @@ class TestDeviceRegistrationValidation:
 class TestInputSanitization:
     """Test input validation and boundary handling."""
 
-    @pytest.mark.skip(reason="Requires database connection")
-    def test_device_name_with_special_characters_accepted(self):
+    @pytest.mark.asyncio
+    async def test_device_name_with_special_characters_accepted(self):
         """Test that special characters in device name are handled."""
         device_id = str(uuid.uuid4())
-        # Just verify the endpoint accepts or rejects cleanly
-        response = client.post(
-            "/api/v1/devices/register",
-            json={
-                "deviceid": device_id,
-                "device_name": "test<>&\"'device",
-                "devicetype": "laptop",
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/v1/devices/register",
+                json={
+                    "deviceid": device_id,
+                    "device_name": "test<>&\"'device",
+                    "devicetype": "laptop",
+                },
+            )
         # Should handle gracefully (either accept or reject with clear error)
         assert response.status_code in [200, 201, 400, 422]
 
-    @pytest.mark.skip(reason="Requires database connection")
-    def test_extremely_long_device_name_handled(self):
+    @pytest.mark.asyncio
+    async def test_extremely_long_device_name_handled(self):
         """Test handling of extremely long device names."""
         device_id = str(uuid.uuid4())
-        response = client.post(
-            "/api/v1/devices/register",
-            json={
-                "deviceid": device_id,
-                "device_name": "x" * 10000,  # Very long name
-                "devicetype": "laptop",
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/v1/devices/register",
+                json={
+                    "deviceid": device_id,
+                    "device_name": "x" * 10000,  # Very long name
+                    "devicetype": "laptop",
+                },
+            )
         # Should handle gracefully
         assert response.status_code in [200, 201, 400, 422]
 
-    @pytest.mark.skip(reason="Requires database connection")
-    def test_empty_device_name_validation(self):
+    @pytest.mark.asyncio
+    async def test_empty_device_name_validation(self):
         """Test validation of empty device name."""
         device_id = str(uuid.uuid4())
-        response = client.post(
-            "/api/v1/devices/register",
-            json={
-                "deviceid": device_id,
-                "device_name": "",
-                "devicetype": "laptop",
-            },
-        )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/v1/devices/register",
+                json={
+                    "deviceid": device_id,
+                    "device_name": "",
+                    "devicetype": "laptop",
+                },
+            )
         # Validation may require non-empty name
         assert response.status_code in [200, 201, 400, 422]
 
@@ -188,8 +191,8 @@ class TestErrorResponseFormat:
 class TestIdempotency:
     """Test idempotent operations."""
 
-    @pytest.mark.skip(reason="Requires database connection")
-    def test_register_same_device_twice_is_idempotent(self):
+    @pytest.mark.asyncio
+    async def test_register_same_device_twice_is_idempotent(self):
         """Test that registering same device twice is handled gracefully."""
         device_id = str(uuid.uuid4())
         device_data = {
@@ -198,11 +201,12 @@ class TestIdempotency:
             "devicetype": "laptop",
         }
 
-        # First registration
-        response1 = client.post("/api/v1/devices/register", json=device_data)
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            # First registration
+            response1 = await ac.post("/api/v1/devices/register", json=device_data)
 
-        # Second registration with same ID
-        response2 = client.post("/api/v1/devices/register", json=device_data)
+            # Second registration with same ID
+            response2 = await ac.post("/api/v1/devices/register", json=device_data)
 
         # Both should succeed (idempotent operation)
         # May return different status codes but both should be successful

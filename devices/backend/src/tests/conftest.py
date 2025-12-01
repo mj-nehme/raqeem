@@ -1,8 +1,13 @@
 # tests/conftest.py
+#
+# Test configuration for devices backend.
+# Tests require PostgreSQL to be running. In CI, PostgreSQL is provided via
+# Docker services. For local development, start PostgreSQL with:
+#   docker run -d --name test-postgres -e POSTGRES_USER=monitor \
+#     -e POSTGRES_PASSWORD=password -e POSTGRES_DB=monitoring_db -p 5432:5432 postgres:16
 
 import os
 import socket
-from pathlib import Path
 
 import pytest
 import pytest_asyncio
@@ -42,71 +47,6 @@ def is_postgres_available(host: str = "127.0.0.1", port: int = 5432, timeout: fl
 # Check database availability once at module load time
 _db_available = is_postgres_available()
 
-# List of test files that are known to NOT require database
-# (tests that mock dependencies or don't use database at all)
-_NO_DB_REQUIRED_FILES = [
-    "test_main.py",
-    "test_devices_simple.py",
-    "test_coverage_boost.py",
-    "test_endpoints_mvp_coverage.py",
-    "test_error_handling.py",
-    "test_legacy_field_rejection.py",
-    "test_service_coverage_mvp.py",
-    "test_screenshots.py",  # Has its own mocks
-    "test_health.py",
-    "test_minio_service.py",
-    "test_http_retry.py",
-    "test_logging_config.py",
-    "test_full_coverage.py",  # Has its own mocks for full coverage
-]
-
-# List of test files/classes that definitely need database
-_DB_REQUIRED_PATTERNS = [
-    "test_devices.py",
-    "test_device_forwarding.py",
-    "test_comprehensive_endpoints.py",
-    "test_alerts_forwarding.py",
-    "test_screenshot_forwarding.py",
-    "test_init_db.py",
-    "test_config.py::test_db_connection",
-]
-
-
-def pytest_collection_modifyitems(config, items):
-    """Skip database-dependent tests when PostgreSQL is not available."""
-    if _db_available:
-        # Database is available, run all tests normally
-        return
-
-    skip_db = pytest.mark.skip(reason="PostgreSQL is not available - skipping integration test")
-
-    for item in items:
-        # Get the test file name using pathlib for consistent path handling
-        test_file = Path(item.fspath).name
-        test_nodeid = item.nodeid
-
-        # Check if this test file is known to NOT require database
-        if test_file in _NO_DB_REQUIRED_FILES:
-            continue
-
-        # Check if this test matches a database-required pattern
-        for pattern in _DB_REQUIRED_PATTERNS:
-            if pattern in test_nodeid or test_file == pattern:
-                item.add_marker(skip_db)
-                break
-        else:
-            # For unknown tests, check if they're in db/ folder or certain api folders
-            if '/db/' in test_nodeid or 'test_db_' in test_nodeid:
-                item.add_marker(skip_db)
-            # Also skip comprehensive API tests that do database operations
-            elif '/api/' in test_nodeid and test_file not in _NO_DB_REQUIRED_FILES:
-                # Check if it's a service test or other unit test
-                if '/services/' in test_nodeid:
-                    # Service unit tests don't need DB
-                    continue
-                # Skip other API tests that are integration tests
-                item.add_marker(skip_db)
-
 
 @pytest.fixture(autouse=True)
 async def reset_db_engine():
@@ -115,13 +55,14 @@ async def reset_db_engine():
     This fixture ensures the global engine is disposed before tests
     and recreated in the current event loop context.
 
-    NOTE: Skips database operations if PostgreSQL is not available.
+    Requires PostgreSQL to be running - tests will fail if database is unavailable.
     """
     # Import here to avoid circular imports and ensure env vars are set
     from app.db import session
 
     if not _db_available:
-        # Skip database operations if PostgreSQL is not running
+        # Database not available - yield and let individual tests handle it
+        # Tests that require DB will fail, which is expected behavior
         yield
         return
 
@@ -144,9 +85,17 @@ async def reset_db_engine():
 
 @pytest.fixture
 def requires_db():
-    """Fixture to skip tests that require a database when PostgreSQL is not available."""
+    """
+    Fixture to ensure tests that require a database have access to PostgreSQL.
+    Fails the test if PostgreSQL is not available (no skipping).
+    """
     if not _db_available:
-        pytest.skip("PostgreSQL is not available - skipping integration test")
+        pytest.fail(
+            "PostgreSQL is not available. Tests require a running PostgreSQL instance. "
+            "Start PostgreSQL with: docker run -d --name test-postgres "
+            "-e POSTGRES_USER=monitor -e POSTGRES_PASSWORD=password "
+            "-e POSTGRES_DB=monitoring_db -p 5432:5432 postgres:16"
+        )
 
 
 @pytest_asyncio.fixture(scope="function", loop_scope="function")
@@ -156,10 +105,15 @@ async def init_test_db():
     This fixture creates a fresh engine in the current event loop to avoid
     'Task got Future attached to a different loop' errors.
 
-    NOTE: Skips if PostgreSQL is not available.
+    Requires PostgreSQL to be running.
     """
     if not _db_available:
-        pytest.skip("PostgreSQL is not available - skipping database initialization")
+        pytest.fail(
+            "PostgreSQL is not available. Tests require a running PostgreSQL instance. "
+            "Start PostgreSQL with: docker run -d --name test-postgres "
+            "-e POSTGRES_USER=monitor -e POSTGRES_PASSWORD=password "
+            "-e POSTGRES_DB=monitoring_db -p 5432:5432 postgres:16"
+        )
 
     # Import here to avoid circular imports
     from app.db.base import Base
