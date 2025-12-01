@@ -42,9 +42,31 @@ wait_for_service_ready() {
         echo "  💡 Tip: Pre-pull images with 'docker pull postgres:15' and 'docker pull minio/minio:RELEASE.2023-09-04T19-57-37Z' to speed up future starts"
       fi
     fi
+    
+    # Stream live events and status for progress visibility
+    echo "  🔎 Streaming Kubernetes events and pod status for $pod_name..."
+    (
+      kubectl get events -n "$namespace" --watch \
+        --field-selector involvedObject.name="$pod_name" \
+        -o custom-columns=TIME:.lastTimestamp,REASON:.reason,MESSAGE:.message 2>/dev/null \
+        | sed 's/^/  [event] /'
+    ) &
+    local EVENT_PID=$!
+    (
+      while true; do
+        kubectl get pod "$pod_name" -n "$namespace" \
+          -o custom-columns=NAME:.metadata.name,PHASE:.status.phase,READY:.status.containerStatuses[0].ready,RESTARTS:.status.containerStatuses[0].restartCount,STATE:.status.containerStatuses[0].state.waiting.reason \
+          --no-headers 2>/dev/null | sed 's/^/  [status] /'
+        sleep 5
+      done
+    ) &
+    local STATUS_PID=$!
   fi
   
   if kubectl wait --for=condition=ready pod -l app=$service_name -n "$namespace" --timeout=${timeout}s; then
+    # Stop background streams
+    [[ -n "${STATUS_PID:-}" ]] && kill "${STATUS_PID}" 2>/dev/null || true
+    [[ -n "${EVENT_PID:-}" ]] && kill "${EVENT_PID}" 2>/dev/null || true
     echo "✅ $service_name is ready"
     return 0
   else
@@ -52,6 +74,8 @@ wait_for_service_ready() {
     
     # Provide helpful debugging info
     if [[ -n "$pod_name" ]]; then
+      [[ -n "${STATUS_PID:-}" ]] && kill "${STATUS_PID}" 2>/dev/null || true
+      [[ -n "${EVENT_PID:-}" ]] && kill "${EVENT_PID}" 2>/dev/null || true
       echo "🔍 Debug info for $service_name:"
       kubectl get pod "$pod_name" -n "$namespace" 2>/dev/null || echo "  - Pod not found"
       echo "  Last events:"
@@ -143,7 +167,14 @@ cleanup_terminated_ports() {
 }
 
 check_and_pull_images() {
-  local required_images=("postgres:15" "minio/minio:RELEASE.2023-09-04T19-57-37Z")
+  # Pre-pull images used by Helm charts (helps Docker Desktop Kubernetes)
+  # Postgres chart: docker.io/library/postgres:15
+  # MinIO chart: quay.io/minio/minio:latest (fallback to docker.io/minio/minio:latest)
+  local required_images=(
+    "docker.io/library/postgres:15"
+    "quay.io/minio/minio:latest"
+    "docker.io/minio/minio:latest"
+  )
   local missing_images=()
   
   echo "🔍 Checking required Docker images..."
@@ -164,6 +195,9 @@ check_and_pull_images() {
         echo "    ✅ $image pulled successfully"
       else
         echo "    ⚠️ Failed to pull $image - will retry during Kubernetes deployment"
+        if [[ "$image" == quay.io/* ]]; then
+          echo "    💡 Tip: quay.io can be slow or rate-limited. Consider 'docker login quay.io' or switch repo via MINIO_IMAGE_REPO=docker.io/minio/minio"
+        fi
       fi
     done
   else

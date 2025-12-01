@@ -91,7 +91,7 @@ func TestMainRouterIntegration(t *testing.T) {
 		}
 	})
 
-	// Test device endpoints exist
+	// Test device endpoints exist (mentor is read-focused with command creation)
 	t.Run("DeviceEndpoints", func(t *testing.T) {
 		routes := r.Engine().Routes()
 		routeMap := make(map[string]bool)
@@ -101,22 +101,18 @@ func TestMainRouterIntegration(t *testing.T) {
 		}
 
 		expectedRoutes := []string{
+			// Read endpoints for dashboards
 			"GET /devices",
-			"POST /devices/register",
-			"POST /devices/metrics",
-			"POST /devices/processes",
-			"POST /devices/activity",
-			"POST /devices/commands",
-			"POST /devices/screenshots",
 			"GET /devices/:id/metrics",
 			"GET /devices/:id/processes",
 			"GET /devices/:id/activities",
 			"GET /devices/:id/alerts",
 			"GET /devices/:id/screenshots",
+			"GET /screenshots/:filename",
 			"GET /devices/:id/commands/pending",
 			"GET /devices/:id/commands",
-			"POST /commands/status",
-			"POST /devices/:id/alerts",
+			// Write endpoint: create remote commands
+			"POST /devices/commands",
 		}
 
 		for _, expected := range expectedRoutes {

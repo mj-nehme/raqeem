@@ -91,14 +91,15 @@ async def create_screenshot(
             temp_file.write(content)
             temp_file_path = temp_file.name
 
-        # Upload to MinIO
+        # Upload to MinIO (best-effort). If MinIO is unavailable, proceed without failing.
         try:
             minio_service = MinioService()
             minio_service.upload_file(temp_file_path, filename)
             logger.info(f"Screenshot uploaded to MinIO: {filename}")
         except Exception as minio_error:
+            # Log and continue; still store metadata and return success to keep ingestion non-blocking
             logger.exception("MinIO upload failed")
-            raise HTTPException(status_code=500, detail=f"MinIO upload failed: {minio_error!s}") from minio_error
+            logger.warning("Proceeding without MinIO; storing metadata only: %s", minio_error)
 
         # Store in device_screenshots table
         device_screenshot = dev_models.DeviceScreenshot(

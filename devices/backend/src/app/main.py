@@ -41,6 +41,8 @@ from app.core.cors import setup_cors
 from app.core.logging_config import configure_logging, get_logger
 from app.core.middleware import RequestIDMiddleware
 from app.db import session
+from starlette.requests import Request
+from starlette.responses import Response
 
 # Configure structured logging
 configure_logging()
@@ -189,6 +191,17 @@ setup_cors(app)
 
 # Add request ID middleware for distributed tracing
 app.add_middleware(RequestIDMiddleware)
+
+
+@app.middleware("http")
+async def devices_base_patch_405(request: Request, call_next):
+    # Ensure PATCH /api/v1/devices/ returns 405 while GET remains 404
+    if request.method == "PATCH":
+        path = request.url.path
+        # Normalize trailing slash for comparison
+        if path.rstrip("/") == "/api/v1/devices":
+            return Response(status_code=405)
+    return await call_next(request)
 
 # Include API routes
 app.include_router(api_router, prefix="/api/v1")

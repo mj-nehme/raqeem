@@ -44,9 +44,19 @@ echo "🐘 Deploying PostgreSQL..."
 helm upgrade --install postgres ./charts/postgres --namespace "$NAMESPACE" --create-namespace
 wait_for_service_ready "postgres" "$NAMESPACE" 300  # 5 minutes for fresh image pulls
 
-# Deploy MinIO  
+# Deploy MinIO (allow overriding image repo/tag to avoid slow registries)
 echo "🗄️ Deploying MinIO..."
-helm upgrade --install minio ./charts/minio --namespace "$NAMESPACE"
+MINIO_IMAGE_REPO_ENV=${MINIO_IMAGE_REPO:-}
+MINIO_IMAGE_TAG_ENV=${MINIO_IMAGE_TAG:-}
+if [[ -n "$MINIO_IMAGE_REPO_ENV" || -n "$MINIO_IMAGE_TAG_ENV" ]]; then
+  echo "  - Using image override: repo='${MINIO_IMAGE_REPO_ENV:-<chart default>}' tag='${MINIO_IMAGE_TAG_ENV:-<chart default>}'"
+  helm upgrade --install minio ./charts/minio \
+    --namespace "$NAMESPACE" \
+    --set image.repository="${MINIO_IMAGE_REPO_ENV:-quay.io/minio/minio}" \
+    --set image.tag="${MINIO_IMAGE_TAG_ENV:-latest}"
+else
+  helm upgrade --install minio ./charts/minio --namespace "$NAMESPACE"
+fi
 wait_for_service_ready "minio" "$NAMESPACE" 300  # 5 minutes for fresh image pulls
 
 echo ""
@@ -115,6 +125,8 @@ if [[ -z "$MENTOR_NODEPORT" ]]; then
   helm upgrade --install mentor-backend ./charts/mentor-backend \
     --namespace "$NAMESPACE" \
     --set service.nodePort="$MENTOR_BACKEND_PORT" \
+    --set image.tag="latest" \
+    --set image.pullPolicy="IfNotPresent" \
     --set-string frontendOriginRegex="$CORS_REGEX" \
     --set-string devicesApiUrl="http://localhost:$DEVICES_BACKEND_PORT/api/v1"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
@@ -129,6 +141,8 @@ if [[ -z "$DEVICES_NODEPORT" ]]; then
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
     --set service.nodePort="$DEVICES_BACKEND_PORT" \
+    --set image.tag="latest" \
+    --set image.pullPolicy="IfNotPresent" \
     --set-string mentorApiUrl="$MENTOR_API_URL" \
     --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
@@ -138,6 +152,8 @@ else
   helm upgrade --install devices-backend ./charts/devices-backend \
     --namespace "$NAMESPACE" \
     --set service.nodePort="$DEVICES_BACKEND_PORT" \
+    --set image.tag="latest" \
+    --set image.pullPolicy="IfNotPresent" \
     --set-string mentorApiUrl="$MENTOR_API_URL" \
     --set-string frontendOriginRegex="$CORS_REGEX"
   wait_for_service_ready "devices-backend" "$NAMESPACE"
@@ -148,6 +164,8 @@ if [[ -n "$MENTOR_NODEPORT" ]]; then
   helm upgrade --install mentor-backend ./charts/mentor-backend \
     --namespace "$NAMESPACE" \
     --set service.nodePort="$MENTOR_BACKEND_PORT" \
+    --set image.tag="latest" \
+    --set image.pullPolicy="IfNotPresent" \
     --set-string frontendOriginRegex="$CORS_REGEX" \
     --set-string devicesApiUrl="http://localhost:$DEVICES_BACKEND_PORT/api/v1"
   wait_for_service_ready "mentor-backend" "$NAMESPACE"
