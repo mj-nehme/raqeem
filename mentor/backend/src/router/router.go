@@ -162,16 +162,12 @@ func (r *Router) setupActivityRoutes() {
 }
 
 // setupDeviceRoutes configures all device-related routes
+// Mentor backend is read-focused: it reads data for dashboards and creates commands for devices
 func (r *Router) setupDeviceRoutes() {
-	// Device ingestion endpoints (devices will POST data here)
-	r.engine.POST("/devices/register", controllers.RegisterDevice)
-	r.engine.POST("/devices/metrics", controllers.UpdateDeviceMetric)
-	r.engine.POST("/devices/processes", controllers.UpdateProcessList)
-	r.engine.POST("/devices/activity", controllers.Activity)
+	// Command creation endpoint (mentor sends commands to devices)
 	r.engine.POST("/devices/commands", controllers.CreateRemoteCommand)
-	r.engine.POST("/devices/screenshots", controllers.StoreScreenshot)
 
-	// Device query endpoints
+	// Device query endpoints (read-only for dashboards)
 	r.engine.GET("/devices", controllers.ListDevices)
 	r.engine.GET("/devices/:id/metrics", controllers.GetDeviceMetric)
 	r.engine.GET("/devices/:id/processes", controllers.GetDeviceProcesses)
@@ -182,10 +178,6 @@ func (r *Router) setupDeviceRoutes() {
 	r.engine.GET("/screenshots/:filename", controllers.GetScreenshotFile)
 	r.engine.GET("/devices/:id/commands/pending", controllers.GetPendingCommands)
 	r.engine.GET("/devices/:id/commands", controllers.GetDeviceCommands)
-
-	// Command and alert endpoints
-	r.engine.POST("/commands/status", controllers.UpdateCommandStatus)
-	r.engine.POST("/devices/:id/alerts", controllers.ReportAlert)
 }
 
 // Run starts the HTTP server on the specified address

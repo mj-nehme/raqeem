@@ -142,7 +142,7 @@ func TestMainRouterIntegration(t *testing.T) {
 	})
 }
 
-// TestRouterStructure verifies the router maintains the same structure as the old main.go
+// TestRouterStructure verifies the router maintains the expected structure
 func TestRouterStructure(t *testing.T) {
 	gin.SetMode(gin.TestMode)
 	_ = os.Setenv("FRONTEND_ORIGIN", "http://localhost:3000,http://localhost:5173")
@@ -153,10 +153,10 @@ func TestRouterStructure(t *testing.T) {
 
 	routes := r.Engine().Routes()
 
-	// Count routes to ensure we haven't lost any during refactoring
-	// Old main.go had approximately 20+ routes
-	if len(routes) < 20 {
-		t.Errorf("Expected at least 20 routes, got %d", len(routes))
+	// Count routes to ensure we have the expected number
+	// Mentor backend is now read-focused with reduced endpoints (~16 routes)
+	if len(routes) < 12 {
+		t.Errorf("Expected at least 12 routes, got %d", len(routes))
 	}
 
 	// Verify no duplicate routes

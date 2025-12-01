@@ -3,17 +3,22 @@ info:
   title: Mentor Backend API
   version: 1.0.0
   description: |
-    OpenAPI specification for the Mentor backend. Covers device management, telemetry retrieval,
-    remote commands, and alerts. This backend serves the monitoring dashboard.
+    OpenAPI specification for the Mentor backend. This backend serves as the **read-focused**
+    interface for the monitoring dashboard, providing data retrieval and command creation.
+
+    ## Role Separation
+    - **Mentor Backend (this API)**: Read-focused - retrieves device data for dashboards and creates commands for devices
+    - **Devices Backend**: Write-focused - receives telemetry data from devices and provides command polling
 
     ## Features
-    - Device listing and status monitoring
-    - Metrics retrieval and aggregation
-    - Alert management and viewing
-    - Remote command execution
-    - Screenshot retrieval with presigned URLs
-    - Activity log access
-    - Process information
+    - Device listing and status monitoring (read)
+    - Metrics retrieval (read)
+    - Alert viewing (read)
+    - Remote command creation (write)
+    - Screenshot retrieval with presigned URLs (read)
+    - Activity log access (read)
+    - Process information (read)
+    - Command history and pending commands (read)
 
     ## Base URL
     Local: `http://localhost:30090`
@@ -86,6 +91,7 @@ paths:
   /devices:
     get:
       summary: List registered devices
+      description: Get a list of all registered devices with their current status.
       responses:
         "200":
           description: Array of devices
@@ -95,55 +101,11 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Device"
-    post:
-      summary: Register or update a device (alias)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeviceCreate"
-      responses:
-        "200":
-          description: Device created or updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Device"
-
-  /devices/register:
-    post:
-      summary: Register or update a device
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeviceCreate"
-      responses:
-        "200":
-          description: Device created or updated
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Device"
-
-  /devices/metrics:
-    post:
-      summary: Ingest device metrics (bulk endpoint)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeviceMetric"
-      responses:
-        "200":
-          description: Metrics accepted
 
   /devices/{id}/metrics:
     get:
       summary: Get metrics for a device (most recent points)
+      description: Retrieve recent performance metrics for a specific device.
       parameters:
         - name: id
           in: path
@@ -167,71 +129,134 @@ paths:
                   $ref: "#/components/schemas/DeviceMetric"
 
   /devices/{id}/processes:
-    post:
-      summary: Replace process list for a device
+    get:
+      summary: Get process list for a device
+      description: Retrieve the latest known process list for a specific device.
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/Process"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
       responses:
         "200":
-          description: Processes accepted
+          description: List of processes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Process"
 
   /devices/{id}/activities:
-    post:
-      summary: Post activity entries for a device
+    get:
+      summary: Get activities for a device
+      description: Retrieve recent activity logs for a specific device.
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/ActivityLog"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
       responses:
         "200":
-          description: Activities accepted
+          description: List of activities
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ActivityLog"
 
   /devices/{id}/alerts:
-    post:
-      summary: Post alerts for a device
+    get:
+      summary: Get alerts for a device
+      description: Retrieve recent alerts for a specific device.
       parameters:
         - name: id
           in: path
           required: true
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: "#/components/schemas/Alert"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
       responses:
         "200":
-          description: Alerts accepted
+          description: List of alerts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /devices/{id}/screenshots:
+    get:
+      summary: Get screenshots for a device
+      description: Retrieve recent screenshot metadata with presigned URLs for a specific device.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: List of screenshot metadata with presigned URLs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Screenshot"
+
+  /screenshots/{filename}:
+    get:
+      summary: Stream screenshot file
+      description: Stream a screenshot image directly from storage.
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Screenshot image
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Screenshot not found
 
   /devices/commands:
     post:
       summary: Queue a remote command for a device
+      description: Create a new remote command to be executed on a specific device.
       requestBody:
         required: true
         content:
@@ -249,6 +274,7 @@ paths:
   /devices/{id}/commands/pending:
     get:
       summary: Get pending remote commands for a device
+      description: Retrieve all pending commands waiting for execution on a device.
       parameters:
         - name: id
           in: path
@@ -265,22 +291,36 @@ paths:
                 items:
                   $ref: "#/components/schemas/RemoteCommand"
 
-  /commands/status:
-    post:
-      summary: Update a remote command status
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/RemoteCommandStatusUpdate"
+  /devices/{id}/commands:
+    get:
+      summary: Get command history for a device
+      description: Retrieve command execution history for a specific device.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
       responses:
         "200":
-          description: Updated command
+          description: List of commands
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RemoteCommand"
 
   /activities:
     get:
       summary: List recent activities
+      description: Get a list of activities across all devices.
       responses:
         "200":
           description: Activity list
@@ -317,10 +357,6 @@ components:
           type: string
         current_user:
           type: string
-
-    DeviceCreate:
-      allOf:
-        - $ref: "#/components/schemas/Device"
 
     DeviceMetric:
       type: object
@@ -423,18 +459,6 @@ components:
         exit_code:
           type: integer
 
-    RemoteCommandStatusUpdate:
-      type: object
-      properties:
-        id:
-          type: integer
-        status:
-          type: string
-        result:
-          type: string
-        exit_code:
-          type: integer
-
     Alert:
       type: object
       properties:
@@ -455,3 +479,22 @@ components:
           type: number
         threshold:
           type: number
+
+    Screenshot:
+      type: object
+      properties:
+        screenshotid:
+          type: string
+        deviceid:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        path:
+          type: string
+        resolution:
+          type: string
+        size:
+          type: integer
+        screenshot_url:
+          type: string

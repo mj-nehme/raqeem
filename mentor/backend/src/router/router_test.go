@@ -216,26 +216,32 @@ func TestSetupDeviceRoutes(t *testing.T) {
 	r := New()
 	r.setupDeviceRoutes()
 
+	// Mentor backend is read-focused with command creation
 	expectedRoutes := map[string]string{
-		// POST routes
-		"POST /devices/register":    "POST",
-		"POST /devices/metrics":     "POST",
-		"POST /devices/processes":   "POST",
-		"POST /devices/activity":    "POST",
-		"POST /devices/commands":    "POST",
-		"POST /devices/screenshots": "POST",
-		"POST /commands/status":     "POST",
+		// POST routes (only command creation for mentor)
+		"POST /devices/commands": "POST",
 
-		// GET routes
+		// GET routes (read-only for dashboards)
 		"GET /devices":                      "GET",
 		"GET /devices/:id/metrics":          "GET",
 		"GET /devices/:id/processes":        "GET",
 		"GET /devices/:id/activities":       "GET",
 		"GET /devices/:id/alerts":           "GET",
 		"GET /devices/:id/screenshots":      "GET",
+		"GET /screenshots/:filename":        "GET",
 		"GET /devices/:id/commands/pending": "GET",
 		"GET /devices/:id/commands":         "GET",
-		"POST /devices/:id/alerts":          "POST",
+	}
+
+	// Routes that should NOT exist on mentor (device-only write operations)
+	removedRoutes := []string{
+		"POST /devices/register",
+		"POST /devices/metrics",
+		"POST /devices/processes",
+		"POST /devices/activity",
+		"POST /devices/screenshots",
+		"POST /commands/status",
+		"POST /devices/:id/alerts",
 	}
 
 	routes := r.engine.Routes()
@@ -250,6 +256,13 @@ func TestSetupDeviceRoutes(t *testing.T) {
 			t.Errorf("Expected route %s to be registered", expectedRoute)
 		}
 		_ = method // Use variable to avoid unused warning
+	}
+
+	// Verify removed routes are not present
+	for _, removedRoute := range removedRoutes {
+		if routeMap[removedRoute] {
+			t.Errorf("Route %s should NOT be registered on mentor backend (device-only)", removedRoute)
+		}
 	}
 }
 
@@ -266,7 +279,7 @@ func TestSetupAllRoutes(t *testing.T) {
 		t.Error("Expected routes to be registered")
 	}
 
-	// Verify key routes are present
+	// Verify key routes are present (mentor is read-focused with command creation)
 	keyRoutes := []struct {
 		method string
 		path   string
@@ -276,7 +289,7 @@ func TestSetupAllRoutes(t *testing.T) {
 		{"GET", "/swagger/*any"},
 		{"GET", "/activities"},
 		{"GET", "/devices"},
-		{"POST", "/devices/register"},
+		{"POST", "/devices/commands"},
 	}
 
 	routeMap := make(map[string]bool)
@@ -345,9 +358,9 @@ func TestRouterIntegration(t *testing.T) {
 		}
 	})
 
-	// Verify total route count is reasonable
+	// Verify total route count is reasonable (mentor has fewer routes now - read-focused)
 	routes := r.engine.Routes()
-	if len(routes) < 20 {
-		t.Errorf("Expected at least 20 routes, got %d", len(routes))
+	if len(routes) < 12 {
+		t.Errorf("Expected at least 12 routes, got %d", len(routes))
 	}
 }
