@@ -51,8 +51,8 @@ class TestFileServiceReal:
 
     def test_validate_file_type_wrong_mime_for_extension(self, service):
         """Test that service allows any valid image type regardless of extension match.
-        
-        Note: The service only checks that BOTH are valid image types, 
+
+        Note: The service only checks that BOTH are valid image types,
         not that they match each other.
         """
         # PNG extension but JPEG MIME type - both are valid image types
