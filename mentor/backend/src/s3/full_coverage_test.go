@@ -1,7 +1,6 @@
 package s3
 
 import (
-	"context"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -802,13 +801,9 @@ func TestContextTimeoutInHealthCheck(t *testing.T) {
 		time.Sleep(10 * time.Second)
 		w.WriteHeader(http.StatusOK)
 	}))
-	defer mockServer.Close()
 
 	// Save original client
 	originalClient := client
-	defer func() {
-		client = originalClient
-	}()
 
 	// Extract just the host:port
 	serverAddr := mockServer.URL[7:]
@@ -820,22 +815,24 @@ func TestContextTimeoutInHealthCheck(t *testing.T) {
 	assert.NoError(t, err)
 	client = mockClient
 
-	// Create a context with short timeout for the test
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
-	defer cancel()
-
 	// Start HealthCheck in goroutine
 	done := make(chan error, 1)
 	go func() {
 		done <- HealthCheck()
 	}()
 
-	// Wait for context or result
+	// Wait for HealthCheck to return (it should timeout internally within 5 seconds)
+	// or wait a bit less if the external context is cancelled
 	select {
-	case <-ctx.Done():
-		// Context timed out, which is expected behavior
 	case err := <-done:
 		// HealthCheck completed (likely with error due to timeout)
 		assert.Error(t, err, "HealthCheck should fail due to timeout")
+	case <-time.After(6 * time.Second):
+		// If HealthCheck hasn't returned after 6 seconds, fail the test
+		t.Error("HealthCheck did not return within expected time")
 	}
+
+	// Restore original client after goroutine completes to avoid data race
+	client = originalClient
+	mockServer.Close()
 }
