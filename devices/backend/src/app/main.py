@@ -34,6 +34,8 @@ except Exception:
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from starlette.requests import Request
+from starlette.responses import Response
 
 from app.api.routes import api_router
 from app.api.v1.endpoints import health
@@ -41,8 +43,6 @@ from app.core.cors import setup_cors
 from app.core.logging_config import configure_logging, get_logger
 from app.core.middleware import RequestIDMiddleware
 from app.db import session
-from starlette.requests import Request
-from starlette.responses import Response
 
 # Configure structured logging
 configure_logging()
