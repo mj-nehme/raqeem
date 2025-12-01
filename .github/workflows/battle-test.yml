@@ -70,6 +70,8 @@ jobs:
         run: |
           python3 tests/battle/benchmark_test.py \
             --samples ${{ github.event.inputs.duration || '100' }} \
+            --devices-url http://localhost:8081 \
+            --mentor-url http://localhost:8080 \
             --verbose
 
       - name: Run stress tests
@@ -77,6 +79,8 @@ jobs:
           python3 tests/battle/stress_test.py \
             --devices ${{ github.event.inputs.stress_devices || '100' }} \
             --duration ${{ github.event.inputs.duration || '60' }} \
+            --devices-url http://localhost:8081 \
+            --mentor-url http://localhost:8080 \
             --verbose
 
       - name: Run load tests
@@ -84,6 +88,8 @@ jobs:
           python3 tests/battle/load_test.py \
             --concurrent-users 50 \
             --duration ${{ github.event.inputs.duration || '60' }} \
+            --devices-url http://localhost:8081 \
+            --mentor-url http://localhost:8080 \
             --verbose
 
       - name: Run chaos tests
@@ -91,6 +97,8 @@ jobs:
         run: |
           python3 tests/battle/chaos_test.py \
             --scenarios all \
+            --devices-url http://localhost:8081 \
+            --mentor-url http://localhost:8080 \
             --verbose
 
       - name: Collect logs on failure
