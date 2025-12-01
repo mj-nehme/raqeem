@@ -48,6 +48,7 @@ After `./start.sh`, services auto-discover ports:
 // Setup merged into Development Guide
 - [Architecture](docs/ARCHITECTURE.md) — System design and data flow
 - [API Documentation](docs/API.md) — REST endpoints and examples
+ - [Backend API Summary](docs/BACKEND_API_TABLE.md) — Quick table of key endpoints
 
 ### Development
 - [Development Guide](docs/DEVELOPMENT.md) — Local setup and coding standards
