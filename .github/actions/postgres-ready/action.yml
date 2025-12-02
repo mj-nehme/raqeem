@@ -1,0 +1,40 @@
+name: "Postgres Ready"
+description: "Wait for Postgres service readiness using pg_isready"
+runs:
+  using: "composite"
+  steps:
+    - name: Install PostgreSQL client
+      shell: bash
+      run: |
+        if command -v sudo >/dev/null 2>&1; then
+          sudo apt-get update -y
+          sudo apt-get install -y postgresql-client
+        else
+          apt-get update -y
+          apt-get install -y postgresql-client
+        fi
+    - name: Wait for PostgreSQL readiness
+      shell: bash
+      env:
+        PG_HOST: ${{ inputs.host }}
+        PG_PORT: ${{ inputs.port }}
+        PG_USER: ${{ inputs.user }}
+      run: |
+        host="${PG_HOST:-127.0.0.1}"
+        port="${PG_PORT:-5432}"
+        user="${PG_USER:-monitor}"
+        for i in {1..30}; do
+          pg_isready -h "$host" -p "$port" -U "$user" && echo "✅ PostgreSQL is ready" && exit 0
+          echo "Waiting for PostgreSQL... ($i/30)"; sleep 2;
+        done
+        pg_isready -h "$host" -p "$port" -U "$user" || (echo "❌ PostgreSQL failed to start" && exit 1)
+inputs:
+  host:
+    description: "Postgres host"
+    required: false
+  port:
+    description: "Postgres port"
+    required: false
+  user:
+    description: "Postgres user"
+    required: false

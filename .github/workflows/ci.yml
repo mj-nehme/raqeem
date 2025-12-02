@@ -36,53 +36,16 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Install PostgreSQL client
-        run: |
-          if command -v sudo >/dev/null 2>&1; then
-            sudo apt-get update -y
-            sudo apt-get install -y postgresql-client
-          else
-            apt-get update -y
-            apt-get install -y postgresql-client
-          fi
-      - name: Verify PostgreSQL is ready
-        run: |
-          for i in {1..30}; do
-            pg_isready -h 127.0.0.1 -p 5432 -U monitor && echo "✅ PostgreSQL is ready" && break
-            echo "Waiting for PostgreSQL... ($i/30)"
-            sleep 2
-          done
-          pg_isready -h 127.0.0.1 -p 5432 -U monitor || (echo "❌ PostgreSQL failed to start" && exit 1)
+      - name: PostgreSQL readiness
+        uses: ./.github/actions/postgres-ready
       - name: Test PostgreSQL connection
         env:
           PGPASSWORD: password
         run: |
           psql -h 127.0.0.1 -U monitor -d monitoring_db -c "SELECT version();"
           echo "✅ PostgreSQL connection successful"
-      - name: Start MinIO container
-        run: |
-          docker run -d \
-            --name minio \
-            -p 9000:9000 \
-            -p 9001:9001 \
-            -e MINIO_ROOT_USER=minio \
-            -e MINIO_ROOT_PASSWORD=miniosecret \
-            docker.io/minio/minio:latest server /data --console-address ":9001"
-
-          echo "Waiting for MinIO to be ready..."
-          for i in {1..40}; do
-            if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
-              echo "✅ MinIO is ready"; break; fi
-            echo "MinIO pending ($i/40)"; sleep 2; done
-          curl -sf http://127.0.0.1:9000/minio/health/live || (echo "❌ MinIO failed to start" && exit 1)
-      - name: Setup MinIO bucket
-        run: |
-          wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/
-          mc alias set local http://127.0.0.1:9000 minio miniosecret
-          mc mb local/raqeem-screenshots || true
-          echo "✅ MinIO bucket ready"
+      - name: MinIO setup
+        uses: ./.github/actions/minio-setup
       - name: Initialize database
         env:
           PGPASSWORD: password
@@ -367,30 +330,8 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-test.txt
-      - name: Start MinIO container
-        run: |
-          docker run -d \
-            --name minio \
-            -p 9000:9000 \
-            -p 9001:9001 \
-            -e MINIO_ROOT_USER=minio \
-            -e MINIO_ROOT_PASSWORD=miniosecret \
-            docker.io/minio/minio:latest server /data --console-address ":9001"
-
-          echo "Waiting for MinIO to be ready..."
-          for i in {1..40}; do
-            if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
-              echo "✅ MinIO is ready"; break; fi
-            echo "MinIO pending ($i/40)"; sleep 2; done
-          curl -sf http://127.0.0.1:9000/minio/health/live || (echo "❌ MinIO failed to start" && exit 1)
-      - name: Setup MinIO bucket
-        run: |
-          wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
-          chmod +x mc
-          sudo mv mc /usr/local/bin/
-          mc alias set local http://127.0.0.1:9000 minio miniosecret
-          mc mb local/raqeem-screenshots || true
-          echo "✅ MinIO bucket ready"
+      - name: MinIO setup
+        uses: ./.github/actions/minio-setup
       - name: Run pytest
         working-directory: devices/backend/src
         env:
@@ -446,27 +387,10 @@ jobs:
       - name: Download Go modules
         working-directory: mentor/backend/src
         run: go mod download
-      - name: Wait for Postgres readiness
-        run: |
-          for i in {1..30}; do
-            pg_isready -h 127.0.0.1 -p 5432 -U monitor && echo "✅ PostgreSQL is ready" && break
-            echo "Waiting for PostgreSQL... ($i/30)"; sleep 2; done
-          pg_isready -h 127.0.0.1 -p 5432 -U monitor || (echo "❌ PostgreSQL failed to start" && exit 1)
-      - name: Start MinIO container
-        run: |
-          docker run -d \
-            --name minio \
-            -p 9000:9000 \
-            -p 9001:9001 \
-            -e MINIO_ROOT_USER=minio \
-            -e MINIO_ROOT_PASSWORD=miniosecret \
-            docker.io/minio/minio:latest server /data --console-address ":9001"
-          echo "Waiting for MinIO to be ready..."
-          for i in {1..40}; do
-            if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
-              echo "✅ MinIO is ready"; break; fi
-            echo "MinIO pending ($i/40)"; sleep 2; done
-          curl -sf http://127.0.0.1:9000/minio/health/live || (echo "❌ MinIO failed to start" && exit 1)
+      - name: PostgreSQL readiness
+        uses: ./.github/actions/postgres-ready
+      - name: MinIO setup
+        uses: ./.github/actions/minio-setup
       - name: Run Go tests
         working-directory: mentor/backend/src
         env:
@@ -478,6 +402,8 @@ jobs:
           MINIO_ENDPOINT: "http://127.0.0.1:9000"
           MINIO_ACCESS_KEY: "minio"
           MINIO_SECRET_KEY: "miniosecret"
+          MINIO_BUCKET_NAME: "raqeem-screenshots"
+          USE_POSTGRES_FOR_TESTS: "1"
         run: go test ./... -v -race -p 1 -coverprofile=coverage.out
       - name: Upload Go coverage to Codecov
         uses: codecov/codecov-action@v5

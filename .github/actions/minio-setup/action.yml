@@ -1,0 +1,34 @@
+name: "MinIO Setup"
+description: "Start MinIO, wait for readiness, and create bucket"
+runs:
+  using: "composite"
+  steps:
+    - name: Start MinIO container
+      shell: bash
+      run: |
+        docker rm -f minio >/dev/null 2>&1 || true
+        docker run -d \
+          --name minio \
+          -p 9000:9000 \
+          -p 9001:9001 \
+          -e MINIO_ROOT_USER=minio \
+          -e MINIO_ROOT_PASSWORD=miniosecret \
+          docker.io/minio/minio:latest server /data --console-address ":9001"
+    - name: Wait for MinIO readiness
+      shell: bash
+      run: |
+        echo "Waiting for MinIO to be ready..."
+        for i in {1..40}; do
+          if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
+            echo "✅ MinIO is ready"; exit 0; fi
+          echo "MinIO pending ($i/40)"; sleep 2; done
+        curl -sf http://127.0.0.1:9000/minio/health/live || (echo "❌ MinIO failed to start" && exit 1)
+    - name: Setup MinIO bucket
+      shell: bash
+      run: |
+        wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
+        chmod +x mc
+        sudo mv mc /usr/local/bin/
+        mc alias set local http://127.0.0.1:9000 minio miniosecret
+        mc mb local/raqeem-screenshots || true
+        echo "✅ MinIO bucket ready"
