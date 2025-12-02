@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: raqeem/mentor-backend
-  tag: v1.0.3
+  tag: v1.1.0
   pullPolicy: Never
 
 service:
