@@ -125,6 +125,7 @@ ignore = ["E501", "TRY003", "PLR0913", "UP017"]
     "ARG002",
     "N806",
     "PLR1714",
+    "EM101",
 ]
 "tests/**/*.py" = [
     "PLR2004",
@@ -141,6 +142,7 @@ ignore = ["E501", "TRY003", "PLR0913", "UP017"]
     "RUF001",
     "SIM102",
     "TRY300",
+    "ARG001",
 ]
 
 [tool.pytest.ini_options]
