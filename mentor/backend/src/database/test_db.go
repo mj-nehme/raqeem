@@ -146,10 +146,10 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 	// Verify the connection is still alive before starting transaction
 	sqlDB, err := baseConnection.DB()
 	if err != nil {
-		t.Skipf("Skipping test - failed to get underlying database: %v", err)
+		t.Skipf("Skipping test - failed to get underlying SQL database instance: %v", err)
 	}
 	if err := sqlDB.Ping(); err != nil {
-		t.Skipf("Skipping test - database connection not alive: %v", err)
+		t.Skipf("Skipping test - database connection ping failed: %v", err)
 	}
 
 	// Begin a transaction for this test
