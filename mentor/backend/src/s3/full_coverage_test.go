@@ -795,15 +795,31 @@ func TestStatObjectSuccessPath(t *testing.T) {
 
 // TestContextTimeoutInHealthCheck tests that HealthCheck respects context timeout
 func TestContextTimeoutInHealthCheck(t *testing.T) {
-	// Create a slow mock server
+	// Create a slow mock server that responds after the HealthCheck timeout
+	// The handler uses request context to detect when client disconnects
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Sleep longer than HealthCheck timeout (5 seconds)
-		time.Sleep(10 * time.Second)
-		w.WriteHeader(http.StatusOK)
+		// Wait for either 10 seconds or until client disconnects
+		select {
+		case <-time.After(10 * time.Second):
+			w.WriteHeader(http.StatusOK)
+		case <-r.Context().Done():
+			// Client disconnected, exit handler cleanly
+			return
+		}
 	}))
 
 	// Save original client
 	originalClient := client
+	// Use defer with a channel to ensure we wait for goroutine before restoring
+	goroutineDone := make(chan struct{})
+	defer func() {
+		// Wait for the goroutine to complete before restoring client
+		<-goroutineDone
+		client = originalClient
+		// Close client connections first to avoid blocking on server close
+		mockServer.CloseClientConnections()
+		mockServer.Close()
+	}()
 
 	// Extract just the host:port
 	serverAddr := mockServer.URL[7:]
@@ -818,6 +834,7 @@ func TestContextTimeoutInHealthCheck(t *testing.T) {
 	// Start HealthCheck in goroutine
 	done := make(chan error, 1)
 	go func() {
+		defer close(goroutineDone) // Signal that goroutine is done
 		done <- HealthCheck()
 	}()
 
@@ -831,8 +848,4 @@ func TestContextTimeoutInHealthCheck(t *testing.T) {
 		// If HealthCheck hasn't returned after 6 seconds, fail the test
 		t.Error("HealthCheck did not return within expected time")
 	}
-
-	// Restore original client after goroutine completes to avoid data race
-	client = originalClient
-	mockServer.Close()
 }
