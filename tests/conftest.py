@@ -16,21 +16,21 @@ def mentor_url():
 
 
 @pytest.fixture(autouse=False)
-def skip_smoke_if_disabled(request):
-    # Skip the smoke test unless explicitly enabled (prevents CI failures when services aren't running)
+def fail_smoke_if_disabled(request):
+    # Fail the smoke test unless explicitly enabled (prevents CI failures when services aren't running)
     if request.node.name == "test_alert_flow":
         if os.environ.get("RUN_SMOKE_TESTS", "0") != "1":
-            pytest.skip("Skipping smoke test; set RUN_SMOKE_TESTS=1 to enable.")
+            pytest.fail("Smoke test not enabled; set RUN_SMOKE_TESTS=1 to enable.")
 
 
 def pytest_collection_modifyitems(config, items):
-    """Skip integration tests if services are not running."""
-    # Only skip if RUN_INTEGRATION_TESTS env var is explicitly set to 0
+    """Fail integration tests if services are not running."""
+    # Only fail if RUN_INTEGRATION_TESTS env var is explicitly set to 0
     if os.environ.get("RUN_INTEGRATION_TESTS", "1") == "0":
-        skip_integration = pytest.mark.skip(reason="Integration tests disabled via RUN_INTEGRATION_TESTS=0")
+        fail_integration = pytest.mark.xfail(reason="Integration tests disabled via RUN_INTEGRATION_TESTS=0", run=False)
         for item in items:
             if "integration" in str(item.fspath):
-                item.add_marker(skip_integration)
+                item.add_marker(fail_integration)
         return
     
     # Check if services are running for integration tests
@@ -49,12 +49,13 @@ def pytest_collection_modifyitems(config, items):
     except Exception:
         pass
     
-    # Only skip tests that need services if they're not running
+    # Only fail tests that need services if they're not running
     if not (devices_running and mentor_running):
-        skip_no_services = pytest.mark.skip(
-            reason="Services not running. Start services with ./start.sh or docker-compose up"
+        fail_no_services = pytest.mark.xfail(
+            reason="Services not running. Start services with ./start.sh or docker-compose up",
+            run=False
         )
         for item in items:
-            # Skip tests in integration folder that are not observability tests (which have their own wait logic)
+            # Fail tests in integration folder that are not observability tests (which have their own wait logic)
             if "integration" in str(item.fspath) and "observability" not in str(item.fspath):
-                item.add_marker(skip_no_services)
+                item.add_marker(fail_no_services)

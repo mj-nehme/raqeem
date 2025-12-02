@@ -26,9 +26,9 @@ func TestHealthCheckReadyAllHealthy(t *testing.T) {
 	defer database.CleanupTestDB(t, db)
 	database.DB = db
 
-	// Skip if MinIO client not available
+	// Fail if MinIO client not available
 	if s3.GetClient() == nil {
-		t.Skip("Skipping test - MinIO client not available")
+		t.Fatal("Test failed - MinIO client not available")
 	}
 
 	w := httptest.NewRecorder()
