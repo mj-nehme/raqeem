@@ -1,9 +1,9 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from app.db.session import get_db
 from app.main import app
 from httpx import ASGITransport, AsyncClient
-from app.db.session import get_db
 
 
 def _make_mock_session(device_exists: bool = False):

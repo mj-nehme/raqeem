@@ -139,8 +139,8 @@ async def init_test_db():
 def override_db_if_unavailable():
     if _db_available:
         return  # Real DB available; keep default behavior
-    from app.main import app  # local import to avoid premature app init
     from app.db.session import get_db
+    from app.main import app  # local import to avoid premature app init
 
     class _DummyScalarResult:
         def first(self):

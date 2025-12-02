@@ -9,8 +9,8 @@ import uuid
 from typing import Any
 
 import pytest
-from app.main import app
 from app.db.session import get_db
+from app.main import app
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
@@ -35,19 +35,19 @@ class MockAsyncSession:
     def __init__(self):
         self._added = []
 
-    async def execute(self, *args, **kwargs):  # noqa: D401 - simple stub
+    async def execute(self, *args, **kwargs):
         return _DummyResult()
 
-    def add(self, obj):  # noqa: D401 - simple stub
+    def add(self, obj):
         self._added.append(obj)
 
-    async def flush(self):  # noqa: D401 - simple stub
+    async def flush(self):
         pass
 
-    async def commit(self):  # noqa: D401 - simple stub
+    async def commit(self):
         pass
 
-    async def close(self):  # noqa: D401 - simple stub
+    async def close(self):
         pass
 
 
