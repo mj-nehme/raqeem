@@ -462,7 +462,7 @@ func TestListActivitiesEdgeCases(t *testing.T) {
 func setupTestDB(t *testing.T) {
 	db, err := database.SetupTestDB(t)
 	if err != nil {
-		t.Skipf("Skipping test - database not available: %v", err)
+		t.Fatalf("Test failed - database not available: %v", err)
 		return
 	}
 	database.DB = db

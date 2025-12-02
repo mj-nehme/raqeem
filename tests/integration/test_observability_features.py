@@ -65,9 +65,9 @@ def wait_for_service(url, name, max_retries=30, delay=2):
 def check_services():
     """Check if required services are running before running tests."""
     if not check_service_available(DEVICES_BACKEND_URL, timeout=1):
-        pytest.skip("Devices backend not available. Start services with ./start.sh or docker-compose up")
+        pytest.fail("Devices backend not available. Start services with ./start.sh or docker-compose up")
     if not check_service_available(MENTOR_BACKEND_URL, timeout=1):
-        pytest.skip("Mentor backend not available. Start services with ./start.sh or docker-compose up")
+        pytest.fail("Mentor backend not available. Start services with ./start.sh or docker-compose up")
 
 
 def test_devices_backend_health_endpoints():
