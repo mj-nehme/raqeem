@@ -47,6 +47,9 @@ class MockAsyncSession:
     async def commit(self):
         pass
 
+    async def refresh(self, obj):
+        pass
+
     async def close(self):
         pass
 
