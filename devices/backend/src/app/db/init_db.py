@@ -1,5 +1,5 @@
-from app.db.base import Base
 from app.db import session as db_session
+from app.db.base import Base
 
 # Import models to register metadata (side-effect import to populate Base.metadata)
 # Explicit imports ensure SQLAlchemy registers all table definitions before create_all.
