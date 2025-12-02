@@ -14,27 +14,12 @@ import (
 
 // TestValidateEnvVarsWithAllVariables tests validateEnvVars with all required variables set
 func TestValidateEnvVarsWithAllVariables(t *testing.T) {
-	// Save original values
-	originalUser := os.Getenv("POSTGRES_USER")
-	originalPassword := os.Getenv("POSTGRES_PASSWORD")
-	originalDB := os.Getenv("POSTGRES_DB")
-	originalHost := os.Getenv("POSTGRES_HOST")
-	originalPort := os.Getenv("POSTGRES_PORT")
-
-	defer func() {
-		os.Setenv("POSTGRES_USER", originalUser)
-		os.Setenv("POSTGRES_PASSWORD", originalPassword)
-		os.Setenv("POSTGRES_DB", originalDB)
-		os.Setenv("POSTGRES_HOST", originalHost)
-		os.Setenv("POSTGRES_PORT", originalPort)
-	}()
-
-	// Set all required variables
-	os.Setenv("POSTGRES_USER", "testuser")
-	os.Setenv("POSTGRES_PASSWORD", "testpass")
-	os.Setenv("POSTGRES_DB", "testdb")
-	os.Setenv("POSTGRES_HOST", "localhost")
-	os.Setenv("POSTGRES_PORT", "5432")
+	// Set all required variables using t.Setenv which automatically restores original values
+	t.Setenv("POSTGRES_USER", "testuser")
+	t.Setenv("POSTGRES_PASSWORD", "testpass")
+	t.Setenv("POSTGRES_DB", "testdb")
+	t.Setenv("POSTGRES_HOST", "localhost")
+	t.Setenv("POSTGRES_PORT", "5432")
 
 	err := validateEnvVars()
 	assert.NoError(t, err)
@@ -42,27 +27,29 @@ func TestValidateEnvVarsWithAllVariables(t *testing.T) {
 
 // TestValidateEnvVarsWithMissingVariables tests validateEnvVars with missing variables
 func TestValidateEnvVarsWithMissingVariables(t *testing.T) {
-	// Save original values
-	originalUser := os.Getenv("POSTGRES_USER")
-	originalPassword := os.Getenv("POSTGRES_PASSWORD")
-	originalDB := os.Getenv("POSTGRES_DB")
-	originalHost := os.Getenv("POSTGRES_HOST")
-	originalPort := os.Getenv("POSTGRES_PORT")
+	// t.Setenv will set to empty string. For missing vars, we need to ensure they are not set.
+	// Save original values and set them to empty, then unset them for the test.
+	origUser := os.Getenv("POSTGRES_USER")
+	origPassword := os.Getenv("POSTGRES_PASSWORD")
+	origDB := os.Getenv("POSTGRES_DB")
+	origHost := os.Getenv("POSTGRES_HOST")
+	origPort := os.Getenv("POSTGRES_PORT")
 
-	defer func() {
-		os.Setenv("POSTGRES_USER", originalUser)
-		os.Setenv("POSTGRES_PASSWORD", originalPassword)
-		os.Setenv("POSTGRES_DB", originalDB)
-		os.Setenv("POSTGRES_HOST", originalHost)
-		os.Setenv("POSTGRES_PORT", originalPort)
-	}()
+	// Use t.Cleanup to restore after test (regardless of pass/fail)
+	t.Cleanup(func() {
+		_ = os.Setenv("POSTGRES_USER", origUser)
+		_ = os.Setenv("POSTGRES_PASSWORD", origPassword)
+		_ = os.Setenv("POSTGRES_DB", origDB)
+		_ = os.Setenv("POSTGRES_HOST", origHost)
+		_ = os.Setenv("POSTGRES_PORT", origPort)
+	})
 
-	// Clear all variables
-	os.Unsetenv("POSTGRES_USER")
-	os.Unsetenv("POSTGRES_PASSWORD")
-	os.Unsetenv("POSTGRES_DB")
-	os.Unsetenv("POSTGRES_HOST")
-	os.Unsetenv("POSTGRES_PORT")
+	// Clear all variables (explicitly ignore errors since these are test utilities)
+	_ = os.Unsetenv("POSTGRES_USER")
+	_ = os.Unsetenv("POSTGRES_PASSWORD")
+	_ = os.Unsetenv("POSTGRES_DB")
+	_ = os.Unsetenv("POSTGRES_HOST")
+	_ = os.Unsetenv("POSTGRES_PORT")
 
 	err := validateEnvVars()
 	assert.Error(t, err)
@@ -71,8 +58,7 @@ func TestValidateEnvVarsWithMissingVariables(t *testing.T) {
 
 // TestGetEnvIntWithValidValue tests getEnvInt with valid integer value
 func TestGetEnvIntWithValidValue(t *testing.T) {
-	os.Setenv("TEST_INT_VAR", "42")
-	defer os.Unsetenv("TEST_INT_VAR")
+	t.Setenv("TEST_INT_VAR", "42")
 
 	result := getEnvInt("TEST_INT_VAR", 10)
 	assert.Equal(t, 42, result)
@@ -80,8 +66,7 @@ func TestGetEnvIntWithValidValue(t *testing.T) {
 
 // TestGetEnvIntWithInvalidValue tests getEnvInt with invalid integer value
 func TestGetEnvIntWithInvalidValue(t *testing.T) {
-	os.Setenv("TEST_INT_VAR", "not-a-number")
-	defer os.Unsetenv("TEST_INT_VAR")
+	t.Setenv("TEST_INT_VAR", "not-a-number")
 
 	result := getEnvInt("TEST_INT_VAR", 10)
 	assert.Equal(t, 10, result)
@@ -89,7 +74,8 @@ func TestGetEnvIntWithInvalidValue(t *testing.T) {
 
 // TestGetEnvIntWithEmptyValue tests getEnvInt with empty value
 func TestGetEnvIntWithEmptyValue(t *testing.T) {
-	os.Unsetenv("TEST_INT_VAR_EMPTY")
+	// Ensure the variable doesn't exist by not setting it
+	// t.Setenv automatically handles cleanup
 
 	result := getEnvInt("TEST_INT_VAR_EMPTY", 99)
 	assert.Equal(t, 99, result)
@@ -120,16 +106,12 @@ func TestShutdownWithNilDB(t *testing.T) {
 
 // TestConnectWithRetryFailure tests connectWithRetry with failed connections
 func TestConnectWithRetryFailure(t *testing.T) {
-	// Save original environment
-	originalHost := os.Getenv("POSTGRES_HOST")
-	defer os.Setenv("POSTGRES_HOST", originalHost)
-
-	// Set an invalid host that will fail to connect
-	os.Setenv("POSTGRES_HOST", "nonexistent_host_12345")
-	os.Setenv("POSTGRES_USER", "test_user")
-	os.Setenv("POSTGRES_PASSWORD", "test_pass")
-	os.Setenv("POSTGRES_DB", "test_db")
-	os.Setenv("POSTGRES_PORT", "5432")
+	// Set environment variables using t.Setenv which handles cleanup automatically
+	t.Setenv("POSTGRES_HOST", "nonexistent_host_12345")
+	t.Setenv("POSTGRES_USER", "test_user")
+	t.Setenv("POSTGRES_PASSWORD", "test_pass")
+	t.Setenv("POSTGRES_DB", "test_db")
+	t.Setenv("POSTGRES_PORT", "5432")
 
 	// Use minimal retries and short delays for testing
 	err := connectWithRetry(3, 50*time.Millisecond)
