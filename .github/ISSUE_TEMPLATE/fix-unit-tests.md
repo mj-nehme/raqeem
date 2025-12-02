@@ -14,3 +14,6 @@ labels: testing, ci
 - CI workflow passes without suppressing failures.
 - No schema changes executed during tests.
 - Tests clean up via rollback; shared DB remains unchanged.
+- No tests use `@pytest.mark.skip` (policy: convert unavoidable temporary failures to `@pytest.mark.xfail` with linked issue and clear rationale; prefer fixing root cause immediately).
+- New or modified tests must not introduce flakiness (prove with at least 2 consecutive green CI runs if previously flaky).
+- Live dependency emulation (e.g., Postgres) uses stable session-scoped fixtures; external services (e.g., MinIO) must degrade gracefully or be explicitly mocked without skips.

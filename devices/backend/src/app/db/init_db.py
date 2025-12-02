@@ -1,5 +1,5 @@
 from app.db.base import Base
-from app.db.session import engine
+from app.db import session as db_session
 
 # Import models to register metadata (side-effect import to populate Base.metadata)
 # Explicit imports ensure SQLAlchemy registers all table definitions before create_all.
@@ -19,6 +19,6 @@ async def init_db():
     """
     if getattr(init_db, "_done", False):
         return
-    async with engine.begin() as conn:
+    async with db_session.engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     init_db._done = True  # type: ignore[attr-defined]

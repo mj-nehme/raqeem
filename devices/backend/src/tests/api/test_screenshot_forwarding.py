@@ -14,6 +14,7 @@ os.environ.setdefault("MINIO_ENDPOINT", "http://localhost:9000")
 os.environ.setdefault("MINIO_ACCESS_KEY", "minio")
 os.environ.setdefault("MINIO_SECRET_KEY", "miniosecret")
 os.environ.setdefault("MINIO_SECURE", "false")
+os.environ.setdefault("MINIO_SKIP_CONNECT", "1")  # Force MinIO noop path for deterministic tests
 # DATABASE_URL and MENTOR_API_URL should be set by CI or developer env
 
 from app.db.init_db import init_db

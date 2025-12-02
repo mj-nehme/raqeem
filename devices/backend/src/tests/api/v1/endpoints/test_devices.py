@@ -7,7 +7,7 @@ from httpx import ASGITransport, AsyncClient
 # mock-based coverage in other test modules, we skip this file. All code paths
 # in `devices.py` are exercised by `test_full_coverage.py`, `test_error_handling.py`,
 # and `test_legacy_field_rejection.py`.
-pytestmark = pytest.mark.skip(reason="Skipped: requires live Postgres; covered by mock-based full coverage tests.")
+pytestmark = []  # Live Postgres now provided via testcontainers in conftest; run integration tests.
 
 
 @pytest.mark.asyncio

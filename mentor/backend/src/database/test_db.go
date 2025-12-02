@@ -135,27 +135,32 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 	})
 
 	if migrationError != nil {
-		t.Skipf("Skipping test - database not available: %v", migrationError)
+		// Fail instead of skip to enforce no-skip policy
+		t.Fatalf("Database not available: %v", migrationError)
 	}
 
 	// Check if baseConnection is available
 	if baseConnection == nil {
-		t.Skip("Skipping test - database connection not initialized")
+		// Fail instead of skip to enforce no-skip policy
+		t.Fatalf("Database connection not initialized")
 	}
 
 	// Verify the connection is still alive before starting transaction
 	sqlDB, err := baseConnection.DB()
 	if err != nil {
-		t.Skipf("Skipping test - failed to get underlying SQL database instance: %v", err)
+		// Fail instead of skip to enforce no-skip policy
+		t.Fatalf("Failed to get underlying SQL database instance: %v", err)
 	}
 	if err := sqlDB.Ping(); err != nil {
-		t.Skipf("Skipping test - database connection ping failed: %v", err)
+		// Fail instead of skip to enforce no-skip policy
+		t.Fatalf("Database connection ping failed: %v", err)
 	}
 
 	// Begin a transaction for this test
 	txDB := baseConnection.Begin()
 	if txDB.Error != nil {
-		t.Skipf("Skipping test - failed to begin transaction: %v", txDB.Error)
+		// Fail instead of skip to enforce no-skip policy
+		t.Fatalf("Failed to begin transaction: %v", txDB.Error)
 	}
 
 	// Register cleanup to rollback transaction
