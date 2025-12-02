@@ -31,20 +31,8 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      minio:
-        image: docker.io/minio/minio:latest
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: miniosecret
-        ports:
-          - 9000:9000
-          - 9001:9001
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        command: server /data --console-address ":9001"
+      # MinIO cannot be specified with a custom command in services.
+      # It will be started explicitly in a step below.
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -71,8 +59,16 @@ jobs:
         run: |
           psql -h 127.0.0.1 -U monitor -d monitoring_db -c "SELECT version();"
           echo "✅ PostgreSQL connection successful"
-      - name: Verify MinIO is ready
+      - name: Start MinIO container
         run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=miniosecret \
+            docker.io/minio/minio:latest server /data --console-address ":9001"
+
           echo "Waiting for MinIO to be ready..."
           for i in {1..40}; do
             if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
@@ -350,20 +346,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      minio:
-        image: docker.io/minio/minio:latest
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: miniosecret
-        ports:
-          - 9000:9000
-          - 9001:9001
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        command: server /data --console-address ":9001"
+      # MinIO started explicitly in steps below.
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -384,8 +367,16 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt -r requirements-test.txt
-      - name: Wait for MinIO readiness
+      - name: Start MinIO container
         run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=miniosecret \
+            docker.io/minio/minio:latest server /data --console-address ":9001"
+
           echo "Waiting for MinIO to be ready..."
           for i in {1..40}; do
             if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
@@ -442,20 +433,7 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-      minio:
-        image: docker.io/minio/minio:latest
-        env:
-          MINIO_ROOT_USER: minio
-          MINIO_ROOT_PASSWORD: miniosecret
-        ports:
-          - 9000:9000
-          - 9001:9001
-        options: >-
-          --health-cmd "curl -f http://localhost:9000/minio/health/live || exit 1"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-        command: server /data --console-address ":9001"
+      # MinIO started explicitly in steps below.
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -474,8 +452,15 @@ jobs:
             pg_isready -h 127.0.0.1 -p 5432 -U monitor && echo "✅ PostgreSQL is ready" && break
             echo "Waiting for PostgreSQL... ($i/30)"; sleep 2; done
           pg_isready -h 127.0.0.1 -p 5432 -U monitor || (echo "❌ PostgreSQL failed to start" && exit 1)
-      - name: Wait for MinIO readiness
+      - name: Start MinIO container
         run: |
+          docker run -d \
+            --name minio \
+            -p 9000:9000 \
+            -p 9001:9001 \
+            -e MINIO_ROOT_USER=minio \
+            -e MINIO_ROOT_PASSWORD=miniosecret \
+            docker.io/minio/minio:latest server /data --console-address ":9001"
           echo "Waiting for MinIO to be ready..."
           for i in {1..40}; do
             if curl -sf http://127.0.0.1:9000/minio/health/live > /dev/null 2>&1; then
