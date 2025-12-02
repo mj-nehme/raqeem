@@ -47,6 +47,9 @@ class MockAsyncSession:
     async def commit(self):
         pass
 
+    async def refresh(self, obj):
+        pass
+
     async def close(self):
         pass
 
@@ -56,7 +59,13 @@ async def _override_get_db():
     yield session
 
 
-app.dependency_overrides[get_db] = _override_get_db
+@pytest.fixture(autouse=True)
+def override_db_for_module():
+    """Override DB dependency for all tests in this module, with cleanup."""
+    app.dependency_overrides[get_db] = _override_get_db
+    yield
+    # Clean up after tests to avoid affecting other test modules
+    app.dependency_overrides.pop(get_db, None)
 
 
 class TestDeviceRegistrationValidation:
