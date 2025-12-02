@@ -528,7 +528,7 @@ func TestListDevicesMarksOffline(t *testing.T) {
 	device := models.Device{
 		DeviceID:   deviceID,
 		DeviceName: "Old Device",
-		IsOnline:   true,                        // Currently marked as online
+		IsOnline:   true,                              // Currently marked as online
 		LastSeen:   time.Now().Add(-10 * time.Minute), // 10 minutes ago
 	}
 	db.Create(&device)
@@ -576,7 +576,6 @@ func TestListDevicesMultipleScenarios(t *testing.T) {
 
 	// Create devices with various states
 	now := time.Now()
-	
 	devices := []models.Device{
 		{
 			DeviceID:   uuid.New(),
