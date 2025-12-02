@@ -187,19 +187,19 @@ VITE_MENTOR_API_URL="http://localhost:$MENTOR_NODEPORT" \
 nohup npm run dev > ../../.deploy/dashboard.log 2>&1 &
 MENTOR_FE_PID=$!
 
-# Start devices frontend
-echo "  - Starting Devices Frontend on port $DEVICES_FRONTEND_PORT..."
+# Start devices web simulator
+echo "  - Starting Devices Web Simulator on port $DEVICES_FRONTEND_PORT..."
 cd ../../devices/web-simulator
 npm install --silent
 VITE_DEVICES_FRONTEND_PORT=$DEVICES_FRONTEND_PORT \
 VITE_DEVICES_API_URL="http://localhost:$DEVICES_NODEPORT/api/v1" \
-nohup npm run dev > ../../.deploy/devices-frontend.log 2>&1 &
+nohup npm run dev > ../../.deploy/devices-web-simulator.log 2>&1 &
 DEVICES_FE_PID=$!
 
 cd ../..
 
 # Register frontend services
-register_service "devices-frontend" "http://localhost:$DEVICES_FRONTEND_PORT" "$DEVICES_FRONTEND_PORT"
+register_service "devices-web-simulator" "http://localhost:$DEVICES_FRONTEND_PORT" "$DEVICES_FRONTEND_PORT"
 register_service "dashboard" "http://localhost:$MENTOR_FRONTEND_PORT" "$MENTOR_FRONTEND_PORT"
 
 # Save PIDs and ports for cleanup
@@ -222,7 +222,7 @@ if ! kill -0 $MENTOR_FE_PID 2>/dev/null; then
   exit 1
 fi
 if ! kill -0 $DEVICES_FE_PID 2>/dev/null; then
-  echo "❌ ERROR: Devices Frontend failed - check .deploy/devices-frontend.log"
+  echo "❌ ERROR: Devices Web Simulator failed - check .deploy/devices-web-simulator.log"
   exit 1
 fi
 

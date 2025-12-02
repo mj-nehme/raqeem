@@ -34,6 +34,15 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+      - name: Install PostgreSQL client
+        run: |
+          if command -v sudo >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y postgresql-client
+          else
+            apt-get update -y
+            apt-get install -y postgresql-client
+          fi
       - name: Verify PostgreSQL is ready
         run: |
           for i in {1..30}; do
@@ -359,7 +368,11 @@ jobs:
           # Install MinIO client
           wget -q https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x mc
-          sudo mv mc /usr/local/bin/
+          if command -v sudo >/dev/null 2>&1; then
+            sudo mv mc /usr/local/bin/
+          else
+            mv mc /usr/local/bin/
+          fi
           # Configure MinIO client
           mc alias set local http://localhost:9000 minio miniosecret
           # Create bucket for screenshots
