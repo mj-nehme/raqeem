@@ -810,11 +810,17 @@ func TestContextTimeoutInHealthCheck(t *testing.T) {
 
 	// Save original client
 	originalClient := client
-	// Use defer with a channel to ensure we wait for goroutine before restoring
+	// Use a channel to signal when goroutine is done
 	goroutineDone := make(chan struct{})
 	defer func() {
-		// Wait for the goroutine to complete before restoring client
-		<-goroutineDone
+		// Wait for the goroutine to complete (with timeout) before restoring client
+		select {
+		case <-goroutineDone:
+			// Goroutine completed normally
+		case <-time.After(10 * time.Second):
+			// Safety timeout in case goroutine is stuck
+			t.Log("Warning: goroutine did not complete in time")
+		}
 		client = originalClient
 		// Close client connections first to avoid blocking on server close
 		mockServer.CloseClientConnections()
@@ -834,7 +840,7 @@ func TestContextTimeoutInHealthCheck(t *testing.T) {
 	// Start HealthCheck in goroutine
 	done := make(chan error, 1)
 	go func() {
-		defer close(goroutineDone) // Signal that goroutine is done
+		defer close(goroutineDone) // Signal that goroutine is done (runs even on panic)
 		done <- HealthCheck()
 	}()
 
