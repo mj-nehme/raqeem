@@ -6,13 +6,57 @@ use async patterns for proper event loop handling.
 """
 
 import uuid
+from typing import Any
 
 import pytest
 from app.main import app
+from app.db.session import get_db
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 client = TestClient(app)
+
+
+# ---- Mock DB override to prevent real Postgres connections for tests that reach DB layer ----
+class _DummyScalarResult:
+    def first(self):
+        return None
+
+
+class _DummyResult:
+    def __init__(self, value: Any = None):
+        self._value = value
+
+    def scalars(self):
+        return _DummyScalarResult()
+
+
+class MockAsyncSession:
+    def __init__(self):
+        self._added = []
+
+    async def execute(self, *args, **kwargs):  # noqa: D401 - simple stub
+        return _DummyResult()
+
+    def add(self, obj):  # noqa: D401 - simple stub
+        self._added.append(obj)
+
+    async def flush(self):  # noqa: D401 - simple stub
+        pass
+
+    async def commit(self):  # noqa: D401 - simple stub
+        pass
+
+    async def close(self):  # noqa: D401 - simple stub
+        pass
+
+
+async def _override_get_db():
+    session = MockAsyncSession()
+    yield session
+
+
+app.dependency_overrides[get_db] = _override_get_db
 
 
 class TestDeviceRegistrationValidation:
