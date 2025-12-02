@@ -96,3 +96,126 @@ async def test_create_screenshot_file_upload_jpg(mock_minio, mock_db_session):
 
     # Verify MinIO upload was called
     mock_minio.upload_file.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_create_screenshot_missing_device_id(mock_minio, mock_db_session):
+    """Test error when device identifier missing (device_id/deviceid)."""
+    fake_image = io.BytesIO(b"img")
+    fake_image.name = "missing.png"
+    with override_db_dependency(mock_db_session):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/v1/screenshots/",
+                data={},
+                files={"file": ("screenshot.png", fake_image, "image/png")},
+            )
+    assert response.status_code == 422
+    assert "device_id is required" in response.text
+
+
+@pytest.mark.asyncio
+async def test_create_screenshot_minio_failure(mock_db_session):
+    """Test that MinIO failure is logged but endpoint still succeeds."""
+    fake_image = io.BytesIO(b"fake content")
+    fake_image.name = "test.png"
+    device_id = str(uuid4())
+
+    # Patch MinioService to raise exception on upload
+    with patch('app.api.v1.endpoints.screenshots.MinioService') as mock_minio_class:
+        mock_instance = MagicMock()
+        def _raise(*args, **kwargs):
+            raise RuntimeError("minio down")
+        mock_instance.upload_file.side_effect = _raise
+        mock_minio_class.return_value = mock_instance
+
+        with override_db_dependency(mock_db_session):
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+                response = await ac.post(
+                    "/api/v1/screenshots/",
+                    data={"device_id": device_id},
+                    files={"file": ("screenshot.png", fake_image, "image/png")},
+                )
+    assert response.status_code == 201
+    data = response.json()
+    assert data["status"] == "success"
+
+
+@pytest.mark.asyncio
+async def test_create_screenshot_forwarding_called(mock_db_session):
+    """Test that forwarding logic calls post_with_retry when mentor_api_url set."""
+    fake_image = io.BytesIO(b"forward content")
+    fake_image.name = "forward.png"
+    device_id = str(uuid4())
+
+    # Patch settings and post_with_retry
+    with patch('app.api.v1.endpoints.screenshots.settings') as mock_settings, patch('app.api.v1.endpoints.screenshots.post_with_retry') as mock_post:
+        mock_settings.mentor_api_url = "http://mentor-backend"  # trigger forwarding
+        mock_post.return_value = AsyncMock()
+        with override_db_dependency(mock_db_session):
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+                response = await ac.post(
+                    "/api/v1/screenshots/",
+                    data={"device_id": device_id},
+                    files={"file": ("screenshot.png", fake_image, "image/png")},
+                )
+    assert response.status_code == 201
+    mock_post.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_create_screenshot_tempfile_cleanup_error(mock_db_session):
+    """Test that a cleanup unlink failure is caught and does not affect success response."""
+    fake_image = io.BytesIO(b"cleanup content")
+    fake_image.name = "cleanup.png"
+    device_id = str(uuid4())
+
+    # Simulate Path.unlink raising exception
+    with patch('app.api.v1.endpoints.screenshots.Path.unlink', side_effect=RuntimeError("unlink fail")):
+        with override_db_dependency(mock_db_session):
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+                response = await ac.post(
+                    "/api/v1/screenshots/",
+                    data={"device_id": device_id},
+                    files={"file": ("screenshot.png", fake_image, "image/png")},
+                )
+    assert response.status_code == 201
+    assert response.json()["status"] == "success"
+
+
+@pytest.mark.asyncio
+async def test_create_screenshot_with_deviceid_field(mock_db_session):
+    """Test using legacy 'deviceid' form field name instead of device_id."""
+    fake_image = io.BytesIO(b"legacy deviceid content")
+    fake_image.name = "legacy.png"
+    device_id = str(uuid4())
+    with override_db_dependency(mock_db_session):
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+            response = await ac.post(
+                "/api/v1/screenshots/",
+                data={"deviceid": device_id},
+                files={"file": ("screenshot.png", fake_image, "image/png")},
+            )
+    assert response.status_code == 201
+    assert response.json()["status"] == "success"
+
+
+@pytest.mark.asyncio
+async def test_create_screenshot_database_failure(mock_db_session):
+    """Test that a database failure triggers 500 error path."""
+    fake_image = io.BytesIO(b"db fail content")
+    fake_image.name = "dbfail.png"
+    device_id = str(uuid4())
+    # Force add() to raise to enter exception block
+    mock_db_session.add.side_effect = RuntimeError("db add failed")
+    with patch('app.api.v1.endpoints.screenshots.MinioService') as mock_minio_class:
+        mock_minio_class.return_value = MagicMock()  # MinIO succeeds
+        with override_db_dependency(mock_db_session):
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as ac:
+                response = await ac.post(
+                    "/api/v1/screenshots/",
+                    data={"device_id": device_id},
+                    files={"file": ("screenshot.png", fake_image, "image/png")},
+                )
+    assert response.status_code == 500
+    assert "Screenshot upload failed" in response.text
