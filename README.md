@@ -8,6 +8,8 @@
 
 > Full-stack IoT device monitoring platform with real-time telemetry, alerts, and analytics
 
+> Note: This repository is maintained for teaching and learning purposes, focused on IoT and cloud-native patterns. It is not intended for production use without further hardening and review.
+
 ## Quick Start
 
 ```bash
