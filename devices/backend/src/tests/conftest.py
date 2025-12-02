@@ -5,11 +5,11 @@ Avoids per-test engine churn and event loop cross-talk. No test skips: failures 
 environment or logic issues that must be addressed.
 """
 
-import os
+import asyncio
 import logging
+import os
 import socket
 import time
-import asyncio
 
 import pytest
 import pytest_asyncio
@@ -37,9 +37,9 @@ os.environ.setdefault("TESTCONTAINERS_RYUK_DISABLED", "true")
 @pytest.fixture(scope="session", autouse=True)
 def _start_postgres_container():
     """Start a single Postgres testcontainer and initialize schema once for the session."""
-    from testcontainers.postgres import PostgresContainer
     from app.db import session as db_session
     from app.db.base import Base
+    from testcontainers.postgres import PostgresContainer
 
     logging.getLogger(__name__).info("Starting Postgres testcontainer (session-scoped)...")
     container = PostgresContainer(
@@ -68,7 +68,8 @@ def _start_postgres_container():
                 last_err = e
                 time.sleep(0.2)
         else:
-            raise RuntimeError(f"Postgres did not open port {host}:{port}: {last_err}")
+            msg = f"Postgres did not open port {host}:{port}: {last_err}"
+            raise RuntimeError(msg)
 
         async_url = f"postgresql+asyncpg://monitor:password@{host}:{port}/monitoring_db"
         os.environ["DATABASE_URL"] = async_url
