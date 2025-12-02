@@ -136,14 +136,12 @@ func SetupTestDB(t *testing.T, config ...DBConfig) (*gorm.DB, error) {
 
 	if migrationError != nil {
 		t.Fatalf("Test failed - database not available: %v", migrationError)
-		return nil, migrationError
 	}
 
 	// Begin a transaction for this test
 	txDB := baseConnection.Begin()
 	if txDB.Error != nil {
 		t.Fatalf("Test failed - failed to begin transaction: %v", txDB.Error)
-		return nil, txDB.Error
 	}
 
 	// Register cleanup to rollback transaction

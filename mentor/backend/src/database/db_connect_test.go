@@ -458,13 +458,11 @@ func TestConnectIntegrationWithRealDatabase(t *testing.T) {
 	err := connectWithConfig()
 	if err != nil {
 		t.Fatalf("Test failed - database not available: %v", err)
-		return
 	}
 
 	// Run migrations
 	if err := migrate(DB); err != nil {
 		t.Fatalf("Test failed - database migration failed: %v", err)
-		return
 	}
 
 	// Verify DB was initialized
@@ -629,13 +627,11 @@ func TestConnectDatabaseConnectionSuccess(t *testing.T) {
 	err := connectWithConfig()
 	if err != nil {
 		t.Fatalf("Test failed - database not available: %v", err)
-		return
 	}
 
 	// Run migrations
 	if err := migrate(DB); err != nil {
 		t.Fatalf("Test failed - database migration failed: %v", err)
-		return
 	}
 
 	// Verify DB is initialized
