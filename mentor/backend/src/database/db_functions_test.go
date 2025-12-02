@@ -1,12 +1,15 @@
 package database
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func TestGetEnvInt(t *testing.T) {
@@ -149,16 +152,25 @@ func TestShutdown(t *testing.T) {
 		assert.NoError(t, err, "Shutdown should handle nil DB gracefully")
 	})
 
-	t.Run("closes database connection successfully", func(t *testing.T) {
-		db, err := SetupTestDB(t)
+	t.Run("closes database connection successfully (isolated)", func(t *testing.T) {
+		// Create an isolated connection that does NOT share the baseConnection pool
+		host := getEnvOrDefault("POSTGRES_HOST", "127.0.0.1")
+		user := getEnvOrDefault("POSTGRES_USER", "monitor")
+		password := getEnvOrDefault("POSTGRES_PASSWORD", "password")
+		dbname := getEnvOrDefault("POSTGRES_DB", "monitoring_db")
+		port := getEnvOrDefault("POSTGRES_PORT", "5432")
+		sslmode := getEnvOrDefault("SSLMODE", "disable")
+		dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s", host, user, password, dbname, port, sslmode)
+
+		isolatedDB, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		require.NoError(t, err)
 
-		// Set global DB temporarily
+		// Set global DB temporarily to the isolated connection
 		oldDB := DB
-		DB = db
+		DB = isolatedDB
 		defer func() { DB = oldDB }()
 
-		// Test shutdown
+		// Test shutdown on the isolated connection; should not affect baseConnection
 		err = Shutdown()
 		assert.NoError(t, err, "Shutdown should close database successfully")
 	})
