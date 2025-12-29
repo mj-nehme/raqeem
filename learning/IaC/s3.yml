@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Raqeem S3 bucket
+Resources:
+  RaqeemBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: raqeem-s3-bucket
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: raqeem-s3-bucket
+        - Key: Environment
+          Value: Dev

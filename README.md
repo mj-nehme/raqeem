@@ -13,12 +13,63 @@
 ## Quick Start
 
 ```bash
-# Start everything (one command)
+# Start everything (infra + all components)
 ./start.sh
 
-# Stop everything
+# Stop everything (frontends → backends → infra)
 ./stop.sh
 ```
+### Modular Starts (AWS-friendly)
+
+Use split scripts to start components independently:
+
+```bash
+# Root orchestrator targets
+# (use NAMESPACE env as needed)
+
+# Infra only (PostgreSQL + MinIO via Helm)
+./start.sh infra
+
+# Single infra service
+AUTO_CLEAN_PVC=true ./start.sh postgres
+./start.sh minio
+
+# Backends (Helm)
+./start.sh mentor-backend
+./start.sh devices-backend
+
+# Frontends (local dev servers)
+./start.sh dashboard
+./start.sh devices-web-simulator
+```
+
+Notes:
+- Set `NAMESPACE` to target a specific Kubernetes namespace.
+- For devices backend, start mentor backend first or set `MENTOR_API_URL`.
+- For frontends, the scripts auto-pick available ports in the ranges 5000-5004 and 4000-4004.
+- You can skip `./scripts/start-infra.sh` and deploy PostgreSQL/S3 on AWS.
+
+### Modular Stops
+
+```bash
+# Root orchestrator targets
+
+# Infra only
+./stop.sh infra --clean           # delete PVCs
+./stop.sh postgres --clean        # delete PVCs
+./stop.sh minio
+
+# Backends
+./stop.sh mentor-backend
+./stop.sh devices-backend
+
+# Frontends
+./stop.sh dashboard
+./stop.sh devices-web-simulator
+```
+
+The existing `./stop.sh` still tears down everything (smart mode).
+
 
 **Prerequisites**: Docker Desktop with Kubernetes, kubectl, helm, node/npm
 
@@ -124,8 +175,8 @@ After `./start.sh`, services auto-discover ports:
 1. **Device Registration** → Device Simulator → Devices Backend → PostgreSQL
 2. **Telemetry Ingestion** → Device Simulator → Devices Backend → PostgreSQL
 3. **Alert Forwarding** → Devices Backend → Mentor Backend → PostgreSQL
- 4. **Screenshot Upload** → Device Simulator → Devices Backend → MinIO
- 5. **Dashboard Display** → Dashboard → Mentor Backend → PostgreSQL + MinIO
+4. **Screenshot Upload** → Device Simulator → Devices Backend → MinIO
+5. **Dashboard Display** → Dashboard → Mentor Backend → PostgreSQL + MinIO
 
 ## Contributing
 

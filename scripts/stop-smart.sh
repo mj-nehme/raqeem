@@ -136,6 +136,24 @@ if [[ "$CLEAN_DATA" == "--clean" ]] || [[ "$CLEAN_DATA" == "-c" ]]; then
   echo ""
   echo "🗑️  Deleting persistent volumes (fresh database on next start)..."
   kubectl delete pvc --all -n "$NAMESPACE" 2>/dev/null || echo "  ℹ️ No PVCs to delete"
+
+  # Wait for PVCs to be fully removed to avoid Helm ownership errors on next start
+  echo "⏳ Waiting for PVCs to be fully removed..."
+  for i in $(seq 1 30); do
+    REMAINING=$(kubectl get pvc -n "$NAMESPACE" --no-headers 2>/dev/null | wc -l | tr -d ' ')
+    if [[ "$REMAINING" == "0" ]]; then
+      break
+    fi
+    sleep 2
+  done
+
+  # If postgres-pvc is still present (Terminating/finalizer), attempt force removal
+  if kubectl get pvc postgres-pvc -n "$NAMESPACE" >/dev/null 2>&1; then
+    echo "⚠️  postgres-pvc still present; attempting to remove finalizers and force delete..."
+    kubectl patch pvc postgres-pvc -n "$NAMESPACE" -p '{"metadata":{"finalizers":null}}' --type=merge >/dev/null 2>&1 || true
+    kubectl delete pvc postgres-pvc -n "$NAMESPACE" --grace-period=0 >/dev/null 2>&1 || true
+  fi
+
   echo "✅ Database will be recreated fresh on next start"
 else
   echo ""

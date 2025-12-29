@@ -8,11 +8,6 @@ LABEL description="Raqeem Devices Backend - FastAPI IoT device monitoring servic
 # Set working directory
 WORKDIR /app
 
-# Install build dependencies (optional but helps for packages with native extensions)
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
 # Copy and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

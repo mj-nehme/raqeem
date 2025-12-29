@@ -115,3 +115,6 @@ tests/battle/results/
 SESSION_SUMMARY.md
 COMMIT_MSG.txt
 .github_issue_template.md
+
+# Learning K8s files
+temp/
