@@ -309,14 +309,14 @@ env:
       secretKeyRef:
         name: backend-secret
         key: devices-db-url
-  - name: MINIO_ENDPOINT
+  - name: BUCKET_ENDPOINT
     value: "minio-service:9000"
-  - name: MINIO_ACCESS_KEY
+  - name: BUCKET_ACCESS_KEY
     valueFrom:
       secretKeyRef:
         name: minio-secret
         key: access-key
-  - name: MINIO_SECRET_KEY
+  - name: BUCKET_SECRET_KEY
     valueFrom:
       secretKeyRef:
         name: minio-secret
@@ -643,9 +643,9 @@ kubectl apply -f hpa.yaml
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `MINIO_ENDPOINT` | MinIO/S3 endpoint | `minio-service:9000` or `s3.amazonaws.com` |
-| `MINIO_ACCESS_KEY` | S3 access key | `AKIAIOSFODNN7EXAMPLE` |
-| `MINIO_SECRET_KEY` | S3 secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
+| `BUCKET_ENDPOINT` | MinIO/S3 endpoint | `minio-service:9000` or `s3.amazonaws.com` |
+| `BUCKET_ACCESS_KEY` | S3 access key | `AKIAIOSFODNN7EXAMPLE` |
+| `BUCKET_SECRET_KEY` | S3 secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
 | `MENTOR_API_URL` | Mentor backend URL | `http://mentor-backend:8080` |
 | `PORT` | Server port | `8080` |
 
@@ -654,10 +654,10 @@ kubectl apply -f hpa.yaml
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://user:pass@host:5432/db` |
-| `MINIO_ENDPOINT` | MinIO/S3 endpoint | `minio-service:9000` or `s3.amazonaws.com` |
-| `MINIO_ACCESS_KEY` | S3 access key | `AKIAIOSFODNN7EXAMPLE` |
-| `MINIO_SECRET_KEY` | S3 secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
-| `MINIO_BUCKET_NAME` | S3 bucket name for screenshots | `screenshots` |
+| `BUCKET_ENDPOINT` | MinIO/S3 endpoint | `minio-service:9000` or `s3.amazonaws.com` |
+| `BUCKET_ACCESS_KEY` | S3 access key | `AKIAIOSFODNN7EXAMPLE` |
+| `BUCKET_SECRET_KEY` | S3 secret key | `wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY` |
+| `BUCKET_NAME` | S3 bucket name for screenshots | `screenshots` |
 | `PORT` | Server port | `8080` |
 | `FRONTEND_ORIGIN` | Allowed CORS origins | `https://dashboard.example.com` |
 

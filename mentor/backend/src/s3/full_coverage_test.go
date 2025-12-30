@@ -12,51 +12,51 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestGetPublicEndpointWithEnvVar tests GetPublicEndpoint when MINIO_PUBLIC_ENDPOINT is set
+// TestGetPublicEndpointWithEnvVar tests GetPublicEndpoint when BUCKET_PUBLIC_ENDPOINT is set
 func TestGetPublicEndpointWithEnvVar(t *testing.T) {
 	// Save original value
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
 	defer func() {
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 	}()
 
-	// Test when MINIO_PUBLIC_ENDPOINT is set
-	_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", "public-minio.example.com:9000")
+	// Test when BUCKET_PUBLIC_ENDPOINT is set
+	_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", "public-minio.example.com:9000")
 	assert.Equal(t, "public-minio.example.com:9000", GetPublicEndpoint())
 
 	// Test fallback to GetEndpoint when not set
-	_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+	_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 	assert.Equal(t, GetEndpoint(), GetPublicEndpoint())
 }
 
 // TestGetPublicEndpointFallback tests GetPublicEndpoint fallback behavior
 func TestGetPublicEndpointFallback(t *testing.T) {
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 	defer func() {
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 	}()
 
 	// When neither is set, should return default endpoint
-	_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
-	_ = os.Unsetenv("MINIO_ENDPOINT")
+	_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
+	_ = os.Unsetenv("BUCKET_ENDPOINT")
 	assert.Equal(t, "minio.default.svc.cluster.local:9000", GetPublicEndpoint())
 
-	// When only MINIO_ENDPOINT is set
-	_ = os.Setenv("MINIO_ENDPOINT", "custom-minio:9000")
+	// When only BUCKET_ENDPOINT is set
+	_ = os.Setenv("BUCKET_ENDPOINT", "custom-minio:9000")
 	assert.Equal(t, "custom-minio:9000", GetPublicEndpoint())
 }
 
@@ -81,20 +81,20 @@ func TestGeneratePresignedURLWithDifferentEndpoints(t *testing.T) {
 	// Save original values
 	originalClient := client
 	originalPresignClient := presignClient
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 	defer func() {
 		client = originalClient
 		presignClient = originalPresignClient
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 	}()
 
@@ -108,8 +108,8 @@ func TestGeneratePresignedURLWithDifferentEndpoints(t *testing.T) {
 	presignClient = nil // Reset presign client
 
 	// Set different endpoints
-	_ = os.Setenv("MINIO_ENDPOINT", "internal:9000")
-	_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", "public:9000")
+	_ = os.Setenv("BUCKET_ENDPOINT", "internal:9000")
+	_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", "public:9000")
 
 	// Call GeneratePresignedURL - this will trigger presignClient initialization
 	url := GeneratePresignedURL("test.jpg")
@@ -123,20 +123,20 @@ func TestGeneratePresignedURLWithExistingPresignClient(t *testing.T) {
 	// Save original values
 	originalClient := client
 	originalPresignClient := presignClient
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 	defer func() {
 		client = originalClient
 		presignClient = originalPresignClient
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 	}()
 
@@ -157,8 +157,8 @@ func TestGeneratePresignedURLWithExistingPresignClient(t *testing.T) {
 	presignClient = mockPresignClient
 
 	// Set different endpoints
-	_ = os.Setenv("MINIO_ENDPOINT", "internal:9000")
-	_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", "public:9000")
+	_ = os.Setenv("BUCKET_ENDPOINT", "internal:9000")
+	_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", "public:9000")
 
 	// Call GeneratePresignedURL - should use existing presignClient
 	url := GeneratePresignedURL("test.jpg")
@@ -171,31 +171,31 @@ func TestGeneratePresignedURLWithExistingPresignClient(t *testing.T) {
 func TestInitClientWithEndpointStripping(t *testing.T) {
 	// Save original values
 	originalClient := client
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	originalSkipConnect := os.Getenv("MINIO_SKIP_CONNECT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+	originalSkipConnect := os.Getenv("BUCKET_SKIP_CONNECT")
 	defer func() {
 		client = originalClient
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 		if originalSkipConnect != "" {
-			_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+			_ = os.Setenv("BUCKET_SKIP_CONNECT", originalSkipConnect)
 		} else {
-			_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+			_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 		}
 	}()
 
 	// Test with http:// prefix
-	_ = os.Setenv("MINIO_ENDPOINT", "http://minio:9000")
-	_ = os.Setenv("MINIO_SKIP_CONNECT", "1")
+	_ = os.Setenv("BUCKET_ENDPOINT", "http://minio:9000")
+	_ = os.Setenv("BUCKET_SKIP_CONNECT", "1")
 	client = nil
 	InitClient()
 	assert.NotNil(t, client)
 
 	// Test with https:// prefix
-	_ = os.Setenv("MINIO_ENDPOINT", "https://minio:9000")
+	_ = os.Setenv("BUCKET_ENDPOINT", "https://minio:9000")
 	client = nil
 	InitClient()
 	assert.NotNil(t, client)
@@ -206,20 +206,20 @@ func TestGeneratePresignedURLWithPublicEndpointWithHttpPrefix(t *testing.T) {
 	// Save original values
 	originalClient := client
 	originalPresignClient := presignClient
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 	defer func() {
 		client = originalClient
 		presignClient = originalPresignClient
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 	}()
 
@@ -233,8 +233,8 @@ func TestGeneratePresignedURLWithPublicEndpointWithHttpPrefix(t *testing.T) {
 	presignClient = nil
 
 	// Set public endpoint with http:// prefix
-	_ = os.Setenv("MINIO_ENDPOINT", "http://internal:9000")
-	_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", "http://public:9000")
+	_ = os.Setenv("BUCKET_ENDPOINT", "http://internal:9000")
+	_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", "http://public:9000")
 
 	url := GeneratePresignedURL("test.jpg")
 	// URL will be empty due to network failure
@@ -255,20 +255,20 @@ func TestGeneratePresignedURLWithMockServer(t *testing.T) {
 	// Save original values
 	originalClient := client
 	originalPresignClient := presignClient
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 	defer func() {
 		client = originalClient
 		presignClient = originalPresignClient
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 	}()
 
@@ -285,8 +285,8 @@ func TestGeneratePresignedURLWithMockServer(t *testing.T) {
 	presignClient = nil
 
 	// Set endpoints to same value (will use main client for presign)
-	_ = os.Setenv("MINIO_ENDPOINT", serverAddr)
-	_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+	_ = os.Setenv("BUCKET_ENDPOINT", serverAddr)
+	_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 
 	// Call GeneratePresignedURL - should succeed and return a URL
 	url := GeneratePresignedURL("test.jpg")
@@ -346,19 +346,19 @@ func TestInitClientWithMockServer(t *testing.T) {
 
 	// Save original values
 	originalClient := client
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	originalSkipConnect := os.Getenv("MINIO_SKIP_CONNECT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+	originalSkipConnect := os.Getenv("BUCKET_SKIP_CONNECT")
 	defer func() {
 		client = originalClient
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 		if originalSkipConnect != "" {
-			_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+			_ = os.Setenv("BUCKET_SKIP_CONNECT", originalSkipConnect)
 		} else {
-			_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+			_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 		}
 	}()
 
@@ -366,8 +366,8 @@ func TestInitClientWithMockServer(t *testing.T) {
 	serverAddr := mockServer.URL[7:] // Remove "http://"
 
 	// Set environment to use mock server and don't skip connection
-	_ = os.Setenv("MINIO_ENDPOINT", serverAddr)
-	_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+	_ = os.Setenv("BUCKET_ENDPOINT", serverAddr)
+	_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 	client = nil
 
 	// InitClient should succeed with mock server
@@ -422,13 +422,13 @@ func TestEnsureBucketExistsWithMockServer(t *testing.T) {
 
 	// Save original client
 	originalClient := client
-	originalBucketName := os.Getenv("MINIO_BUCKET_NAME")
+	originalBucketName := os.Getenv("BUCKET_NAME")
 	defer func() {
 		client = originalClient
 		if originalBucketName != "" {
-			_ = os.Setenv("MINIO_BUCKET_NAME", originalBucketName)
+			_ = os.Setenv("BUCKET_NAME", originalBucketName)
 		} else {
-			_ = os.Unsetenv("MINIO_BUCKET_NAME")
+			_ = os.Unsetenv("BUCKET_NAME")
 		}
 	}()
 
@@ -444,7 +444,7 @@ func TestEnsureBucketExistsWithMockServer(t *testing.T) {
 		})
 		assert.NoError(t, err)
 		client = mockClient
-		_ = os.Setenv("MINIO_BUCKET_NAME", "test-bucket")
+		_ = os.Setenv("BUCKET_NAME", "test-bucket")
 
 		// ensureBucketExists should log "already exists"
 		ensureBucketExists()
@@ -474,20 +474,20 @@ func TestGeneratePresignedURLPresignClientCreationError(t *testing.T) {
 	// Save original values
 	originalClient := client
 	originalPresignClient := presignClient
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 	defer func() {
 		client = originalClient
 		presignClient = originalPresignClient
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 	}()
 
@@ -503,8 +503,8 @@ func TestGeneratePresignedURLPresignClientCreationError(t *testing.T) {
 	// Set public endpoint to an invalid value that will cause minio.New to fail
 	// A single colon (":") fails validation because minio.New expects valid hostname format
 	// Error: "Endpoint: : does not follow ip address or domain name standards."
-	_ = os.Setenv("MINIO_ENDPOINT", "internal:9000")
-	_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", ":")
+	_ = os.Setenv("BUCKET_ENDPOINT", "internal:9000")
+	_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", ":")
 
 	url := GeneratePresignedURL("test.jpg")
 	// Should return empty string due to presign client creation error
@@ -515,27 +515,27 @@ func TestGeneratePresignedURLPresignClientCreationError(t *testing.T) {
 func TestInitClientMinioNewError(t *testing.T) {
 	// Save original values
 	originalClient := client
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	originalSkipConnect := os.Getenv("MINIO_SKIP_CONNECT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+	originalSkipConnect := os.Getenv("BUCKET_SKIP_CONNECT")
 	defer func() {
 		client = originalClient
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 		if originalSkipConnect != "" {
-			_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+			_ = os.Setenv("BUCKET_SKIP_CONNECT", originalSkipConnect)
 		} else {
-			_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+			_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 		}
 	}()
 
 	// Set endpoint to "http://" which, after stripping the "http://" prefix in InitClient,
 	// becomes an empty string "" that fails minio.New validation with:
 	// "Endpoint:  does not follow ip address or domain name standards."
-	_ = os.Setenv("MINIO_ENDPOINT", "http://")
-	_ = os.Setenv("MINIO_SKIP_CONNECT", "1")
+	_ = os.Setenv("BUCKET_ENDPOINT", "http://")
+	_ = os.Setenv("BUCKET_SKIP_CONNECT", "1")
 	client = nil
 
 	// InitClient should handle the error gracefully
@@ -570,19 +570,19 @@ func TestInitClientSuccessfulConnectionPath(t *testing.T) {
 
 	// Save original values
 	originalClient := client
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	originalSkipConnect := os.Getenv("MINIO_SKIP_CONNECT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+	originalSkipConnect := os.Getenv("BUCKET_SKIP_CONNECT")
 	defer func() {
 		client = originalClient
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 		if originalSkipConnect != "" {
-			_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+			_ = os.Setenv("BUCKET_SKIP_CONNECT", originalSkipConnect)
 		} else {
-			_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+			_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 		}
 	}()
 
@@ -590,8 +590,8 @@ func TestInitClientSuccessfulConnectionPath(t *testing.T) {
 	serverAddr := mockServer.URL[7:] // Remove "http://"
 
 	// Set environment to use mock server - DON'T skip connection to test the successful path
-	_ = os.Setenv("MINIO_ENDPOINT", serverAddr)
-	_ = os.Unsetenv("MINIO_SKIP_CONNECT") // Important: don't skip connection
+	_ = os.Setenv("BUCKET_ENDPOINT", serverAddr)
+	_ = os.Unsetenv("BUCKET_SKIP_CONNECT") // Important: don't skip connection
 	client = nil
 
 	// InitClient should succeed with mock server and go through the success path (line 102)
@@ -754,20 +754,20 @@ func TestStatObjectSuccessPath(t *testing.T) {
 	// Save original values
 	originalClient := client
 	originalPresignClient := presignClient
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	originalPublicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+	originalPublicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT")
 	defer func() {
 		client = originalClient
 		presignClient = originalPresignClient
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 		if originalPublicEndpoint != "" {
-			_ = os.Setenv("MINIO_PUBLIC_ENDPOINT", originalPublicEndpoint)
+			_ = os.Setenv("BUCKET_PUBLIC_ENDPOINT", originalPublicEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 		}
 	}()
 
@@ -783,8 +783,8 @@ func TestStatObjectSuccessPath(t *testing.T) {
 	presignClient = nil
 
 	// Set same endpoints so we use the main client
-	_ = os.Setenv("MINIO_ENDPOINT", serverAddr)
-	_ = os.Unsetenv("MINIO_PUBLIC_ENDPOINT")
+	_ = os.Setenv("BUCKET_ENDPOINT", serverAddr)
+	_ = os.Unsetenv("BUCKET_PUBLIC_ENDPOINT")
 
 	// Call GeneratePresignedURL
 	url := GeneratePresignedURL("test.jpg")

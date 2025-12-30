@@ -41,24 +41,22 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.postgres.passwordSecret.name | quote }}
                   key: {{ .Values.postgres.passwordSecret.key | quote }}
-            - name: MINIO_ENDPOINT
+            - name: BUCKET_ENDPOINT
               value: {{ .Values.minio.endpoint | quote }}
-            - name: MINIO_ACCESS_KEY
+            - name: BUCKET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.minio.accessKeySecret.name | quote }}
                   key: {{ .Values.minio.accessKeySecret.key | quote }}
-            - name: MINIO_SECRET_KEY
+            - name: BUCKET_SECRET_KEY
               valueFrom:
                 secretKeyRef:
                   name: {{ .Values.minio.secretKeySecret.name | quote }}
                   key: {{ .Values.minio.secretKeySecret.key | quote }}
-            - name: MINIO_REGION
-              value: {{ .Values.minio.region | quote }}
-            - name: MINIO_BUCKET_NAME
+            - name: BUCKET_NAME
               value: {{ .Values.minio.bucket | quote }}
             {{- if .Values.minio.publicEndpoint }}
-            - name: MINIO_PUBLIC_ENDPOINT
+            - name: BUCKET_PUBLIC_ENDPOINT
               value: {{ .Values.minio.publicEndpoint | quote }}
             {{- end }}
             - name: FRONTEND_ORIGIN

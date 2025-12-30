@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+data:
+  NAMESPACE: default
+  POSTGRES_HOST: postgres-svc
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: monitor
+  POSTGRES_DB: monitoring_db
+  PGDATA: /var/lib/postgresql/data/pgdata

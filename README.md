@@ -46,7 +46,7 @@ AUTO_CLEAN_PVC=true ./start.sh postgres
 Notes:
 - Set `NAMESPACE` to target a specific Kubernetes namespace.
 - For devices backend, start mentor backend first or set `MENTOR_API_URL`.
-- For frontends, the scripts auto-pick available ports in the ranges 5000-5004 and 4000-4004.
+- Frontend scripts auto-pick ports; backends use a default CORS origin regex that allows `http://localhost` on any port. Override per-backend via `CORS_ORIGIN_REGEX` in its `.env` if needed.
 - You can skip `./scripts/start-infra.sh` and deploy PostgreSQL/S3 on AWS.
 
 ### Modular Stops

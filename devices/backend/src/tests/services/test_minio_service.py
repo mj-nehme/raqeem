@@ -11,8 +11,8 @@ from unittest.mock import patch
 
 @contextmanager
 def skip_minio_connection():
-    """Context manager to test MinIO service with MINIO_SKIP_CONNECT enabled."""
-    with patch.dict(os.environ, {"MINIO_SKIP_CONNECT": "1"}):
+    """Context manager to test MinIO service with BUCKET_SKIP_CONNECT enabled."""
+    with patch.dict(os.environ, {"BUCKET_SKIP_CONNECT": "1"}):
         import importlib
 
         from app.services import minio_service
@@ -27,35 +27,35 @@ class TestMinioService:
     """Tests for MinIO service initialization and operations."""
 
     def test_minio_service_skip_connect(self):
-        """Test that MinIO service skips connection when MINIO_SKIP_CONNECT is set."""
+        """Test that MinIO service skips connection when BUCKET_SKIP_CONNECT is set."""
         with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             assert service.client is None
             assert service.bucket_name == "raqeem-screenshots"
 
     def test_minio_service_upload_file_skip_connect(self):
-        """Test upload_file when MINIO_SKIP_CONNECT is enabled."""
+        """Test upload_file when BUCKET_SKIP_CONNECT is enabled."""
         with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             result = service.upload_file("/tmp/test.png", "device123/test.png")
             assert result == "device123/test.png"
 
     def test_minio_service_remove_file_skip_connect(self):
-        """Test remove_file when MINIO_SKIP_CONNECT is enabled."""
+        """Test remove_file when BUCKET_SKIP_CONNECT is enabled."""
         with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             # Should not raise
             service.remove_file("device123/test.png")
 
     def test_minio_service_get_presigned_url_skip_connect(self):
-        """Test get_presigned_url when MINIO_SKIP_CONNECT is enabled."""
+        """Test get_presigned_url when BUCKET_SKIP_CONNECT is enabled."""
         with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             url = service.get_presigned_url("device123/test.png")
             assert url == "http://localhost/minio/device123/test.png"
 
     def test_minio_service_ensure_bucket_skip_connect(self):
-        """Test _ensure_bucket when MINIO_SKIP_CONNECT is enabled."""
+        """Test _ensure_bucket when BUCKET_SKIP_CONNECT is enabled."""
         with skip_minio_connection() as minio_service:
             service = minio_service.MinioService()
             # Should not raise and not attempt connection
@@ -111,7 +111,7 @@ class TestMinioServiceConstants:
         """Test SKIP_MINIO environment variable parsing."""
         # Test when not set
         with patch.dict(os.environ, {}, clear=False):
-            os.environ.pop("MINIO_SKIP_CONNECT", None)
+            os.environ.pop("BUCKET_SKIP_CONNECT", None)
             import importlib
 
             from app.services import minio_service

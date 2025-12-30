@@ -25,9 +25,9 @@ func TestInitClientCreatesClient(t *testing.T) {
 	}()
 
 	// Set environment to use non-existent endpoint that fails quickly
-	t.Setenv("MINIO_ENDPOINT", "localhost:9999")
+	t.Setenv("BUCKET_ENDPOINT", "localhost:9999")
 	// Skip connectivity check in InitClient to avoid retry timeouts
-	t.Setenv("MINIO_SKIP_CONNECT", "1")
+	t.Setenv("BUCKET_SKIP_CONNECT", "1")
 
 	// Reset client to nil
 	client = nil
@@ -74,7 +74,7 @@ func TestInitClientEnvironmentVariables(t *testing.T) {
 	}()
 
 	// Skip connectivity check to avoid network retries in tests
-	t.Setenv("MINIO_SKIP_CONNECT", "1")
+	t.Setenv("BUCKET_SKIP_CONNECT", "1")
 
 	// Reset client to nil
 	client = nil
@@ -118,8 +118,8 @@ func TestInitClientMultipleCalls(t *testing.T) {
 	}()
 
 	// Use a local invalid endpoint and skip connectivity check to avoid timeouts
-	t.Setenv("MINIO_ENDPOINT", "localhost:9999")
-	t.Setenv("MINIO_SKIP_CONNECT", "1")
+	t.Setenv("BUCKET_ENDPOINT", "localhost:9999")
+	t.Setenv("BUCKET_SKIP_CONNECT", "1")
 
 	// Reset client to nil
 	client = nil
@@ -223,7 +223,7 @@ func TestInitClientSetsGlobalClient(t *testing.T) {
 	}()
 
 	// Skip connectivity check and reset client to nil
-	t.Setenv("MINIO_SKIP_CONNECT", "1")
+	t.Setenv("BUCKET_SKIP_CONNECT", "1")
 	client = nil
 	assert.Nil(t, client, "Client should be nil before initialization")
 
@@ -242,7 +242,7 @@ func TestInitClientInitializesValidClient(t *testing.T) {
 	}()
 
 	// Skip connectivity check and reset client to nil
-	t.Setenv("MINIO_SKIP_CONNECT", "1")
+	t.Setenv("BUCKET_SKIP_CONNECT", "1")
 	client = nil
 
 	// Call InitClient
@@ -265,7 +265,7 @@ func TestInitClientAfterPreviousInitialization(t *testing.T) {
 	}()
 
 	// Skip connectivity check
-	t.Setenv("MINIO_SKIP_CONNECT", "1")
+	t.Setenv("BUCKET_SKIP_CONNECT", "1")
 	// Initialize client first time
 	client = nil
 	InitClient()

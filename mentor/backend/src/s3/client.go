@@ -20,7 +20,7 @@ var presignClient *minio.Client // separate client for public endpoint presignin
 
 // GetEndpoint returns the MinIO endpoint with environment variable fallback
 func GetEndpoint() string {
-	if endpoint := os.Getenv("MINIO_ENDPOINT"); endpoint != "" {
+	if endpoint := os.Getenv("BUCKET_ENDPOINT"); endpoint != "" {
 		return endpoint
 	}
 	return "minio.default.svc.cluster.local:9000"
@@ -28,7 +28,7 @@ func GetEndpoint() string {
 
 // GetAccessKey returns the MinIO access key with environment variable fallback
 func GetAccessKey() string {
-	if accessKey := os.Getenv("MINIO_ACCESS_KEY"); accessKey != "" {
+	if accessKey := os.Getenv("BUCKET_ACCESS_KEY"); accessKey != "" {
 		return accessKey
 	}
 	return "minioadmin"
@@ -36,7 +36,7 @@ func GetAccessKey() string {
 
 // GetSecretKey returns the MinIO secret key with environment variable fallback
 func GetSecretKey() string {
-	if secretKey := os.Getenv("MINIO_SECRET_KEY"); secretKey != "" {
+	if secretKey := os.Getenv("BUCKET_SECRET_KEY"); secretKey != "" {
 		return secretKey
 	}
 	return "minioadmin1234"
@@ -44,16 +44,16 @@ func GetSecretKey() string {
 
 // GetBucketName returns the MinIO bucket name with environment variable fallback
 func GetBucketName() string {
-	if bucketName := os.Getenv("MINIO_BUCKET_NAME"); bucketName != "" {
+	if bucketName := os.Getenv("BUCKET_NAME"); bucketName != "" {
 		return bucketName
 	}
 	return "raqeem-screenshots"
 }
 
 // GetPublicEndpoint returns externally reachable MinIO endpoint used for browser presigned URLs.
-// Falls back to internal endpoint if MINIO_PUBLIC_ENDPOINT is not set.
+// Falls back to internal endpoint if BUCKET_PUBLIC_ENDPOINT is not set.
 func GetPublicEndpoint() string {
-	if publicEndpoint := os.Getenv("MINIO_PUBLIC_ENDPOINT"); publicEndpoint != "" {
+	if publicEndpoint := os.Getenv("BUCKET_PUBLIC_ENDPOINT"); publicEndpoint != "" {
 		return publicEndpoint
 	}
 	return GetEndpoint()
@@ -89,7 +89,7 @@ func InitClient() {
 		}
 
 		// Allow tests to skip the connectivity check to avoid long network timeouts
-		if os.Getenv("MINIO_SKIP_CONNECT") == "1" {
+		if os.Getenv("BUCKET_SKIP_CONNECT") == "1" {
 			return nil
 		}
 

@@ -14,30 +14,25 @@ fi
 
 NAMESPACE=${NAMESPACE:-default}
 BUILD_IMAGES=${BUILD_IMAGES:-true}
-MENTOR_FRONTEND_START_PORT=${MENTOR_FRONTEND_PORT_RANGE_START:-5000}
-DEVICES_FRONTEND_START_PORT=${DEVICES_FRONTEND_PORT_RANGE_START:-4000}
 MENTOR_BACKEND_PORT_PREF=${MENTOR_BACKEND_PREFERRED_NODEPORT:-30090}
 
 source "$ROOT_DIR/scripts/service-discovery.sh"
+source "$ROOT_DIR/scripts/preflight.sh"
 
 echo "🚀 Starting Mentor Backend (namespace=$NAMESPACE)..."
 
-for cmd in kubectl helm docker; do
-  command -v "$cmd" >/dev/null 2>&1 || { echo "❌ Missing $cmd"; exit 1; }
-done
-kubectl cluster-info >/dev/null 2>&1 || { echo "❌ kubectl cannot reach cluster"; exit 1; }
+# Preflight
+ensure_docker_running || exit 1
+ensure_helm_ready || exit 1
+ensure_kube_ready || exit 1
 
 if [[ "$BUILD_IMAGES" == "true" ]]; then
   echo "🔨 Building local backend images..."
   "$ROOT_DIR/scripts/build-local-images.sh"
 fi
 
-# CORS regex for FE ranges
-MENTOR_RANGE_START=$MENTOR_FRONTEND_START_PORT
-MENTOR_RANGE_END=$((MENTOR_RANGE_START + 4))
-DEVICES_RANGE_START=$DEVICES_FRONTEND_START_PORT
-DEVICES_RANGE_END=$((DEVICES_RANGE_START + 4))
-CORS_REGEX="^http://localhost:($(seq -s'|' $DEVICES_RANGE_START $DEVICES_RANGE_END)|$(seq -s'|' $MENTOR_RANGE_START $MENTOR_RANGE_END))\$"
+# CORS regex: default allows any localhost port; override via CORS_ORIGIN_REGEX
+CORS_REGEX=${CORS_ORIGIN_REGEX:-^http://localhost(:[0-9]+)?$}
 
 # NodePort selection
 MENTOR_BACKEND_PORT=$(find_available_backend_port "$MENTOR_BACKEND_PORT_PREF" 5)
@@ -59,6 +54,17 @@ HELM_ARGS=(
 )
 if [[ -n "$DEVICES_API_URL" ]]; then
   HELM_ARGS+=( --set-string devicesApiUrl="$DEVICES_API_URL" )
+fi
+
+# Optional object storage overrides from .env (BUCKET_*)
+if [[ -n "$BUCKET_ENDPOINT" ]]; then
+  HELM_ARGS+=( --set-string minio.endpoint="$BUCKET_ENDPOINT" )
+fi
+if [[ -n "$BUCKET_PUBLIC_ENDPOINT" ]]; then
+  HELM_ARGS+=( --set-string minio.publicEndpoint="$BUCKET_PUBLIC_ENDPOINT" )
+fi
+if [[ -n "$BUCKET_NAME" ]]; then
+  HELM_ARGS+=( --set-string minio.bucket="$BUCKET_NAME" )
 fi
 
 helm upgrade --install mentor-backend "$ROOT_DIR/charts/mentor-backend" "${HELM_ARGS[@]}"

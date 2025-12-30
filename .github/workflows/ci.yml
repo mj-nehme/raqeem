@@ -338,10 +338,10 @@ jobs:
           DATABASE_URL: postgresql+asyncpg://monitor:password@127.0.0.1:5432/monitoring_db
           SECRET_KEY: test-secret-key-for-ci
           ACCESS_TOKEN_EXPIRE_MINUTES: 10080
-          MINIO_ENDPOINT: 127.0.0.1:9000
-          MINIO_ACCESS_KEY: minio
-          MINIO_SECRET_KEY: miniosecret
-          MINIO_SECURE: "false"
+          BUCKET_ENDPOINT: 127.0.0.1:9000
+          BUCKET_ACCESS_KEY: minio
+          BUCKET_SECRET_KEY: miniosecret
+          BUCKET_SECURE: "false"
           MENTOR_API_URL: http://127.0.0.1:8080
         run: pytest -v --tb=short --cov=app --cov-report=xml:coverage.xml --cov-report=term --maxfail=1
       - name: Upload Python coverage to Codecov
@@ -399,10 +399,10 @@ jobs:
           POSTGRES_DB: monitoring_db
           POSTGRES_HOST: 127.0.0.1
           POSTGRES_PORT: "5432"
-          MINIO_ENDPOINT: "http://127.0.0.1:9000"
-          MINIO_ACCESS_KEY: "minio"
-          MINIO_SECRET_KEY: "miniosecret"
-          MINIO_BUCKET_NAME: "raqeem-screenshots"
+          BUCKET_ENDPOINT: "http://127.0.0.1:9000"
+          BUCKET_ACCESS_KEY: "minio"
+          BUCKET_SECRET_KEY: "miniosecret"
+          BUCKET_NAME: "raqeem-screenshots"
           USE_POSTGRES_FOR_TESTS: "1"
         run: go test ./... -v -race -p 1 -coverprofile=coverage.out
       - name: Upload Go coverage to Codecov

@@ -70,39 +70,39 @@ func TestHealthCheck(t *testing.T) {
 func TestInitClient(t *testing.T) {
 	t.Run("initializes with environment variables", func(t *testing.T) {
 		// Save original values
-		originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-		originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
-		originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
-		originalSkipConnect := os.Getenv("MINIO_SKIP_CONNECT")
+		originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+		originalAccessKey := os.Getenv("BUCKET_ACCESS_KEY")
+		originalSecretKey := os.Getenv("BUCKET_SECRET_KEY")
+		originalSkipConnect := os.Getenv("BUCKET_SKIP_CONNECT")
 		originalClient := client
 
 		// Set test environment variables
-		_ = os.Setenv("MINIO_ENDPOINT", "test-endpoint:9000")
-		_ = os.Setenv("MINIO_ACCESS_KEY", "test-access")
-		_ = os.Setenv("MINIO_SECRET_KEY", "test-secret")
-		_ = os.Setenv("MINIO_SKIP_CONNECT", "1") // Skip connectivity check
+		_ = os.Setenv("BUCKET_ENDPOINT", "test-endpoint:9000")
+		_ = os.Setenv("BUCKET_ACCESS_KEY", "test-access")
+		_ = os.Setenv("BUCKET_SECRET_KEY", "test-secret")
+		_ = os.Setenv("BUCKET_SKIP_CONNECT", "1") // Skip connectivity check
 
 		// Restore after test
 		defer func() {
 			if originalEndpoint != "" {
-				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 			} else {
-				_ = os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("BUCKET_ENDPOINT")
 			}
 			if originalAccessKey != "" {
-				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("BUCKET_ACCESS_KEY", originalAccessKey)
 			} else {
-				_ = os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 			}
 			if originalSecretKey != "" {
-				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("BUCKET_SECRET_KEY", originalSecretKey)
 			} else {
-				_ = os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("BUCKET_SECRET_KEY")
 			}
 			if originalSkipConnect != "" {
-				_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+				_ = os.Setenv("BUCKET_SKIP_CONNECT", originalSkipConnect)
 			} else {
-				_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+				_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 			}
 			client = originalClient
 		}()
@@ -116,39 +116,39 @@ func TestInitClient(t *testing.T) {
 
 	t.Run("handles initialization failure gracefully", func(t *testing.T) {
 		// Save original values
-		originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-		originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
-		originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
-		originalSkipConnect := os.Getenv("MINIO_SKIP_CONNECT")
+		originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+		originalAccessKey := os.Getenv("BUCKET_ACCESS_KEY")
+		originalSecretKey := os.Getenv("BUCKET_SECRET_KEY")
+		originalSkipConnect := os.Getenv("BUCKET_SKIP_CONNECT")
 		originalClient := client
 
 		// Set invalid endpoint (will fail to connect but not crash)
-		_ = os.Setenv("MINIO_ENDPOINT", "invalid-endpoint-that-does-not-exist:9000")
-		_ = os.Setenv("MINIO_ACCESS_KEY", "test")
-		_ = os.Setenv("MINIO_SECRET_KEY", "test")
-		_ = os.Unsetenv("MINIO_SKIP_CONNECT") // Don't skip connect to test failure path
+		_ = os.Setenv("BUCKET_ENDPOINT", "invalid-endpoint-that-does-not-exist:9000")
+		_ = os.Setenv("BUCKET_ACCESS_KEY", "test")
+		_ = os.Setenv("BUCKET_SECRET_KEY", "test")
+		_ = os.Unsetenv("BUCKET_SKIP_CONNECT") // Don't skip connect to test failure path
 
 		// Restore after test
 		defer func() {
 			if originalEndpoint != "" {
-				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 			} else {
-				_ = os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("BUCKET_ENDPOINT")
 			}
 			if originalAccessKey != "" {
-				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("BUCKET_ACCESS_KEY", originalAccessKey)
 			} else {
-				_ = os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 			}
 			if originalSecretKey != "" {
-				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("BUCKET_SECRET_KEY", originalSecretKey)
 			} else {
-				_ = os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("BUCKET_SECRET_KEY")
 			}
 			if originalSkipConnect != "" {
-				_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+				_ = os.Setenv("BUCKET_SKIP_CONNECT", originalSkipConnect)
 			} else {
-				_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+				_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 			}
 			client = originalClient
 		}()
@@ -159,41 +159,41 @@ func TestInitClient(t *testing.T) {
 		// The important thing is that it doesn't crash
 	})
 
-	t.Run("skips connection check when MINIO_SKIP_CONNECT is set", func(t *testing.T) {
+	t.Run("skips connection check when BUCKET_SKIP_CONNECT is set", func(t *testing.T) {
 		// Save original values
-		originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-		originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
-		originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
-		originalSkipConnect := os.Getenv("MINIO_SKIP_CONNECT")
+		originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+		originalAccessKey := os.Getenv("BUCKET_ACCESS_KEY")
+		originalSecretKey := os.Getenv("BUCKET_SECRET_KEY")
+		originalSkipConnect := os.Getenv("BUCKET_SKIP_CONNECT")
 		originalClient := client
 
 		// Set environment to skip connection
-		_ = os.Setenv("MINIO_ENDPOINT", "any-endpoint:9000")
-		_ = os.Setenv("MINIO_ACCESS_KEY", "any-key")
-		_ = os.Setenv("MINIO_SECRET_KEY", "any-secret")
-		_ = os.Setenv("MINIO_SKIP_CONNECT", "1")
+		_ = os.Setenv("BUCKET_ENDPOINT", "any-endpoint:9000")
+		_ = os.Setenv("BUCKET_ACCESS_KEY", "any-key")
+		_ = os.Setenv("BUCKET_SECRET_KEY", "any-secret")
+		_ = os.Setenv("BUCKET_SKIP_CONNECT", "1")
 
 		// Restore after test
 		defer func() {
 			if originalEndpoint != "" {
-				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 			} else {
-				_ = os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("BUCKET_ENDPOINT")
 			}
 			if originalAccessKey != "" {
-				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("BUCKET_ACCESS_KEY", originalAccessKey)
 			} else {
-				_ = os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 			}
 			if originalSecretKey != "" {
-				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("BUCKET_SECRET_KEY", originalSecretKey)
 			} else {
-				_ = os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("BUCKET_SECRET_KEY")
 			}
 			if originalSkipConnect != "" {
-				_ = os.Setenv("MINIO_SKIP_CONNECT", originalSkipConnect)
+				_ = os.Setenv("BUCKET_SKIP_CONNECT", originalSkipConnect)
 			} else {
-				_ = os.Unsetenv("MINIO_SKIP_CONNECT")
+				_ = os.Unsetenv("BUCKET_SKIP_CONNECT")
 			}
 			client = originalClient
 		}()
@@ -211,25 +211,25 @@ func TestInitClient(t *testing.T) {
 
 func TestGetFunctions(t *testing.T) {
 	t.Run("GetEndpoint returns environment variable", func(t *testing.T) {
-		originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+		originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 		defer func() {
 			if originalEndpoint != "" {
-				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 			} else {
-				_ = os.Unsetenv("MINIO_ENDPOINT")
+				_ = os.Unsetenv("BUCKET_ENDPOINT")
 			}
 		}()
 
-		_ = os.Setenv("MINIO_ENDPOINT", "custom-endpoint:9000")
+		_ = os.Setenv("BUCKET_ENDPOINT", "custom-endpoint:9000")
 		assert.Equal(t, "custom-endpoint:9000", GetEndpoint())
 	})
 
 	t.Run("GetEndpoint returns default when not set", func(t *testing.T) {
-		originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-		_ = os.Unsetenv("MINIO_ENDPOINT")
+		originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+		_ = os.Unsetenv("BUCKET_ENDPOINT")
 		defer func() {
 			if originalEndpoint != "" {
-				_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+				_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 			}
 		}()
 
@@ -237,25 +237,25 @@ func TestGetFunctions(t *testing.T) {
 	})
 
 	t.Run("GetAccessKey returns environment variable", func(t *testing.T) {
-		originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
+		originalAccessKey := os.Getenv("BUCKET_ACCESS_KEY")
 		defer func() {
 			if originalAccessKey != "" {
-				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("BUCKET_ACCESS_KEY", originalAccessKey)
 			} else {
-				_ = os.Unsetenv("MINIO_ACCESS_KEY")
+				_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 			}
 		}()
 
-		_ = os.Setenv("MINIO_ACCESS_KEY", "custom-access-key")
+		_ = os.Setenv("BUCKET_ACCESS_KEY", "custom-access-key")
 		assert.Equal(t, "custom-access-key", GetAccessKey())
 	})
 
 	t.Run("GetAccessKey returns default when not set", func(t *testing.T) {
-		originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
-		_ = os.Unsetenv("MINIO_ACCESS_KEY")
+		originalAccessKey := os.Getenv("BUCKET_ACCESS_KEY")
+		_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 		defer func() {
 			if originalAccessKey != "" {
-				_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+				_ = os.Setenv("BUCKET_ACCESS_KEY", originalAccessKey)
 			}
 		}()
 
@@ -263,25 +263,25 @@ func TestGetFunctions(t *testing.T) {
 	})
 
 	t.Run("GetSecretKey returns environment variable", func(t *testing.T) {
-		originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
+		originalSecretKey := os.Getenv("BUCKET_SECRET_KEY")
 		defer func() {
 			if originalSecretKey != "" {
-				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("BUCKET_SECRET_KEY", originalSecretKey)
 			} else {
-				_ = os.Unsetenv("MINIO_SECRET_KEY")
+				_ = os.Unsetenv("BUCKET_SECRET_KEY")
 			}
 		}()
 
-		_ = os.Setenv("MINIO_SECRET_KEY", "custom-secret-key")
+		_ = os.Setenv("BUCKET_SECRET_KEY", "custom-secret-key")
 		assert.Equal(t, "custom-secret-key", GetSecretKey())
 	})
 
 	t.Run("GetSecretKey returns default when not set", func(t *testing.T) {
-		originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
-		_ = os.Unsetenv("MINIO_SECRET_KEY")
+		originalSecretKey := os.Getenv("BUCKET_SECRET_KEY")
+		_ = os.Unsetenv("BUCKET_SECRET_KEY")
 		defer func() {
 			if originalSecretKey != "" {
-				_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+				_ = os.Setenv("BUCKET_SECRET_KEY", originalSecretKey)
 			}
 		}()
 
@@ -289,25 +289,25 @@ func TestGetFunctions(t *testing.T) {
 	})
 
 	t.Run("GetBucketName returns environment variable", func(t *testing.T) {
-		originalBucketName := os.Getenv("MINIO_BUCKET_NAME")
+		originalBucketName := os.Getenv("BUCKET_NAME")
 		defer func() {
 			if originalBucketName != "" {
-				_ = os.Setenv("MINIO_BUCKET_NAME", originalBucketName)
+				_ = os.Setenv("BUCKET_NAME", originalBucketName)
 			} else {
-				_ = os.Unsetenv("MINIO_BUCKET_NAME")
+				_ = os.Unsetenv("BUCKET_NAME")
 			}
 		}()
 
-		_ = os.Setenv("MINIO_BUCKET_NAME", "custom-bucket")
+		_ = os.Setenv("BUCKET_NAME", "custom-bucket")
 		assert.Equal(t, "custom-bucket", GetBucketName())
 	})
 
 	t.Run("GetBucketName returns default when not set", func(t *testing.T) {
-		originalBucketName := os.Getenv("MINIO_BUCKET_NAME")
-		_ = os.Unsetenv("MINIO_BUCKET_NAME")
+		originalBucketName := os.Getenv("BUCKET_NAME")
+		_ = os.Unsetenv("BUCKET_NAME")
 		defer func() {
 			if originalBucketName != "" {
-				_ = os.Setenv("MINIO_BUCKET_NAME", originalBucketName)
+				_ = os.Setenv("BUCKET_NAME", originalBucketName)
 			}
 		}()
 

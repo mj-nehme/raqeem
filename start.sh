@@ -2,6 +2,7 @@
 set -e
 
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$ROOT_DIR/scripts/preflight.sh"
 
 usage() {
 	cat <<USAGE
@@ -25,6 +26,22 @@ USAGE
 }
 
 TARGET=${1:-all}
+
+# Determine if target needs k8s/helm/docker
+needs_cluster() {
+	case "$1" in
+		all|infra|postgres|minio|mentor-backend|devices-backend|smart)
+			return 0 ;;
+		*)
+			return 1 ;;
+	esac
+}
+
+if needs_cluster "$TARGET"; then
+	ensure_docker_running || exit 1
+	ensure_helm_ready || exit 1
+	ensure_kube_ready || exit 1
+fi
 
 case "$TARGET" in
 	all)

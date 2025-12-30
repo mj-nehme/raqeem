@@ -21,9 +21,9 @@ class TestSettingsWithoutDatabase:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -46,10 +46,10 @@ class TestSettingsWithoutDatabase:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
-            "MINIO_SECURE": "false",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
+            "BUCKET_SECURE": "false",
             "SECRET_KEY": "test-secret-key",
             "ACCESS_TOKEN_EXPIRE_MINUTES": "1440",  # 1 day
             "MENTOR_API_URL": "http://localhost:8080",
@@ -73,9 +73,9 @@ class TestSettingsWithoutDatabase:
     @mock.patch.dict(
         os.environ,
         {
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -93,66 +93,66 @@ class TestSettingsWithoutDatabase:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
     )
     def test_settings_missing_minio_endpoint(self):
-        """Test that ValidationError is raised when MINIO_ENDPOINT is missing."""
+        """Test that ValidationError is raised when BUCKET_ENDPOINT is missing."""
         from app.core.config import Settings
 
         with pytest.raises(ValidationError) as exc_info:
             Settings()
 
-        assert "MINIO_ENDPOINT" in str(exc_info.value) or "minio_endpoint" in str(exc_info.value)
+        assert "BUCKET_ENDPOINT" in str(exc_info.value) or "minio_endpoint" in str(exc_info.value)
 
     @mock.patch.dict(
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
     )
     def test_settings_missing_minio_access_key(self):
-        """Test that ValidationError is raised when MINIO_ACCESS_KEY is missing."""
+        """Test that ValidationError is raised when BUCKET_ACCESS_KEY is missing."""
         from app.core.config import Settings
 
         with pytest.raises(ValidationError) as exc_info:
             Settings()
 
-        assert "MINIO_ACCESS_KEY" in str(exc_info.value) or "minio_access_key" in str(exc_info.value)
+        assert "BUCKET_ACCESS_KEY" in str(exc_info.value) or "minio_access_key" in str(exc_info.value)
 
     @mock.patch.dict(
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
     )
     def test_settings_missing_minio_secret_key(self):
-        """Test that ValidationError is raised when MINIO_SECRET_KEY is missing."""
+        """Test that ValidationError is raised when BUCKET_SECRET_KEY is missing."""
         from app.core.config import Settings
 
         with pytest.raises(ValidationError) as exc_info:
             Settings()
 
-        assert "MINIO_SECRET_KEY" in str(exc_info.value) or "minio_secret_key" in str(exc_info.value)
+        assert "BUCKET_SECRET_KEY" in str(exc_info.value) or "minio_secret_key" in str(exc_info.value)
 
     @mock.patch.dict(
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
         },
         clear=True,
     )
@@ -169,15 +169,15 @@ class TestSettingsWithoutDatabase:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
-            "MINIO_SECURE": "true",
+            "BUCKET_SECURE": "true",
         },
     )
     def test_minio_secure_boolean_conversion(self):
-        """Test that MINIO_SECURE is properly converted to boolean."""
+        """Test that BUCKET_SECURE is properly converted to boolean."""
         from app.core.config import Settings
 
         settings = Settings()
@@ -187,9 +187,9 @@ class TestSettingsWithoutDatabase:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
             "ACCESS_TOKEN_EXPIRE_MINUTES": "2880",  # 2 days
         },
@@ -206,11 +206,11 @@ class TestSettingsWithoutDatabase:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "https://s3.amazonaws.com",
-            "MINIO_ACCESS_KEY": "AKIAIOSFODNN7EXAMPLE",
-            "MINIO_SECRET_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+            "BUCKET_ENDPOINT": "https://s3.amazonaws.com",
+            "BUCKET_ACCESS_KEY": "AKIAIOSFODNN7EXAMPLE",
+            "BUCKET_SECRET_KEY": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
             "SECRET_KEY": "super-secret-key-for-production",
-            "MINIO_SECURE": "true",
+            "BUCKET_SECURE": "true",
         },
     )
     def test_production_like_settings(self):
@@ -234,9 +234,9 @@ class TestConfigurationValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
     )
@@ -252,9 +252,9 @@ class TestConfigurationValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
     )
@@ -271,9 +271,9 @@ class TestConfigurationValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "short",  # Short key
         },
     )
@@ -299,7 +299,7 @@ class TestEnvironmentHandling:
 
     @mock.patch.dict(
         os.environ,
-        {"DATABASE_URL": "", "MINIO_ENDPOINT": "", "MINIO_ACCESS_KEY": "", "MINIO_SECRET_KEY": "", "SECRET_KEY": ""},
+        {"DATABASE_URL": "", "BUCKET_ENDPOINT": "", "BUCKET_ACCESS_KEY": "", "BUCKET_SECRET_KEY": "", "SECRET_KEY": ""},
         clear=True,
     )
     def test_empty_string_environment_variables(self):
@@ -321,9 +321,9 @@ class TestEnvironmentHandling:
         os.environ,
         {
             "DATABASE_URL": "  postgresql+asyncpg://test:test@localhost/test  ",
-            "MINIO_ENDPOINT": "  http://localhost:9000  ",
-            "MINIO_ACCESS_KEY": "  test  ",
-            "MINIO_SECRET_KEY": "  test  ",
+            "BUCKET_ENDPOINT": "  http://localhost:9000  ",
+            "BUCKET_ACCESS_KEY": "  test  ",
+            "BUCKET_SECRET_KEY": "  test  ",
             "SECRET_KEY": "  test-secret-key  ",
         },
         clear=True,
@@ -349,9 +349,9 @@ class TestMinioEndpointValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -367,9 +367,9 @@ class TestMinioEndpointValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -385,9 +385,9 @@ class TestMinioEndpointValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "https://s3.amazonaws.com",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "https://s3.amazonaws.com",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -403,9 +403,9 @@ class TestMinioEndpointValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "minio:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "minio:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -421,9 +421,9 @@ class TestMinioEndpointValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "http://localhost:9000/minio",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "http://localhost:9000/minio",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -443,9 +443,9 @@ class TestMinioEndpointValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "  http://localhost:9000  ",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "  http://localhost:9000  ",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,
@@ -462,9 +462,9 @@ class TestMinioEndpointValidation:
         os.environ,
         {
             "DATABASE_URL": "postgresql+asyncpg://test:test@localhost/test",
-            "MINIO_ENDPOINT": "https://storage.example.com:9000",
-            "MINIO_ACCESS_KEY": "test",
-            "MINIO_SECRET_KEY": "test",
+            "BUCKET_ENDPOINT": "https://storage.example.com:9000",
+            "BUCKET_ACCESS_KEY": "test",
+            "BUCKET_SECRET_KEY": "test",
             "SECRET_KEY": "test-secret-key",
         },
         clear=True,

@@ -139,7 +139,7 @@ export DEVICES_BACKEND_URL=http://localhost:8081
 export MENTOR_BACKEND_URL=http://localhost:8080
 export POSTGRES_HOST=localhost
 export POSTGRES_PORT=5432
-export MINIO_ENDPOINT=localhost:9000
+export BUCKET_ENDPOINT=localhost:9000
 ```
 
 ### Command-Line Options

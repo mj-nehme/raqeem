@@ -34,26 +34,31 @@ class Settings(BaseSettings):
         description="PostgreSQL database connection URL with asyncpg driver",
     )
 
-    # MinIO configuration
+    # MinIO/S3-compatible object storage configuration
     minio_endpoint: str = Field(
         ...,
-        validation_alias=AliasChoices("MINIO_ENDPOINT"),
-        description="MinIO/S3 server endpoint (host:port or with protocol for compatibility)",
+        validation_alias=AliasChoices("BUCKET_ENDPOINT", "BUCKET_ENDPOINT"),
+        description="S3/MinIO endpoint (host:port or with protocol for compatibility)",
     )
-    minio_access_key: str = Field(
-        ...,
-        validation_alias=AliasChoices("MINIO_ACCESS_KEY"),
-        description="MinIO/S3 access key for authentication",
+    minio_access_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("BUCKET_ACCESS_KEY", "BUCKET_ACCESS_KEY"),
+        description="Access key for S3/MinIO (omit when using IAM/IRSA)",
     )
-    minio_secret_key: str = Field(
-        ...,
-        validation_alias=AliasChoices("MINIO_SECRET_KEY"),
-        description="MinIO/S3 secret key for authentication",
+    minio_secret_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("BUCKET_SECRET_KEY", "BUCKET_SECRET_KEY"),
+        description="Secret key for S3/MinIO (omit when using IAM/IRSA)",
     )
     minio_secure: bool = Field(
         default=True,
-        validation_alias=AliasChoices("MINIO_SECURE"),
-        description="Use HTTPS for MinIO connections (default: True)",
+        validation_alias=AliasChoices("BUCKET_SECURE", "BUCKET_SECURE"),
+        description="Use HTTPS for S3/MinIO connections (default: True)",
+    )
+    minio_bucket_name: str = Field(
+        default="raqeem-screenshots",
+        validation_alias=AliasChoices("BUCKET_NAME", "BUCKET_NAME"),
+        description="Bucket name for storing screenshots and artifacts",
     )
 
     # Security settings
@@ -129,7 +134,7 @@ class Settings(BaseSettings):
         # Check for path component (not supported by MinIO client)
         if parsed.path and parsed.path != "/":
             msg = (
-                f"MINIO_ENDPOINT cannot contain a path component ('{parsed.path}'). "
+                f"BUCKET_ENDPOINT/BUCKET_ENDPOINT cannot contain a path component ('{parsed.path}'). "
                 "MinIO client only supports 'host:port' format. "
                 "Please remove the path from the endpoint."
             )
@@ -142,7 +147,7 @@ class Settings(BaseSettings):
         # Log if we stripped the protocol for transparency
         if v != endpoint:
             logger.info(
-                "Sanitized MINIO_ENDPOINT by removing protocol: '%s' -> '%s'",
+                "Sanitized BUCKET_ENDPOINT by removing protocol: '%s' -> '%s'",
                 v,
                 endpoint,
             )

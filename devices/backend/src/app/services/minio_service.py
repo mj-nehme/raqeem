@@ -37,7 +37,7 @@ class MinioURLError(MinioServiceError):
     """Exception raised when presigned URL generation fails."""
 
 
-SKIP_MINIO = os.getenv("MINIO_SKIP_CONNECT") == "1"
+SKIP_MINIO = os.getenv("BUCKET_SKIP_CONNECT") == "1"
 
 
 class MinioService:
@@ -57,10 +57,10 @@ class MinioService:
 
     def __init__(self):
         """Initialize MinIO client and ensure bucket exists."""
-        self.bucket_name = "raqeem-screenshots"
+        self.bucket_name = settings.minio_bucket_name
         if SKIP_MINIO:
             logger.info(
-                "MINIO_SKIP_CONNECT=1 detected - skipping MinIO connectivity and bucket check",
+                "BUCKET_SKIP_CONNECT=1 detected - skipping MinIO connectivity and bucket check",
                 extra={"bucket": self.bucket_name},
             )
             self.client = None  # type: ignore[assignment]
@@ -73,8 +73,8 @@ class MinioService:
             )
             self.client = Minio(
                 endpoint=settings.minio_endpoint,
-                access_key=settings.minio_access_key,
-                secret_key=settings.minio_secret_key,
+                access_key=settings.minio_access_key or "",
+                secret_key=settings.minio_secret_key or "",
                 secure=settings.minio_secure,
             )
             logger.info("MinIO client initialized successfully")
@@ -97,7 +97,7 @@ class MinioService:
         if SKIP_MINIO:
             # Short-circuit bucket check during tests when connectivity is skipped
             logger.debug(
-                "Skipping MinIO bucket check (MINIO_SKIP_CONNECT=1)",
+                "Skipping MinIO bucket check (BUCKET_SKIP_CONNECT=1)",
                 extra={"bucket": self.bucket_name},
             )
             return
@@ -139,7 +139,7 @@ class MinioService:
         """
         if SKIP_MINIO:
             logger.debug(
-                "Skipping MinIO upload (MINIO_SKIP_CONNECT=1)",
+                "Skipping MinIO upload (BUCKET_SKIP_CONNECT=1)",
                 extra={"bucket": self.bucket_name, "object_name": object_name, "file_path": file_path},
             )
             return object_name
@@ -196,7 +196,7 @@ class MinioService:
         """
         if SKIP_MINIO:
             logger.debug(
-                "Skipping MinIO remove (MINIO_SKIP_CONNECT=1)",
+                "Skipping MinIO remove (BUCKET_SKIP_CONNECT=1)",
                 extra={"bucket": self.bucket_name, "object_name": object_name},
             )
             return
@@ -255,7 +255,7 @@ class MinioService:
         """
         if SKIP_MINIO:
             logger.debug(
-                "Skipping presigned URL generation (MINIO_SKIP_CONNECT=1)",
+                "Skipping presigned URL generation (BUCKET_SKIP_CONNECT=1)",
                 extra={"bucket": self.bucket_name, "object_name": object_name, "expires": expires},
             )
             # Return deterministic placeholder URL for tests

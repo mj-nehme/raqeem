@@ -9,10 +9,10 @@ import pytest
 # Set environment variables before importing
 TEST_ENV_VARS = {
     "DATABASE_URL": "postgresql://test:test@localhost:5432/test_db",
-    "MINIO_ENDPOINT": "localhost:9000",
-    "MINIO_ACCESS_KEY": "test_access_key",
-    "MINIO_SECRET_KEY": "test_secret_key",
-    "MINIO_BUCKET_NAME": "test-bucket",
+    "BUCKET_ENDPOINT": "localhost:9000",
+    "BUCKET_ACCESS_KEY": "test_access_key",
+    "BUCKET_SECRET_KEY": "test_secret_key",
+    "BUCKET_NAME": "test-bucket",
     "JWT_SECRET_KEY": "test_jwt_secret_key_for_testing_purposes_only",
     "ACCESS_TOKEN_EXPIRE_MINUTES": "30",
     "MENTOR_BACKEND_URL": "http://localhost:8080",

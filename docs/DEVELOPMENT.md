@@ -135,10 +135,10 @@ kubectl port-forward svc/minio-service 9000:9000 9001:9001 -n default &
 
 # 3. Set up environment variables
 export DATABASE_URL="postgresql://monitor:password@localhost:5432/monitoring_db"
-export MINIO_ENDPOINT="localhost:9000"
-export MINIO_ACCESS_KEY="minioadmin"
-export MINIO_SECRET_KEY="minioadmin"
-export MINIO_BUCKET_NAME="screenshots"
+export BUCKET_ENDPOINT="localhost:9000"
+export BUCKET_ACCESS_KEY="minioadmin"
+export BUCKET_SECRET_KEY="minioadmin"
+export BUCKET_NAME="screenshots"
 
 # 4. Run backends locally
 # Terminal 1: Devices Backend

@@ -14,30 +14,25 @@ fi
 
 NAMESPACE=${NAMESPACE:-default}
 BUILD_IMAGES=${BUILD_IMAGES:-true}
-DEVICES_FRONTEND_START_PORT=${DEVICES_FRONTEND_PORT_RANGE_START:-4000}
-MENTOR_FRONTEND_START_PORT=${MENTOR_FRONTEND_PORT_RANGE_START:-5000}
 DEVICES_BACKEND_PORT_PREF=${DEVICES_BACKEND_PREFERRED_NODEPORT:-30080}
 
 source "$ROOT_DIR/scripts/service-discovery.sh"
+source "$ROOT_DIR/scripts/preflight.sh"
 
 echo "🚀 Starting Devices Backend (namespace=$NAMESPACE)..."
 
-for cmd in kubectl helm docker; do
-  command -v "$cmd" >/dev/null 2>&1 || { echo "❌ Missing $cmd"; exit 1; }
-done
-kubectl cluster-info >/dev/null 2>&1 || { echo "❌ kubectl cannot reach cluster"; exit 1; }
+# Preflight
+ensure_docker_running || exit 1
+ensure_helm_ready || exit 1
+ensure_kube_ready || exit 1
 
 if [[ "$BUILD_IMAGES" == "true" ]]; then
   echo "🔨 Building local backend images..."
   "$ROOT_DIR/scripts/build-local-images.sh"
 fi
 
-# CORS regex for FE ranges
-DEVICES_RANGE_START=$DEVICES_FRONTEND_START_PORT
-DEVICES_RANGE_END=$((DEVICES_RANGE_START + 4))
-MENTOR_RANGE_START=$MENTOR_FRONTEND_START_PORT
-MENTOR_RANGE_END=$((MENTOR_RANGE_START + 4))
-CORS_REGEX="^http://localhost:($(seq -s'|' $DEVICES_RANGE_START $DEVICES_RANGE_END)|$(seq -s'|' $MENTOR_RANGE_START $MENTOR_RANGE_END))\$"
+# CORS regex: default allows any localhost port; override via CORS_ORIGIN_REGEX
+CORS_REGEX=${CORS_ORIGIN_REGEX:-^http://localhost(:[0-9]+)?$}
 
 # NodePort selection
 DEVICES_BACKEND_PORT=$(find_available_backend_port "$DEVICES_BACKEND_PORT_PREF" 5)

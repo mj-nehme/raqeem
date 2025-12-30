@@ -11,61 +11,61 @@ import (
 
 func TestGetEndpoint(t *testing.T) {
 	// Save original environment
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
 	defer func() {
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 	}()
 
 	// Test default endpoint
-	_ = os.Unsetenv("MINIO_ENDPOINT")
+	_ = os.Unsetenv("BUCKET_ENDPOINT")
 	assert.Equal(t, "minio.default.svc.cluster.local:9000", GetEndpoint())
 
 	// Test custom endpoint from environment
-	_ = os.Setenv("MINIO_ENDPOINT", "custom-minio:9000")
+	_ = os.Setenv("BUCKET_ENDPOINT", "custom-minio:9000")
 	assert.Equal(t, "custom-minio:9000", GetEndpoint())
 }
 
 func TestGetAccessKey(t *testing.T) {
 	// Save original environment
-	originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
+	originalAccessKey := os.Getenv("BUCKET_ACCESS_KEY")
 	defer func() {
 		if originalAccessKey != "" {
-			_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+			_ = os.Setenv("BUCKET_ACCESS_KEY", originalAccessKey)
 		} else {
-			_ = os.Unsetenv("MINIO_ACCESS_KEY")
+			_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 		}
 	}()
 
 	// Test default access key
-	_ = os.Unsetenv("MINIO_ACCESS_KEY")
+	_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 	assert.Equal(t, "minioadmin", GetAccessKey())
 
 	// Test custom access key from environment
-	_ = os.Setenv("MINIO_ACCESS_KEY", "customuser")
+	_ = os.Setenv("BUCKET_ACCESS_KEY", "customuser")
 	assert.Equal(t, "customuser", GetAccessKey())
 }
 
 func TestGetSecretKey(t *testing.T) {
 	// Save original environment
-	originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
+	originalSecretKey := os.Getenv("BUCKET_SECRET_KEY")
 	defer func() {
 		if originalSecretKey != "" {
-			_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+			_ = os.Setenv("BUCKET_SECRET_KEY", originalSecretKey)
 		} else {
-			_ = os.Unsetenv("MINIO_SECRET_KEY")
+			_ = os.Unsetenv("BUCKET_SECRET_KEY")
 		}
 	}()
 
 	// Test default secret key
-	_ = os.Unsetenv("MINIO_SECRET_KEY")
+	_ = os.Unsetenv("BUCKET_SECRET_KEY")
 	assert.Equal(t, "minioadmin1234", GetSecretKey())
 
 	// Test custom secret key from environment
-	_ = os.Setenv("MINIO_SECRET_KEY", "custompass")
+	_ = os.Setenv("BUCKET_SECRET_KEY", "custompass")
 	assert.Equal(t, "custompass", GetSecretKey())
 }
 
@@ -171,34 +171,34 @@ func TestGeneratePresignedURLValidationEdgeCases(t *testing.T) {
 
 func TestInitClientWithEnvironmentVariables(t *testing.T) {
 	// Save original environment
-	originalEndpoint := os.Getenv("MINIO_ENDPOINT")
-	originalAccessKey := os.Getenv("MINIO_ACCESS_KEY")
-	originalSecretKey := os.Getenv("MINIO_SECRET_KEY")
+	originalEndpoint := os.Getenv("BUCKET_ENDPOINT")
+	originalAccessKey := os.Getenv("BUCKET_ACCESS_KEY")
+	originalSecretKey := os.Getenv("BUCKET_SECRET_KEY")
 	originalClient := client
 
 	defer func() {
 		if originalEndpoint != "" {
-			_ = os.Setenv("MINIO_ENDPOINT", originalEndpoint)
+			_ = os.Setenv("BUCKET_ENDPOINT", originalEndpoint)
 		} else {
-			_ = os.Unsetenv("MINIO_ENDPOINT")
+			_ = os.Unsetenv("BUCKET_ENDPOINT")
 		}
 		if originalAccessKey != "" {
-			_ = os.Setenv("MINIO_ACCESS_KEY", originalAccessKey)
+			_ = os.Setenv("BUCKET_ACCESS_KEY", originalAccessKey)
 		} else {
-			_ = os.Unsetenv("MINIO_ACCESS_KEY")
+			_ = os.Unsetenv("BUCKET_ACCESS_KEY")
 		}
 		if originalSecretKey != "" {
-			_ = os.Setenv("MINIO_SECRET_KEY", originalSecretKey)
+			_ = os.Setenv("BUCKET_SECRET_KEY", originalSecretKey)
 		} else {
-			_ = os.Unsetenv("MINIO_SECRET_KEY")
+			_ = os.Unsetenv("BUCKET_SECRET_KEY")
 		}
 		client = originalClient
 	}()
 
 	// Set custom environment variables
-	_ = os.Setenv("MINIO_ENDPOINT", "test-minio:9000")
-	_ = os.Setenv("MINIO_ACCESS_KEY", "testuser")
-	_ = os.Setenv("MINIO_SECRET_KEY", "testpass")
+	_ = os.Setenv("BUCKET_ENDPOINT", "test-minio:9000")
+	_ = os.Setenv("BUCKET_ACCESS_KEY", "testuser")
+	_ = os.Setenv("BUCKET_SECRET_KEY", "testpass")
 
 	// Test that environment variables are used
 	assert.Equal(t, "test-minio:9000", GetEndpoint())

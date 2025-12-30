@@ -9,10 +9,10 @@ from httpx import ASGITransport, AsyncClient
 # Set minimal required env BEFORE importing app
 os.environ.setdefault("SECRET_KEY", "test-secret")
 os.environ.setdefault("ACCESS_TOKEN_EXPIRE_MINUTES", "10080")
-os.environ.setdefault("MINIO_ENDPOINT", "http://localhost:9000")
-os.environ.setdefault("MINIO_ACCESS_KEY", "minio")
-os.environ.setdefault("MINIO_SECRET_KEY", "miniosecret")
-os.environ.setdefault("MINIO_SECURE", "false")
+os.environ.setdefault("BUCKET_ENDPOINT", "http://localhost:9000")
+os.environ.setdefault("BUCKET_ACCESS_KEY", "minio")
+os.environ.setdefault("BUCKET_SECRET_KEY", "miniosecret")
+os.environ.setdefault("BUCKET_SECURE", "false")
 
 pytestmark = pytest.mark.asyncio
 

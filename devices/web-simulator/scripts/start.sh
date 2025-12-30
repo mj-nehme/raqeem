@@ -13,11 +13,14 @@ if [[ -f "$COMPONENT_DIR/.env" ]]; then
 fi
 
 source "$ROOT_DIR/scripts/service-discovery.sh"
+source "$ROOT_DIR/scripts/preflight.sh"
 
 NAMESPACE=${NAMESPACE:-default}
 PORT_START=${DEVICES_FRONTEND_START_PORT:-4000}
 
-for cmd in kubectl node npm; do
+# Preflight: ensure Kubernetes is reachable; check node/npm locally
+ensure_kube_ready || exit 1
+for cmd in node npm; do
   command -v "$cmd" >/dev/null 2>&1 || { echo "❌ Missing $cmd"; exit 1; }
 done
 

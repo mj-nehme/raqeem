@@ -28,7 +28,7 @@ func TestHealthCheckReadyAllHealthy(t *testing.T) {
 
 	// Skip if MinIO client not available
 	if s3.GetClient() == nil {
-		// Attempt initialization (allows MINIO_SKIP_CONNECT=1 fast path)
+		// Attempt initialization (allows BUCKET_SKIP_CONNECT=1 fast path)
 		s3.InitClient()
 	}
 	if s3.GetClient() == nil {

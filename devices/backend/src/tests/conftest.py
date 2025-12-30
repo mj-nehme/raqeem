@@ -17,11 +17,11 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 # Static environment variables (non-DB) for deterministic test behavior
 STATIC_TEST_ENV_VARS = {
-    "MINIO_ENDPOINT": "localhost:9000",
-    "MINIO_ACCESS_KEY": "minioadmin",
-    "MINIO_SECRET_KEY": "minioadmin",
-    "MINIO_BUCKET_NAME": "test-bucket",
-    "MINIO_SECURE": "false",
+    "BUCKET_ENDPOINT": "localhost:9000",
+    "BUCKET_ACCESS_KEY": "minioadmin",
+    "BUCKET_SECRET_KEY": "minioadmin",
+    "BUCKET_NAME": "test-bucket",
+    "BUCKET_SECURE": "false",
     "SECRET_KEY": "test_jwt_secret_key_for_testing_purposes_only",
     "ACCESS_TOKEN_EXPIRE_MINUTES": "30",
     "MENTOR_API_URL": "http://localhost:8080",

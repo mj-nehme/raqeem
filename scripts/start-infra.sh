@@ -5,6 +5,7 @@ SCRIPT_DIR="$(dirname "$0")"
 ROOT_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 source "$SCRIPT_DIR/service-discovery.sh"
+source "$SCRIPT_DIR/preflight.sh"
 
 TARGET=${1:-all}
 
@@ -12,18 +13,10 @@ echo "🚀 Starting Infra deployment (target=$TARGET)..."
 
 NAMESPACE=${NAMESPACE:-default}
 
-# Validate tools
-for cmd in kubectl helm docker; do
-  if ! command -v "$cmd" >/dev/null 2>&1; then
-    echo "❌ ERROR: Missing required command: $cmd"
-    exit 1
-  fi
-done
-
-if ! kubectl cluster-info >/dev/null 2>&1; then
-  echo "❌ ERROR: kubectl cannot reach Kubernetes cluster"
-  exit 1
-fi
+# Validate tools and services
+ensure_docker_running || exit 1
+ensure_helm_ready || exit 1
+ensure_kube_ready || exit 1
 
 # Pre-pull images to speed up deployment
 check_and_pull_images
